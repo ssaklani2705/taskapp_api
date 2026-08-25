@@ -20,7 +20,17 @@ public class UserInfo {
 	private String firstName;
 	private String email;
 	private String mobile;
+	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission) {
+		super();
+		this.userId = userId;
+		this.firstName = firstName;
+		this.email = email;
+		this.mobile = mobile;
+		this.status = status;
+		this.permission = permission;
+	}
 	private int status;
 	private String permission;
+	private String departmentName;
 
 }

@@ -33,13 +33,25 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(u.userId,u.firstName,u.email, u.mobileNo as mobile,u.status,u.permission) FROM UserLoginEntity u WHERE u.userId > 0 AND  (:statusIndex = 0 OR u.status = :statusIndex)  "
-			+ "AND (\r\n" + "            :search IS NULL OR :search = '' OR\r\n"
-			+ "            LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR\r\n"
-			+ "            LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) OR\r\n"
-			+ "            LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))\r\n"
-			+ "      )  ORDER BY u.status, u.firstName")
-	Page<UserInfo> findBasicUserInfo(Pageable pageable, @Param("statusIndex") int statusIndex, String search);
+	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
+		       "u.userId, " +
+		       "u.firstName, " +
+		       "u.email, " +
+		       "u.mobileNo, " +
+		       "u.status, " +
+		       "u.permission, " +
+		       "d.name) " +
+		       "FROM UserLoginEntity u " +
+		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
+		       "WHERE u.userId > 0 " +
+		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
+		       "AND (:search IS NULL OR :search = '' " +
+		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
+		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
+		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+		       "ORDER BY u.status, u.firstName")
+		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId
@@ -54,8 +66,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Modifying
 	@Query("UPDATE UserLoginEntity u " + "SET u.password = :password, " + "    u.sentLinkDate = :linksentdate, "
 			+ "    u.modDate = CURRENT_TIMESTAMP " + "WHERE u.email = :username")
-	int updateForgotPasswordLink(@Param("username") String username, @Param("password") String password,
-			@Param("linksentdate") Timestamp linksentdate);
+	int updateForgotPasswordLink(@Param("username") String username, @Param("password") String password,@Param("linksentdate") Timestamp linksentdate);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u " + "WHERE u.email = :email " + "AND u.userId = :userId "
 			+ "AND u.status = 1 " + "AND u.sentLinkDate > CURRENT_TIMESTAMP")

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -22,6 +23,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 public class UserLoginEntity {
 
 	@Id
@@ -82,6 +84,9 @@ public class UserLoginEntity {
 
 	@Transient
 	private List<TransactionEntity> transactionhistory;
+	
+	@Column(name = "i_departmentid")
+	private Integer departmentId;
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

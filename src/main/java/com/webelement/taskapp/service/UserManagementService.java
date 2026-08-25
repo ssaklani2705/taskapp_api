@@ -76,7 +76,8 @@ public class UserManagementService {
 
 	public UserLoginEntity getUserById(int userId) {
 		UserLoginEntity user = loginRepository.getUserById(userId);
-
+		
+		System.err.print(user.toString());
 		if (user != null) {
 
 			int newUserId = 0;
@@ -220,6 +221,7 @@ public class UserManagementService {
 						entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
 						entity.setView(defaultIfNull(m.getViewPer()));
 						entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+						
 						permissionRepo.save(entity);
 					}
 				}
@@ -262,7 +264,7 @@ public class UserManagementService {
 			user.setModDate(timestamp);
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
-
+			user.setDepartmentId(info.getDepartmentId());
 			UserLoginEntity savedUser = loginRepository.save(user);
 			return savedUser.getUserId(); // JPA auto-fills the generated ID
 
@@ -283,6 +285,7 @@ public class UserManagementService {
 		existing.setStatus(request.getStatus());
 		existing.setPermission(request.getPermission());
 		existing.setTelephone(request.getTelephone());
+		existing.setDepartmentId(request.getDepartmentId());
 		// ✅ Update password only if provided
 		if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
 			String encodedPassword = commonFunction.cipher(request.getPassword());

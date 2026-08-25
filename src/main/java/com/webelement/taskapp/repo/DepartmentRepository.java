@@ -74,4 +74,7 @@ public interface DepartmentRepository
 	boolean existsByNameIgnoreCaseAndStatusNot(
 			String name,
 			Integer status);
+	
+	@Query(value = "SELECT * FROM t_department WHERE status = 1", nativeQuery = true)
+	List<DepartmentEntity> findAllActiveDepartments();
 }
