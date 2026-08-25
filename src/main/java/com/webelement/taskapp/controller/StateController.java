@@ -1,6 +1,7 @@
 package com.webelement.taskapp.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.StateDTO;
+import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.repo.StateRepo;
 import com.webelement.taskapp.service.impl.StateServiceImpl;
 
@@ -58,4 +60,17 @@ public class StateController {
 
 		return stateService.getById(stateId);
 	}
+	
+	@PostMapping("/delete")
+	public ApiResponse<StateDTO> delete(@RequestBody StateDTO dto) {
+	    return stateService.delete(dto);
+	}
+	
+	@GetMapping("/getStates")
+    public ApiResponse<List<StateEntity>> getStates() {
+
+        List<StateEntity> states = stateService.getStates();
+
+        return new ApiResponse<>(true, "States fetched successfully", states);
+    }
 }

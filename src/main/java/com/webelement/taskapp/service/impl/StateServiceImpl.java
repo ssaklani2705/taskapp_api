@@ -49,12 +49,20 @@ public class StateServiceImpl implements StateService  {
 	               return new ApiResponse<>(false, "State name already exists", null);
 	           }
 	       } else {
-	           StateEntity duplicate = stateRepository.findByNameIgnoreCase(name);
-	           if (duplicate != null
-	                   && !duplicate.getStateId().equals(dto.getStateId())
-	                   && duplicate.getStatus() != 3) {
-	               return new ApiResponse<>(false, "State name already exists", null);
-	           }
+	    	   List<StateEntity> duplicates =
+	    		        stateRepository.findByNameIgnoreCase(name);
+
+	    		boolean exists = duplicates.stream()
+	    		        .anyMatch(duplicate ->
+	    		                !duplicate.getStateId().equals(dto.getStateId())
+	    		                && duplicate.getStatus() != 3);
+
+	    		if (exists) {
+	    		    return new ApiResponse<>(
+	    		            false,
+	    		            "State name already exists",
+	    		            null);
+	    		}
 	       }
 
 	       // Build entity (new or updated)
@@ -161,5 +169,15 @@ public class StateServiceImpl implements StateService  {
 
 			return new ApiResponse<>(false, "State delete failed", null);
 		}
+
+	   
+	   
+	   
+	   
+		public List<StateEntity> getStates() {
+	        return stateRepository.findByStatus((short) 1);
+	    }
+	
+
 
 }
