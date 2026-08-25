@@ -77,7 +77,6 @@ public class UserManagementService {
 	public UserLoginEntity getUserById(int userId) {
 		UserLoginEntity user = loginRepository.getUserById(userId);
 		
-		System.err.print(user.toString());
 		if (user != null) {
 
 			int newUserId = 0;

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "t_state")
 @Data
-@Builder
+@Builder(toBuilder = true)   
 @NoArgsConstructor
 @AllArgsConstructor
 public class StateEntity {
