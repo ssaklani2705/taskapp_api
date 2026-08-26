@@ -90,12 +90,15 @@ public class StateServiceImpl implements StateService  {
 	       }
 
 	       StateEntity saved = stateRepository.save(entity);
-	       
+	       String action =
+					isNew
+							? "State Added"
+							: "State Updated";
 	       commonFunction.createHistoryAccess(
 	                dto.getUserId(),
 	                commonFunction.resolveClientIp(httpRequest),
 	                commonFunction.getLocalIp(),
-	                "",
+	                action,
 	                4,
 	                saved.getStateId(),
 	                -1);
