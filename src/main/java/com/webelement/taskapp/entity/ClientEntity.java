@@ -1,7 +1,7 @@
 package com.webelement.taskapp.entity;
 
-import java.util.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import lombok.*;
 
@@ -33,7 +34,7 @@ public class ClientEntity {
 
 	@Column(name = "s_pan")
 	private String pan;
-	
+
 	@Column(name = "i_status")
 	private Short status;
 
@@ -68,7 +69,7 @@ public class ClientEntity {
 	private String emails;
 
 	@Column(name = "d_startdate")
-	private Date startDate;
+	private LocalDate startDate;
 
 	@Column(name = "d_monthlycharge")
 	private Double monthlyCharge;
@@ -111,4 +112,13 @@ public class ClientEntity {
 
 	@Column(name = "s_location")
 	private String location;
+
+	@Transient
+	private Integer excelRowNumber;
+
+	@Transient
+	private String stateNameForExcel;
+
+	@Transient
+	private String managerNameForExcel;
 }

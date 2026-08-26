@@ -29,8 +29,6 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 			+ "ON c.stateId = s.stateId LEFT JOIN UserLoginEntity u ON c.managerId = u.userId WHERE c.clientId = :clientId")
 	ClientDTO getClientById(@Param("clientId") int clientId);
 
-
-
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
 			+ "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, "
 			+ "c.stateId, s.name, c.addressLine1, c.addressLine2, "
@@ -74,4 +72,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
 	@Query("SELECT UPPER(TRIM(c.gstNo)) FROM ClientEntity c WHERE c.gstNo IS NOT NULL")
 	Set<String> findAllGstsNormalized();
+	
+	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
+	List<ClientEntity> findAllActiveClients();
 }

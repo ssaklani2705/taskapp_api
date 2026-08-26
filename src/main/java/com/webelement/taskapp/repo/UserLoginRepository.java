@@ -23,14 +23,21 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 
 @Repository
 public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Integer> {
+	
+	@Query("SELECT u FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
+	List<UserLoginEntity> findAllActiveUsers();
+
 
 	boolean existsByDepartmentId(Integer departmentId);
 	
 	boolean existsByDesignationId(Integer designationId);
 	
-	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
-	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
+//	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
+//	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
 
+	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1) OR (:logintype <> 'manager' AND i_departmentid <> 1) ) ", nativeQuery = true)
+	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password, @Param("logintype") String logintype);
+	
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
@@ -48,7 +55,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
-		       "WHERE u.userId > 0 " +
+		       "WHERE u.userId > 0 AND d.departmentId != 1 " +
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
 		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +

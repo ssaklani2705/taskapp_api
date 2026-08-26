@@ -61,7 +61,7 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<!-- Spring Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -152,7 +152,7 @@
 	</dependencies>
 
 	<build>
-	<!-- Control output WAR name -->
+		<!-- Control output WAR name -->
 		<finalName>taskapp_api</finalName>
 		<plugins>
 			<plugin>

@@ -3,6 +3,7 @@ package com.webelement.taskapp.dto;
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class ClientDTO {
 	private String emails;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
-	private Date startDate;
+	private LocalDate startDate;
 
 	private Double monthlyCharge;
 	private Double outstanding;
@@ -61,7 +62,7 @@ public class ClientDTO {
 	// Get by ClientId
 	public ClientDTO(Integer clientId, String name, String code, String pan, Short status, Short gstFlag, String gstNo,
 			Integer stateId, String stateName, String addressLine1, String addressLine2, String city, String pincode,
-			String contactName, String contactEmail, String emails, Date startDate, Double monthlyCharge,
+			String contactName, String contactEmail, String emails, LocalDate startDate, Double monthlyCharge,
 			Double outstanding, String name1, String emailId1, String name2, String emailId2, String name3,
 			String emailId3, Integer managerId, String managerName, Integer userId, Date regdate, Date moddate,
 			Short taxFlag, String location) {
@@ -103,7 +104,7 @@ public class ClientDTO {
 	// Get details
 	public ClientDTO(Integer clientId, String name, String code, String pan, Short status, Short gstFlag, String gstNo,
 			Integer stateId, String stateName, String addressLine1, String addressLine2, String city, String pincode,
-			String contactName, String contactEmail, String emails, Date startDate, Double monthlyCharge,
+			String contactName, String contactEmail, String emails, LocalDate startDate, Double monthlyCharge,
 			Double outstanding, String name1, String emailId1, String name2, String emailId2, String name3,
 			String emailId3, Integer managerId, String managerName, Integer userId, Timestamp regdate,
 			Timestamp moddate, Short taxFlag, String location) {

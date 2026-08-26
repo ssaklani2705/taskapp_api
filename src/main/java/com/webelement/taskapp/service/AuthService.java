@@ -76,8 +76,12 @@ public class AuthService {
 		String loginId = request.getUsername() != null ? request.getUsername().trim().toLowerCase() : "";
 		String password = request.getPassword() != null ? request.getPassword() : "";
 		String iplocal = commonFunction.getLocalIp();
+		String logintype = request.getLogintype();
+		System.out.println("logintype : "+logintype);
+		
 
-		UserInfo info = getUserAccess(loginId, password, iplocal);
+//		UserInfo info = getUserAccess(loginId, password, iplocal);
+		UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
 
 		String permission = "N";
 		if (info != null) {
@@ -171,7 +175,8 @@ public class AuthService {
 	}
 	
 	
-	private UserInfo getUserAccess(String username, String password, String ip) {
+//	private UserInfo getUserAccess(String username, String password, String ip) {
+	private UserInfo getUserAccess(String username, String password, String ip, String logintype) {
 		String newPassword = "";
 		try {
 			newPassword = commonFunction.cipher(escapeApostrophes(password));
@@ -180,7 +185,8 @@ public class AuthService {
 			e.printStackTrace();
 		}
 
-		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword);
+//		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword);
+		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword,logintype);
 
 		UserInfo info = null;
 		if (!results.isEmpty()) {

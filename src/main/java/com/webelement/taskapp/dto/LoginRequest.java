@@ -18,4 +18,5 @@ public class LoginRequest {
 	private String password;
 	private String captcha;
 	private String captchaAns;
+	private String logintype;
 }

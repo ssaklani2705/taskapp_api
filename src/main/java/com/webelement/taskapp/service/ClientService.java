@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,22 +77,21 @@ public class ClientService {
 		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
 
 		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
-
 			throw new RuntimeException("Invalid stateId: " + client.getStateId());
 		}
 
 		if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
-
 			throw new RuntimeException("Invalid managerId: " + client.getManagerId());
 		}
 
 		if (isNew) {
 			if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
-
 				throw new RuntimeException("Client code already exists: " + client.getCode());
 			}
 
 			Timestamp now = new Timestamp(System.currentTimeMillis());
+			
+			 client.setStatus((short) 1);
 
 			if (client.getGstFlag() == null) {
 				client.setGstFlag((short) 0);
@@ -130,8 +132,7 @@ public class ClientService {
 		String action = isNew ? "Client Added" : "Client Updated";
 
 		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 8, // moduleType = Client
-				savedClient.getClientId(), -1);
+				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
 
 		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
 				savedClient);
@@ -201,41 +202,68 @@ public class ClientService {
 				client.setName(toCamelCase(getCellValue(row, 0)));
 				client.setCode(getCellValue(row, 1));
 				client.setPan(getCellValue(row, 2));
+
 				client.setGstFlag(getShortCellValue(row, 3));
 				client.setGstNo(getCellValue(row, 4));
+
 				String rawStateName = getCellValue(row, 5);
 
-				String stateName = rawStateName == null ? null
+				String stateName = rawStateName == null ? ""
 						: rawStateName.replace("\u00A0", "").replace("\n", "").replace("\t", "").replaceAll("\\s+", " ")
 								.trim();
 
-				if (stateName == null || stateName.isEmpty()) {
-					client.setStateId(null);
-				} else {
-					StateEntity state = stateRepository.findByNameIgnoreCase(stateName)
-							.orElseThrow(() -> new IllegalArgumentException(
-									"Invalid State name at Excel row " + rowNum + ": [" + stateName + "]"));
+//				if (stateName == null || stateName.isEmpty()) {
+//					client.setStateId(null);
+//				} else {
+//					StateEntity state = stateRepository.findByNameIgnoreCase(stateName)
+//							.orElseThrow(() -> new IllegalArgumentException(
+//									"Invalid State name at Excel row " + rowNum + ": [" + stateName + "]"));
+//
+//					client.setStateId(state.getStateId());
+//				}
 
-					client.setStateId(state.getStateId());
+				if (!stateName.isEmpty()) {
+
+					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCase(stateName);
+
+					if (stateOptional.isPresent()) {
+						client.setStateId(stateOptional.get().getStateId());
+					} else {
+						client.setStateId(null);
+						client.setStateNameForExcel(stateName);
+					}
+
+				} else {
+					client.setStateId(null);
+					client.setStateNameForExcel("");
 				}
 
 				client.setAddressLine1(getCellValue(row, 6));
 				client.setAddressLine2(getCellValue(row, 7));
 				client.setCity(getCellValue(row, 8));
 				client.setPincode(getCellValue(row, 9));
+
 				client.setContactName(toCamelCase(getCellValue(row, 10)));
 				client.setContactEmail(getCellValue(row, 11));
 				client.setEmails(getCellValue(row, 12));
+
 				client.setStartDate(getDateCellValue(row, 13));
+
 				client.setMonthlyCharge(getDoubleCellValue(row, 14));
 				client.setOutstanding(getDoubleCellValue(row, 15));
+
 				client.setName1(getCellValue(row, 16));
 				client.setEmailId1(getCellValue(row, 17));
+
 				client.setName2(getCellValue(row, 18));
 				client.setEmailId2(getCellValue(row, 19));
+
 				client.setName3(getCellValue(row, 20));
 				client.setEmailId3(getCellValue(row, 21));
+
 				String managerName = getCellValue(row, 22);
+
+				client.setManagerNameForExcel(managerName != null ? managerName.trim() : "");
 
 				if (managerName != null && !managerName.trim().isEmpty()) {
 
@@ -244,9 +272,10 @@ public class ClientService {
 					if (managerId != null) {
 						client.setManagerId(managerId);
 					} else {
-						throw new IllegalArgumentException(
-								"Invalid Manager name at Excel row " + rowNum + ": [" + managerName + "]");
+						client.setManagerId(null);
 					}
+				} else {
+					client.setManagerId(null);
 				}
 
 				client.setTaxFlag(getShortCellValue(row, 23));
@@ -298,149 +327,274 @@ public class ClientService {
 
 			ClientEntity client = clients.get(rowIndex);
 
-			String rowIdentifier = client.getName() != null ? client.getName() : "(Row " + (rowIndex + 2) + ")";
+			int excelRow = client.getExcelRowNumber() != null ? client.getExcelRowNumber() : rowIndex + 2;
+
+			String rowIdentifier = client.getName() != null && !client.getName().trim().isEmpty()
+					? client.getName().trim()
+					: "(Row " + excelRow + ")";
+
+			List<String> reasons = new ArrayList<>();
 
 			try {
 				String name = client.getName() != null ? client.getName().trim() : "";
 
 				if (name.isEmpty()) {
 
-					skipped.add(rowIdentifier + " (Client Name Required)");
-					addFailedRecord(failedRecords, client, "Client Name is required");
+					reasons.add("Client Name is required");
 
-					continue;
+				} else if (name.length() < 2 || name.length() > 100) {
+
+					reasons.add("Client Name must be between 2 and 100 characters");
+
+				} else {
+
+					client.setName(name);
+
+					if (existingNames.contains(name.toLowerCase())) {
+						reasons.add("Client Name already exists");
+					}
+
+					if (!excelNames.add(name.toLowerCase())) {
+						reasons.add("Duplicate Client Name in uploaded file");
+					}
 				}
-
-				if (name.length() < 2 || name.length() > 100) {
-
-					skipped.add(rowIdentifier + " (Invalid Client Name)");
-					addFailedRecord(failedRecords, client, "Client Name must be between 2 to 100 characters");
-
-					continue;
-				}
-
-				client.setName(name);
 
 				String code = client.getCode() != null ? client.getCode().trim() : "";
 
-				if (!code.isEmpty()) {
+				if (code.isEmpty()) {
+
+					reasons.add("Client Code is required");
+
+				} else {
+
+					client.setCode(code);
 
 					if (existingCodes.contains(code.toLowerCase())) {
-
-						skipped.add(rowIdentifier + " (Duplicate Client Code)");
-						addFailedRecord(failedRecords, client, "Client Code already exists");
-
-						continue;
+						reasons.add("Client Code already exists");
 					}
 
 					if (!excelCodes.add(code.toLowerCase())) {
-
-						skipped.add(rowIdentifier + " (Duplicate Client Code in File)");
-						addFailedRecord(failedRecords, client, "Duplicate Client Code in uploaded file");
-
-						continue;
+						reasons.add("Duplicate Client Code in uploaded file");
 					}
-
-					client.setCode(code);
-				}
-
-				if (existingNames.contains(name.toLowerCase())) {
-
-					skipped.add(rowIdentifier + " (Duplicate Client Name)");
-					addFailedRecord(failedRecords, client, "Client with this name already exists");
-
-					continue;
-				}
-
-				if (!excelNames.add(name.toLowerCase())) {
-
-					skipped.add(rowIdentifier + " (Duplicate Client Name in File)");
-					addFailedRecord(failedRecords, client, "Duplicate Client Name in uploaded file");
-
-					continue;
-				}
-
-				String gst = client.getGstNo() != null ? client.getGstNo().trim().toUpperCase() : "";
-
-				if (!gst.isEmpty()) {
-
-					if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$")) {
-
-						skipped.add(rowIdentifier + " (Invalid GST)");
-						addFailedRecord(failedRecords, client, "Invalid GST format");
-
-						continue;
-					}
-
-					if (existingGsts.contains(gst)) {
-
-						skipped.add(rowIdentifier + " (Duplicate GST in DB)");
-						addFailedRecord(failedRecords, client, "GST number already exists");
-
-						continue;
-					}
-
-					if (!excelGsts.add(gst)) {
-
-						skipped.add(rowIdentifier + " (Duplicate GST in File)");
-						addFailedRecord(failedRecords, client, "Duplicate GST in uploaded file");
-
-						continue;
-					}
-
-					client.setGstNo(gst);
 				}
 
 				String pan = client.getPan() != null ? client.getPan().trim().toUpperCase() : "";
 
-				if (!pan.isEmpty() && !pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]{1}$")) {
+				if (pan.isEmpty()) {
 
-					skipped.add(rowIdentifier + " (Invalid PAN)");
-					addFailedRecord(failedRecords, client, "Invalid PAN format");
+					reasons.add("PAN is required");
 
-					continue;
+				} else if (!pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]$")) {
+
+					reasons.add("Invalid PAN format");
+
+				} else {
+
+					client.setPan(pan);
 				}
 
-				client.setPan(pan.isEmpty() ? null : pan);
+				Short gstFlag = client.getGstFlag();
 
-				String contactEmail = client.getContactEmail() != null ? client.getContactEmail().trim() : "";
+				if (gstFlag != null && gstFlag != 0 && gstFlag != 1) {
 
-				if (!contactEmail.isEmpty() && !contactEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+					reasons.add("GST Flag must be 0 or 1");
 
-					skipped.add(rowIdentifier + " (Invalid Contact Email)");
-					addFailedRecord(failedRecords, client, "Invalid Contact Email");
+				} else {
 
-					continue;
+					if (gstFlag == null) {
+						gstFlag = 0;
+						client.setGstFlag((short) 0);
+					}
+
+					String gst = client.getGstNo() != null ? client.getGstNo().trim().toUpperCase() : "";
+
+					if (gstFlag == 1) {
+
+						if (gst.isEmpty()) {
+
+							reasons.add("GST Number is required when GST Flag is 1");
+
+						} else if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
+
+							reasons.add("Invalid GST format");
+
+						} else {
+
+							client.setGstNo(gst);
+
+							if (existingGsts.contains(gst)) {
+								reasons.add("GST Number already exists");
+							}
+
+							if (!excelGsts.add(gst)) {
+								reasons.add("Duplicate GST Number in uploaded file");
+							}
+						}
+
+					} else {
+						if (!gst.isEmpty()) {
+
+							if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
+
+								reasons.add("Invalid GST format");
+							} else {
+								client.setGstNo(gst);
+							}
+						}
+					}
 				}
-
-				client.setContactEmail(contactEmail.isEmpty() ? null : contactEmail);
 
 				if (client.getStateId() == null || client.getStateId() == 0) {
 
-					skipped.add(rowIdentifier + " (State Required)");
-					addFailedRecord(failedRecords, client, "State is required");
+					String stateName = client.getStateNameForExcel();
 
-					continue;
+					if (stateName == null || stateName.trim().isEmpty()) {
+
+						reasons.add("State is required");
+					} else {
+						reasons.add("Invalid State name: " + stateName);
+					}
+				}
+
+				String addressLine1 = client.getAddressLine1() != null ? client.getAddressLine1().trim() : "";
+
+				if (addressLine1.isEmpty()) {
+
+					reasons.add("Address Line 1 is required");
+				} else {
+					client.setAddressLine1(addressLine1);
+				}
+
+				String city = client.getCity() != null ? client.getCity().trim() : "";
+
+				if (city.isEmpty()) {
+
+					reasons.add("City is required");
+				} else {
+
+					client.setCity(city);
 				}
 
 				String pincode = client.getPincode() != null ? client.getPincode().trim() : "";
 
-				if (!pincode.isEmpty() && !pincode.matches("^[0-9]{6}$")) {
+				if (pincode.isEmpty()) {
 
-					skipped.add(rowIdentifier + " (Invalid Pincode)");
-					addFailedRecord(failedRecords, client, "Pincode must be 6 digits");
+					reasons.add("Pincode is required");
+
+				} else if (!pincode.matches("^[0-9]{6}$")) {
+
+					reasons.add("Pincode must be exactly 6 digits");
+
+				} else {
+
+					client.setPincode(pincode);
+				}
+
+				String contactName = client.getContactName() != null ? client.getContactName().trim() : "";
+
+				if (contactName.isEmpty()) {
+
+					reasons.add("Contact Name is required");
+
+				} else {
+
+					client.setContactName(contactName);
+				}
+
+				String contactEmail = client.getContactEmail() != null ? client.getContactEmail().trim() : "";
+
+				if (contactEmail.isEmpty()) {
+
+					reasons.add("Contact Email is required");
+
+				} else if (!isValidEmail(contactEmail)) {
+
+					reasons.add("Invalid Contact Email");
+
+				} else {
+
+					client.setContactEmail(contactEmail);
+				}
+
+				String emails = client.getEmails() != null ? client.getEmails().trim() : "";
+
+				if (!emails.isEmpty() && !isValidEmailList(emails)) {
+
+					reasons.add("Invalid Emails format");
+
+				} else {
+
+					client.setEmails(emails.isEmpty() ? null : emails);
+				}
+
+				if (client.getStartDate() == null) {
+
+					reasons.add("Start Date is required");
+				}
+
+				String emailId1 = client.getEmailId1() != null ? client.getEmailId1().trim() : "";
+
+				if (!emailId1.isEmpty() && !isValidEmail(emailId1)) {
+
+					reasons.add("Invalid Email ID 1");
+
+				} else {
+
+					client.setEmailId1(emailId1.isEmpty() ? null : emailId1);
+				}
+
+				String emailId2 = client.getEmailId2() != null ? client.getEmailId2().trim() : "";
+
+				if (!emailId2.isEmpty() && !isValidEmail(emailId2)) {
+
+					reasons.add("Invalid Email ID 2");
+
+				} else {
+
+					client.setEmailId2(emailId2.isEmpty() ? null : emailId2);
+				}
+
+				String emailId3 = client.getEmailId3() != null ? client.getEmailId3().trim() : "";
+
+				if (!emailId3.isEmpty() && !isValidEmail(emailId3)) {
+
+					reasons.add("Invalid Email ID 3");
+
+				} else {
+
+					client.setEmailId3(emailId3.isEmpty() ? null : emailId3);
+				}
+
+				String managerName = client.getManagerNameForExcel() != null ? client.getManagerNameForExcel().trim()
+						: "";
+
+				if (managerName.isEmpty()) {
+
+					reasons.add("Manager is required");
+
+				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
+
+					reasons.add("Invalid Manager name: " + managerName);
+				}
+
+				Short taxFlag = client.getTaxFlag();
+
+				if (taxFlag != null && taxFlag != 0 && taxFlag != 1) {
+
+					reasons.add("Tax Flag must be 0 or 1");
+
+				} else if (taxFlag == null) {
+
+					client.setTaxFlag((short) 0);
+				}
+
+				if (!reasons.isEmpty()) {
+
+					skipped.add(rowIdentifier + " (" + String.join("; ", reasons) + ")");
+
+					addFailedRecord(failedRecords, client, String.join("; ", reasons));
 
 					continue;
-				}
-
-				client.setPincode(pincode.isEmpty() ? null : pincode);
-
-				if (client.getGstFlag() == null) {
-					client.setGstFlag((short) 0);
-				}
-
-				if (client.getTaxFlag() == null) {
-					client.setTaxFlag((short) 0);
 				}
 
 				client.setStatus((short) 1);
@@ -455,6 +609,7 @@ public class ClientService {
 				String reason = e.getMessage() != null ? e.getMessage() : "Unknown error";
 
 				skipped.add(rowIdentifier + " (Error: " + reason + ")");
+
 				addFailedRecord(failedRecords, client, "Exception: " + reason);
 			}
 		}
@@ -514,7 +669,8 @@ public class ClientService {
 		map.put("PAN", client.getPan() != null ? client.getPan() : "");
 		map.put("GST Flag", client.getGstFlag() != null ? client.getGstFlag().toString() : "");
 		map.put("GST No", client.getGstNo() != null ? client.getGstNo() : "");
-		map.put("State ID", client.getStateId() != null ? client.getStateId().toString() : "");
+//		map.put("State ID", client.getStateId() != null ? client.getStateId().toString() : "");
+		map.put("State", client.getStateNameForExcel() != null ? client.getStateNameForExcel() : "");
 		map.put("Address Line 1", client.getAddressLine1() != null ? client.getAddressLine1() : "");
 		map.put("Address Line 2", client.getAddressLine2() != null ? client.getAddressLine2() : "");
 		map.put("City", client.getCity() != null ? client.getCity() : "");
@@ -532,7 +688,8 @@ public class ClientService {
 		map.put("Email ID 2", client.getEmailId2() != null ? client.getEmailId2() : "");
 		map.put("Name 3", client.getName3() != null ? client.getName3() : "");
 		map.put("Email ID 3", client.getEmailId3() != null ? client.getEmailId3() : "");
-		map.put("Manager ID", client.getManagerId() != null ? client.getManagerId().toString() : "");
+//		map.put("Manager ID", client.getManagerId() != null ? client.getManagerId().toString() : "");
+		map.put("Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
 		map.put("Tax Flag", client.getTaxFlag() != null ? client.getTaxFlag().toString() : "");
 		map.put("Location", client.getLocation() != null ? client.getLocation() : "");
 		map.put("Status", "Unsuccessful");
@@ -595,6 +752,33 @@ public class ClientService {
 		}
 	}
 
+	private boolean isValidEmail(String email) {
+
+		if (email == null || email.trim().isEmpty()) {
+			return false;
+		}
+
+		return email.matches("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$");
+	}
+
+	private boolean isValidEmailList(String emails) {
+
+		if (emails == null || emails.trim().isEmpty()) {
+			return true;
+		}
+
+		String[] emailArray = emails.split(",");
+
+		for (String email : emailArray) {
+
+			if (!isValidEmail(email.trim())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private String getCellValue(Row row, int cellIndex) {
 
 		Cell cell = row.getCell(cellIndex);
@@ -638,42 +822,89 @@ public class ClientService {
 		}
 	}
 
-	private Date getDateCellValue(Row row, int cellIndex) {
+//	private Date getDateCellValue(Row row, int cellIndex) {
+//
+//		Cell cell = row.getCell(cellIndex);
+//
+//		if (cell == null) {
+//			return null;
+//		}
+//
+//		if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+//
+//			return cell.getDateCellValue();
+//		}
+//
+//		String value = getCellValue(row, cellIndex);
+//
+//		if (value == null || value.trim().isEmpty()) {
+//			return null;
+//		}
+//
+//		List<String> patterns = Arrays.asList("dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd");
+//
+//		for (String pattern : patterns) {
+//
+//			try {
+//
+//				SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+//
+//				sdf.setLenient(false);
+//
+//				return sdf.parse(value.trim());
+//
+//			} catch (ParseException ignored) {
+//			}
+//		}
+//
+//		throw new IllegalArgumentException("Invalid date format: " + value + ". Expected dd-MM-yyyy");
+//	}
 
-		Cell cell = row.getCell(cellIndex);
+	private LocalDate getDateCellValue(Row row, int cellIndex) {
 
-		if (cell == null) {
-			return null;
-		}
+	    Cell cell = row.getCell(cellIndex);
 
-		if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+	    if (cell == null) {
+	        return null;
+	    }
 
-			return cell.getDateCellValue();
-		}
+	    if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
 
-		String value = getCellValue(row, cellIndex);
+	        Date date = cell.getDateCellValue();
 
-		if (value == null || value.trim().isEmpty()) {
-			return null;
-		}
+	        return date.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDate();
+	    }
 
-		List<String> patterns = Arrays.asList("dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd");
+	    String value = getCellValue(row, cellIndex);
 
-		for (String pattern : patterns) {
+	    if (value == null || value.trim().isEmpty()) {
+	        return null;
+	    }
 
-			try {
+	    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+	    sdf.setLenient(false);
 
-				SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+	    try {
 
-				sdf.setLenient(false);
+	        Date date = sdf.parse(value.trim());
 
-				return sdf.parse(value.trim());
+	        if (!sdf.format(date).equals(value.trim())) {
+	            throw new ParseException("Invalid date", 0);
+	        }
 
-			} catch (ParseException ignored) {
-			}
-		}
+	        return date.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDate();
 
-		throw new IllegalArgumentException("Invalid date format: " + value + ". Expected dd-MM-yyyy");
+	    } catch (ParseException e) {
+
+	        throw new IllegalArgumentException(
+	            "Invalid Start Date: " + value +
+	            ". Expected format dd-MM-yyyy"
+	        );
+	    }
 	}
 
 	private String toCamelCase(String input) {

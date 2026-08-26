@@ -73,6 +73,6 @@ public class TaskEntity {
     @Column(name = "s_title", length = 100)
     private String title;
 
-    @Column(name = "i_taskgroupid")
-    private Integer taskGroupId;
+//    @Column(name = "i_taskgroupid")
+//    private Integer taskGroupId;
 }

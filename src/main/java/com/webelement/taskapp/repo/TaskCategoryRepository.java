@@ -18,6 +18,10 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 @Repository
 public interface TaskCategoryRepository
         extends JpaRepository<TaskCategoryEntity, Integer> {
+	
+	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
+	List<TaskCategoryEntity> findAllActiveTaskCategories();
+
 
     @Transactional
     @Modifying
