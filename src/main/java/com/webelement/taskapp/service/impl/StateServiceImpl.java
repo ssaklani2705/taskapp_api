@@ -37,84 +37,93 @@ public class StateServiceImpl implements StateService  {
 	   
 	   private final HttpServletRequest httpRequest;
 
-	   @Override
-	   public ApiResponse<StateDTO> addOrUpdate(StateDTO dto) {
+		@Override
+		public ApiResponse<StateDTO> addOrUpdate(StateDTO dto) {
 
-	       LocalDateTime now = LocalDateTime.now();
-	       String name = dto.getName() != null ? dto.getName().trim() : "";
-	       boolean isNew = dto.getStateId() == null || dto.getStateId() == 0;
+			LocalDateTime now = LocalDateTime.now();
+			String name = dto.getName() != null ? dto.getName().trim() : "";
+			String code = dto.getCode() != null ? dto.getCode().trim() : "";
+			boolean isNew = dto.getStateId() == null || dto.getStateId() == 0;
 
-	       if (isNew) {
-	           if (stateRepository.existsByNameIgnoreCaseAndStatusNot(name, (short) 3)) {
-	               return new ApiResponse<>(false, "State name already exists", null);
-	           }
-	       } else {
-	    	   List<StateEntity> duplicates =
-	    		        stateRepository.findByNameIgnoreCase(name);
+			if (isNew) {
 
-	    		boolean exists = duplicates.stream()
-	    		        .anyMatch(duplicate ->
-	    		                !duplicate.getStateId().equals(dto.getStateId())
-	    		                && duplicate.getStatus() != 3);
+				// Check duplicate name
+				if (stateRepository.existsByNameIgnoreCaseAndStatusNot(name, (short) 3)) {
 
-	    		if (exists) {
-	    		    return new ApiResponse<>(
-	    		            false,
-	    		            "State name already exists",
-	    		            null);
-	    		}
-	       }
+					return new ApiResponse<>(false, "A state with this name already exists", null);
+				}
 
-	       // Build entity (new or updated)
-	       StateEntity entity;
+				// Check duplicate code
+				if (stateRepository.existsByCodeIgnoreCaseAndStatusNot(code, (short) 3)) {
 
-	       if (!isNew) {
+					return new ApiResponse<>(false, "A state with this code already exists.", null);
+				}
 
-	           entity = stateRepository.findById(dto.getStateId())
-	                   .orElseThrow(() -> new RuntimeException("State record not found"));
+			} else {
 
-	           entity.setName(name);
-	           entity.setCode(dto.getCode());
-	           entity.setStatus(dto.getStatus());
-	           entity.setUserId(dto.getUserId());
-	           entity.setModificationDate(now);
+				// Check duplicate name
+				List<StateEntity> duplicates = stateRepository.findByNameIgnoreCase(name);
 
-	       } else {
+				boolean nameExists = duplicates.stream().anyMatch(
+						duplicate -> !duplicate.getStateId().equals(dto.getStateId()) && duplicate.getStatus() != 3);
 
-	           entity = new StateEntity();
-	           entity.setName(name);
-	           entity.setCode(dto.getCode());
-	           entity.setStatus(dto.getStatus() != null ? dto.getStatus() : (short) 1);
-	           entity.setUserId(dto.getUserId());
-	           entity.setRegistrationDate(now);
-	       }
+				if (nameExists) {
 
-	       StateEntity saved = stateRepository.save(entity);
-	       String action =
-					isNew
-							? "State Added"
-							: "State Updated";
-	       commonFunction.createHistoryAccess(
-	                dto.getUserId(),
-	                commonFunction.resolveClientIp(httpRequest),
-	                commonFunction.getLocalIp(),
-	                action,
-	                4,
-	                saved.getStateId(),
-	                -1);
+					return new ApiResponse<>(false, "A state with this name already exists", null);
+				}
 
-	       // Build response DTO
-	       StateDTO responseDto = new StateDTO();
-	       responseDto.setStateId(saved.getStateId());
-	       responseDto.setName(saved.getName());
-	       responseDto.setCode(saved.getCode());
-	       responseDto.setStatus(saved.getStatus());
-	       responseDto.setUserId(saved.getUserId());
-	       responseDto.setRegistrationDate(saved.getRegistrationDate());
-	       responseDto.setModificationDate(saved.getModificationDate());
+				// Check duplicate code
+				List<StateEntity> codeDuplicates = stateRepository.findByCodeIgnoreCase(code);
 
-	       return new ApiResponse<>(true, "State saved successfully", responseDto);
-	   }
+				boolean codeExists = codeDuplicates.stream().anyMatch(
+						duplicate -> !duplicate.getStateId().equals(dto.getStateId()) && duplicate.getStatus() != 3);
+
+				if (codeExists) {
+					return new ApiResponse<>(false, "A state with this code already exists.", null);
+				}
+			}
+
+			// Build entity (new or updated)
+			StateEntity entity;
+
+			if (!isNew) {
+
+				entity = stateRepository.findById(dto.getStateId())
+						.orElseThrow(() -> new RuntimeException("State record not found"));
+
+				entity.setName(name);
+				entity.setCode(dto.getCode());
+				entity.setStatus(dto.getStatus());
+				entity.setUserId(dto.getUserId());
+				entity.setModificationDate(now);
+
+			} else {
+
+				entity = new StateEntity();
+				entity.setName(name);
+				entity.setCode(dto.getCode());
+				entity.setStatus(dto.getStatus() != null ? dto.getStatus() : (short) 1);
+				entity.setUserId(dto.getUserId());
+				entity.setRegistrationDate(now);
+			}
+
+			StateEntity saved = stateRepository.save(entity);
+			String action = isNew ? "State Added" : "State Updated";
+			commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+					commonFunction.getLocalIp(), action, 4, saved.getStateId(), -1);
+
+			// Build response DTO
+			StateDTO responseDto = new StateDTO();
+			responseDto.setStateId(saved.getStateId());
+			responseDto.setName(saved.getName());
+			responseDto.setCode(saved.getCode());
+			responseDto.setStatus(saved.getStatus());
+			responseDto.setUserId(saved.getUserId());
+			responseDto.setRegistrationDate(saved.getRegistrationDate());
+			responseDto.setModificationDate(saved.getModificationDate());
+
+			return new ApiResponse<>(true, "State saved successfully", responseDto);
+		}
 	   
 	   @Override
 	   public ApiResponse<StateDTO> getById(Integer stateId) {
@@ -136,7 +145,7 @@ public class StateServiceImpl implements StateService  {
 		            commonFunction.getTransactionLogs(4, stateId);
 
 		    if (history != null && !history.isEmpty()) {
-		        dto.setTransactionHistory(history);
+		        dto.setTransactionHistory(history);	
 		    }
 
 		    return new ApiResponse<>(true, "State fetched successfully", dto);
