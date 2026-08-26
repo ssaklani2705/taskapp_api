@@ -87,6 +87,9 @@ public class UserLoginEntity {
 	
 	@Column(name = "i_departmentid")
 	private Integer departmentId;
+	
+	@Column(name = "i_designationid")
+	private Integer designationId;
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

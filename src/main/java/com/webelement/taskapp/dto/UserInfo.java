@@ -32,5 +32,6 @@ public class UserInfo {
 	private int status;
 	private String permission;
 	private String departmentName;
+	private String designationName;
 
 }

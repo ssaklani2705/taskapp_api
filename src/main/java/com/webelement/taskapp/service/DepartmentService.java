@@ -21,6 +21,7 @@ import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
+import com.webelement.taskapp.repo.UserLoginRepository;
 
 
 @Service
@@ -31,6 +32,9 @@ public class DepartmentService {
 
 	@Autowired
 	private CommonFunction commonFunction;
+	
+	@Autowired
+	private UserLoginRepository userLoginRepository;
 
 	// =========================================================
 	// ADD / UPDATE
@@ -329,6 +333,16 @@ public class DepartmentService {
 									false,
 									"Department not found",
 									null));
+		}
+		
+		// -----------------------------------------------------
+		// CHECK IF DEPARTMENT IS IN USE (any status - active/inactive)
+		// -----------------------------------------------------
+		boolean isDepartmentInUse = userLoginRepository.existsByDepartmentId(departmentId);
+		if (isDepartmentInUse) {
+			return ResponseEntity
+					.status(HttpStatus.CONFLICT)
+					.body(new ApiResponse<>(false, "Department is assigned to one or more users and cannot be deleted", null));
 		}
 
 		// -----------------------------------------------------

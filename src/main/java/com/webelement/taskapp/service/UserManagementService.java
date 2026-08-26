@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
@@ -51,8 +52,9 @@ public class UserManagementService {
 		return loginRepository.findActiveUsers();
 	}
 
-	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search) {
-		return loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search);
+	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search,
+			int departmentId,int designationId) {
+		return loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,departmentId, designationId);
 	}
 
 	public ResponseEntity<ResponseApi<String>> deleteUser(int userId, int createdBy, HttpServletRequest httpRequest) {
@@ -77,7 +79,7 @@ public class UserManagementService {
 	public UserLoginEntity getUserById(int userId) {
 		UserLoginEntity user = loginRepository.getUserById(userId);
 		
-		System.err.print(user.toString());
+//		System.err.print(user.toString());
 		if (user != null) {
 
 			int newUserId = 0;
@@ -144,7 +146,7 @@ public class UserManagementService {
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-	
+	System.out.println("userRequest.getUserId(): "+userRequest.getUserId());
 		boolean isEdit = userRequest.getUserId() > 0;
 
 		if (!isEdit) {
@@ -265,6 +267,7 @@ public class UserManagementService {
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
 			user.setDepartmentId(info.getDepartmentId());
+			user.setDesignationId(info.getDesignationId());
 			UserLoginEntity savedUser = loginRepository.save(user);
 			return savedUser.getUserId(); // JPA auto-fills the generated ID
 
@@ -286,6 +289,7 @@ public class UserManagementService {
 		existing.setPermission(request.getPermission());
 		existing.setTelephone(request.getTelephone());
 		existing.setDepartmentId(request.getDepartmentId());
+		existing.setDesignationId(request.getDesignationId());
 		// ✅ Update password only if provided
 		if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
 			String encodedPassword = commonFunction.cipher(request.getPassword());

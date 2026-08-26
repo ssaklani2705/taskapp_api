@@ -130,7 +130,7 @@ public class AuthService {
 				message = "Your Password is incorrect. Please enter correct Password.";
 				break;
 			case 4:
-				message = "Your Email ID is not registered. Please contact to dupak Team.";
+				message = "Your Email ID is not registered. Please contact to Task App Team.";
 				break;
 			default:
 				message = "Invalid username or password.";

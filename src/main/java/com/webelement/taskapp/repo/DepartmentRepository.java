@@ -19,6 +19,8 @@ import com.webelement.taskapp.entity.DepartmentEntity;
 @Repository
 public interface DepartmentRepository
 		extends JpaRepository<DepartmentEntity, Integer> {
+	
+	
 
 	// =========================================================
 	// SOFT DELETE

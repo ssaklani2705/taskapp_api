@@ -24,6 +24,10 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 @Repository
 public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Integer> {
 
+	boolean existsByDepartmentId(Integer departmentId);
+	
+	boolean existsByDesignationId(Integer designationId);
+	
 	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
 	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
 
@@ -40,18 +44,22 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "u.mobileNo, " +
 		       "u.status, " +
 		       "u.permission, " +
-		       "d.name) " +
+		       "d.name,de.name) " +
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
+		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
 		       "WHERE u.userId > 0 " +
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
+		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
+		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
 		       "AND (:search IS NULL OR :search = '' " +
 		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
 		       "ORDER BY u.status, u.firstName")
-		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search);
+		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
+				int departmentId,int designationId);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId

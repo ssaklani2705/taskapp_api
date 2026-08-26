@@ -21,6 +21,7 @@ import com.webelement.taskapp.dto.DesignationDTO;
 import com.webelement.taskapp.entity.DesignationEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DesignationRepository;
+import com.webelement.taskapp.repo.UserLoginRepository;
 
 
 @Service
@@ -31,6 +32,9 @@ public class DesignationService {
 
     @Autowired
     private CommonFunction commonFunction;
+    
+	@Autowired
+	private UserLoginRepository userLoginRepository;
 
     // ----------------------------------------------------
     // ADD / UPDATE
@@ -260,6 +264,18 @@ public class DesignationService {
                                     "Designation not found",
                                     null));
         }
+        
+        
+        // -----------------------------------------------------
+        // CHECK IF DESIGNATION IS IN USE (any status - active/inactive)
+        // -----------------------------------------------------
+        boolean isDesignationInUse = userLoginRepository.existsByDesignationId(desigmationId);
+        if (isDesignationInUse) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse<>(false, "Designation is assigned to one or more users and cannot be deleted", null));
+        }
+
 
         int updatedRows =
                 designationRepository.softDelete(
