@@ -29,10 +29,16 @@ public class TaskEditDTO {
 	private Short status;
 	private Integer taskCategoryId;
 	private String title;
+	
+	private String clientName;
+	private String taskCategoryName;
+	private String assignedUserName;
+	private String addedByName;
 	private List<TransactionEntity> transactionHistory;
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,
 			LocalDate date, String description, String fileName1, String fileName2, String fileName3, String fileName4,
-			Short priority, Short status, Integer taskCategoryId, String title) {
+			Short priority, Short status, Integer taskCategoryId, String title, String clientName,
+			String taskCategoryName, String assignedUserName, String addedByName) {
 		super();
 		this.taskId = taskId;
 		this.addedBy = addedBy;
@@ -49,5 +55,11 @@ public class TaskEditDTO {
 		this.status = status;
 		this.taskCategoryId = taskCategoryId;
 		this.title = title;
+		this.clientName = clientName;
+		this.taskCategoryName = taskCategoryName;
+		this.assignedUserName = assignedUserName;
+		this.addedByName = addedByName;
 	}
+	
+	
 }
