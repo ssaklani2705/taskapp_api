@@ -31,11 +31,13 @@ public class PlanDTO {
 	private String description;
 	private Short status;
 	private Integer userId;
-	public PlanDTO(Integer planId, String name, Integer rate, Short status) {
-		super();
+
+	public PlanDTO(Integer planId, String name, Integer rate, String description, Short status) {
+	
 		this.planId = planId;
 		this.name = name;
 		this.rate = rate;
+		this.description = description;
 		this.status = status;
 	}
 	private List<TransactionEntity> transactionHistory;

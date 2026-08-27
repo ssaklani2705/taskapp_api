@@ -19,30 +19,20 @@ import com.webelement.taskapp.entity.PlanEntity;
 import com.webelement.taskapp.dto.PlanDTO;
 
 @Repository
-public interface PlanRepo  extends JpaRepository<PlanEntity, Integer>{
+public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 
 	List<PlanEntity> findByNameIgnoreCase(String name);
 
 	boolean existsByNameIgnoreCaseAndStatusNot(String name, short s);
-	
-	@Query(
-		    "SELECT new com.webelement.taskapp.dto.PlanDTO(" +
-		    "p.planId, " +
-		    "p.name, " +
-		    "p.rate, " +
-		    "p.status) " +
-		    "FROM PlanEntity p " +
-		    "WHERE p.planId > 0 " +
-		    "AND (:statusIndex = 0 OR p.status = :statusIndex) " +
-		    "AND LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-		    "ORDER BY p.status, p.name"
-		)
-		Page<PlanDTO> findPlanDetails(
-		        Pageable pageable,
-		        @Param("statusIndex") int statusIndex,
-		        @Param("search") String search);
-	
-	
+
+	@Query("SELECT new com.webelement.taskapp.dto.PlanDTO(" + "p.planId, " + "p.name, " + "p.rate, " + "p.description, "
+			+ "p.status) " + "FROM PlanEntity p " + "WHERE p.planId > 0 "
+			+ "AND (:statusIndex = 0 OR p.status = :statusIndex) "
+			+ "AND LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) "
+			+ "ORDER BY p.status, p.name")
+	Page<PlanDTO> findPlanDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search);
+
 	@Modifying
 	@Transactional
 	@Query("UPDATE PlanEntity s SET s.status = 3, s.modificationDate = CURRENT_TIMESTAMP WHERE s.planId = :planId")

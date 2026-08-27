@@ -43,7 +43,7 @@ public class TaskController {
 	private TaskService taskService;
 	
 	private final ObjectMapper objectMapper;
-
+	
 	
 	@Autowired
 	private ClientRepository clientRepository;
