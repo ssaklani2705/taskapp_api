@@ -32,142 +32,110 @@ public class DesignationService {
 	@Autowired
 	private UserLoginRepository userLoginRepository;
 
-    // ----------------------------------------------------
-    // ADD / UPDATE
-    // ----------------------------------------------------
+	// ----------------------------------------------------
+	// ADD / UPDATE
+	// ----------------------------------------------------
 
-    public ApiResponse<DesignationDTO> addOrUpdate(
-            DesignationDTO dto,
-            HttpServletRequest httpRequest) {
+	public ApiResponse<DesignationDTO> addOrUpdate(DesignationDTO dto, HttpServletRequest httpRequest) {
 
-        Timestamp timestamp =
-                Timestamp.valueOf(LocalDateTime.now());
+		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        String name = dto.getName() != null
-                ? dto.getName().trim()
-                : "";
+		String name = dto.getName() != null ? dto.getName().trim() : "";
 
-        // ADD
-        if (dto.getDesigmationId() == null ||
-            dto.getDesigmationId() == 0) {
+		// ADD
+		if (dto.getDesigmationId() == null || dto.getDesigmationId() == 0) {
 
-            if (designationRepository
-                    .existsByNameIgnoreCaseAndStatusNot(name, 3)) {
+			if (designationRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 
-                return new ApiResponse<>(
-                        false,
-                        "Designation name already exists",
-                        null);
-            }
-        }
+				return new ApiResponse<>(false, "Designation name already exists", null);
+			}
 
-        // UPDATE
-        else {
+			if (designationRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
 
-            DesignationEntity existing =
-                    designationRepository
-                            .findByNameIgnoreCase(name);
+				return new ApiResponse<>(false, "Sequence already exists", null);
+			}
 
-            if (existing != null
-                    && !existing.getDesignationId()
-                            .equals(dto.getDesigmationId())
-                    && existing.getStatus() != 3) {
+		}
 
-                return new ApiResponse<>(
-                        false,
-                        "Designation name already exists",
-                        null);
-            }
-        }
+		// UPDATE
+		else {
 
-        DesignationEntity entity;
+			DesignationEntity existing = designationRepository.findByNameIgnoreCase(name);
 
-        // Existing record
-        if (dto.getDesigmationId() != null
-                && dto.getDesigmationId() != 0) {
+			if (existing != null && !existing.getDesignationId().equals(dto.getDesigmationId())
+					&& existing.getStatus() != 3) {
 
-            entity = designationRepository
-                    .findById(dto.getDesigmationId())
-                    .orElseThrow(() ->
-                            new RuntimeException(
-                                    "Designation Record not found"));
+				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
+			}
 
-            entity.setName(name);
-            entity.setSequence(dto.getSequence());
-            entity.setUserId(dto.getUserId());
+			DesignationEntity existingSequence = designationRepository.findBySequence(dto.getSequence());
 
-            if (dto.getStatus() != null) {
-                entity.setStatus(dto.getStatus());
-            }
+			if (existingSequence != null && !existingSequence.getDesignationId().equals(dto.getDesigmationId())
+					&& existingSequence.getStatus() != 3) {
 
-            entity.setModdate(timestamp);
-        }
+				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
+			}
+		}
 
-        // New record
-        else {
+		DesignationEntity entity;
 
-            entity = new DesignationEntity();
+		// Existing record
+		if (dto.getDesigmationId() != null && dto.getDesigmationId() != 0) {
 
-            entity.setName(name);
-            entity.setSequence(
-                    dto.getSequence() != null
-                            ? dto.getSequence()
-                            : 0);
+			entity = designationRepository.findById(dto.getDesigmationId())
+					.orElseThrow(() -> new RuntimeException("Designation Record not found"));
 
-            entity.setUserId(dto.getUserId());
-            entity.setStatus(1);
-            entity.setRegdate(timestamp);
-        }
+			entity.setName(name);
+			entity.setSequence(dto.getSequence());
+			entity.setUserId(dto.getUserId());
 
-        DesignationEntity saved =
-                designationRepository.save(entity);
+			if (dto.getStatus() != null) {
+				entity.setStatus(dto.getStatus());
+			}
 
-        DesignationDTO responseDTO =
-                new DesignationDTO();
+			entity.setModdate(timestamp);
+		}
 
-        responseDTO.setDesigmationId(
-                saved.getDesignationId());
+		// New record
+		else {
 
-        responseDTO.setName(
-                saved.getName());
+			entity = new DesignationEntity();
 
-        responseDTO.setSequence(
-                saved.getSequence());
+			entity.setName(name);
+			entity.setSequence(dto.getSequence() != null ? dto.getSequence() : 0);
 
-        responseDTO.setUserId(
-                saved.getUserId());
+			entity.setUserId(dto.getUserId());
+			entity.setStatus(1);
+			entity.setRegdate(timestamp);
+		}
 
-        responseDTO.setStatus(
-                saved.getStatus());
+		DesignationEntity saved = designationRepository.save(entity);
 
-        responseDTO.setRegdate(
-                saved.getRegdate());
+		DesignationDTO responseDTO = new DesignationDTO();
 
-        responseDTO.setModdate(
-                saved.getModdate());
+		responseDTO.setDesigmationId(saved.getDesignationId());
 
-        boolean isNew =
-                dto.getDesigmationId() == null
-                || dto.getDesigmationId() == 0;
+		responseDTO.setName(saved.getName());
 
-        String action = isNew
-                ? "Designation Added"
-                : "Designation Updated";
+		responseDTO.setSequence(saved.getSequence());
 
-        commonFunction.createHistoryAccess(
-                dto.getUserId(),
-                commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(),
-                action,
-                3,
-                saved.getDesignationId(),
-                -1);
+		responseDTO.setUserId(saved.getUserId());
 
-        return new ApiResponse<>(
-                true,
-                "Designation saved successfully",
-                responseDTO);
-    }
+		responseDTO.setStatus(saved.getStatus());
+
+		responseDTO.setRegdate(saved.getRegdate());
+
+		responseDTO.setModdate(saved.getModdate());
+
+		boolean isNew = dto.getDesigmationId() == null || dto.getDesigmationId() == 0;
+
+		String action = isNew ? "Designation Added" : "Designation Updated";
+
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 3, saved.getDesignationId(), -1);
+
+		return new ApiResponse<>(true, "Designation saved successfully", responseDTO);
+	}
 
     // ----------------------------------------------------
     // GET BY ID

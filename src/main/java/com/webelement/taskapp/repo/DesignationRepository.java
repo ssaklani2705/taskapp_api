@@ -61,5 +61,13 @@ public interface DesignationRepository
             Integer status);
 
     DesignationEntity findByNameIgnoreCase(String name);
+    
+    
+    boolean existsBySequenceAndStatusNot(
+            Integer sequence,
+            Integer status);
+
+    DesignationEntity findBySequence(
+            Integer sequence);
 }
 
