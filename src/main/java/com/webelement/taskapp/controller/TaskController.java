@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
@@ -50,6 +53,16 @@ public class TaskController {
 	
 	@Autowired
 	private UserLoginRepository userLoginRepository;
+	
+	@PostMapping("/deleteTask")
+	public ResponseEntity<ResponseApi<String>> deleteTask(
+	        @RequestParam int taskId,
+	        @RequestParam int createdBy,
+	        HttpServletRequest httpRequest) throws Exception {
+
+	    return taskService.deleteTask(taskId, createdBy, httpRequest);
+	}
+
 	
 	@GetMapping("/getTaskDetailsById")
 	public ResponseEntity<?> getTaskDetailsById(

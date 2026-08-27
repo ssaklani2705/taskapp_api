@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,7 +38,7 @@ public class ClientController {
 
 	@Autowired
 	private ClientService clientService;
-	
+
 	@Autowired
 	private ClientRepository clientRepository;
 
@@ -61,7 +62,7 @@ public class ClientController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-	
+
 	// For Edit
 	@GetMapping("getClient/{clientId}")
 	public ApiResponse<ClientEntity> getCClientById(@PathVariable Integer clientId) {
@@ -117,6 +118,7 @@ public class ClientController {
 		return clientService.deleteClient(clientId, userId, httpRequest);
 	}
 
+	// Upload excel
 	@PostMapping("/uploadClientsExcel")
 	public ResponseEntity<ApiResponse<List<ClientEntity>>> uploadClientsExcel(@RequestParam("file") MultipartFile file,
 			@RequestParam("userId") Integer userId, HttpServletRequest request) {
@@ -144,5 +146,17 @@ public class ClientController {
 			return ResponseEntity.ok(new ApiResponse<>(false,
 					e.getMessage() != null ? e.getMessage() : "Failed to upload Excel file", null));
 		}
+	}
+
+	// Change manager
+	@PutMapping("/client/{clientId}/manager")
+	public ResponseEntity<ApiResponse<String>> changeClientManager(@PathVariable Integer clientId,
+			@RequestBody Map<String, Integer> request, HttpServletRequest httpRequest) {
+
+		Integer managerId = request.get("managerId");
+
+		clientService.changeClientManager(clientId, managerId, httpRequest);
+
+		return ResponseEntity.ok(new ApiResponse<>(true, "Manager changed successfully", null));
 	}
 }

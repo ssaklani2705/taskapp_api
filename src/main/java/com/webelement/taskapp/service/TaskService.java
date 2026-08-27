@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,11 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webelement.taskapp.common.CommonFunction;
+import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
@@ -276,4 +280,65 @@ public class TaskService {
 	        taskDto.setTransactionHistory(history);
 	        return taskDto;
 	    }
+
+
+		public ResponseEntity<ResponseApi<String>> deleteTask(
+        int taskId,
+        int createdBy,
+        HttpServletRequest httpRequest) {
+
+    Optional<TaskEntity> existingTask =
+            taskRepository.findById(taskId);
+
+    if (!existingTask.isPresent()) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(
+                    new ResponseApi<>(
+                        false,
+                        "Task not found",
+                        null
+                    )
+                );
+    }
+
+    // 3 = Deleted
+    int updatedRows =
+            taskRepository.deleteTask((short) 3, taskId);
+
+    if (updatedRows > 0) {
+
+        commonFunction.createHistoryAccess(
+                createdBy,
+                commonFunction.resolveClientIp(httpRequest),
+                commonFunction.getLocalIp(),
+                "Task Deleted",
+                1,
+                taskId,
+                -1
+        );
+
+        return ResponseEntity.ok(
+                new ResponseApi<>(
+                        true,
+                        "Task deleted successfully",
+                        null
+                )
+        );
+
+    } else {
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(
+                    new ResponseApi<>(
+                        false,
+                        "Failed to delete task",
+                        null
+                    )
+                );
+    }
+}
+
 }

@@ -142,4 +142,11 @@ public class ClientDTO {
 		this.taxFlag = taxFlag;
 		this.location = location;
 	}
+
+	// For recurring
+	public ClientDTO(Integer clientId, String name) {
+		this.clientId = clientId;
+		this.name = name;
+	}
+	
 }

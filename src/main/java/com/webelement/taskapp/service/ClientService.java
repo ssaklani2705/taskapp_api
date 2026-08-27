@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +20,11 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -50,6 +52,7 @@ import com.webelement.taskapp.dto.ClientDTO;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
+import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.StateRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -90,8 +93,8 @@ public class ClientService {
 			}
 
 			Timestamp now = new Timestamp(System.currentTimeMillis());
-			
-			 client.setStatus((short) 1);
+
+			client.setStatus((short) 1);
 
 			if (client.getGstFlag() == null) {
 				client.setGstFlag((short) 0);
@@ -211,16 +214,6 @@ public class ClientService {
 				String stateName = rawStateName == null ? ""
 						: rawStateName.replace("\u00A0", "").replace("\n", "").replace("\t", "").replaceAll("\\s+", " ")
 								.trim();
-
-//				if (stateName == null || stateName.isEmpty()) {
-//					client.setStateId(null);
-//				} else {
-//					StateEntity state = stateRepository.findByNameIgnoreCase(stateName)
-//							.orElseThrow(() -> new IllegalArgumentException(
-//									"Invalid State name at Excel row " + rowNum + ": [" + stateName + "]"));
-//
-//					client.setStateId(state.getStateId());
-//				}
 
 				if (!stateName.isEmpty()) {
 
@@ -822,89 +815,37 @@ public class ClientService {
 		}
 	}
 
-//	private Date getDateCellValue(Row row, int cellIndex) {
-//
-//		Cell cell = row.getCell(cellIndex);
-//
-//		if (cell == null) {
-//			return null;
-//		}
-//
-//		if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
-//
-//			return cell.getDateCellValue();
-//		}
-//
-//		String value = getCellValue(row, cellIndex);
-//
-//		if (value == null || value.trim().isEmpty()) {
-//			return null;
-//		}
-//
-//		List<String> patterns = Arrays.asList("dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd");
-//
-//		for (String pattern : patterns) {
-//
-//			try {
-//
-//				SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-//
-//				sdf.setLenient(false);
-//
-//				return sdf.parse(value.trim());
-//
-//			} catch (ParseException ignored) {
-//			}
-//		}
-//
-//		throw new IllegalArgumentException("Invalid date format: " + value + ". Expected dd-MM-yyyy");
-//	}
-
 	private LocalDate getDateCellValue(Row row, int cellIndex) {
 
-	    Cell cell = row.getCell(cellIndex);
+		Cell cell = row.getCell(cellIndex);
 
-	    if (cell == null) {
-	        return null;
-	    }
+		if (cell == null) {
+			return null;
+		}
 
-	    if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+		if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
 
-	        Date date = cell.getDateCellValue();
+			Date date = cell.getDateCellValue();
 
-	        return date.toInstant()
-	                .atZone(ZoneId.systemDefault())
-	                .toLocalDate();
-	    }
+			return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		}
 
-	    String value = getCellValue(row, cellIndex);
+		String value = getCellValue(row, cellIndex);
 
-	    if (value == null || value.trim().isEmpty()) {
-	        return null;
-	    }
+		if (value == null || value.trim().isEmpty()) {
+			return null;
+		}
 
-	    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-	    sdf.setLenient(false);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy").withResolverStyle(ResolverStyle.STRICT);
 
-	    try {
+		try {
 
-	        Date date = sdf.parse(value.trim());
+			return LocalDate.parse(value.trim(), formatter);
 
-	        if (!sdf.format(date).equals(value.trim())) {
-	            throw new ParseException("Invalid date", 0);
-	        }
+		} catch (DateTimeParseException e) {
 
-	        return date.toInstant()
-	                .atZone(ZoneId.systemDefault())
-	                .toLocalDate();
-
-	    } catch (ParseException e) {
-
-	        throw new IllegalArgumentException(
-	            "Invalid Start Date: " + value +
-	            ". Expected format dd-MM-yyyy"
-	        );
-	    }
+			throw new IllegalArgumentException("Invalid Start Date: " + value + ". Expected format dd-MM-yyyy");
+		}
 	}
 
 	private String toCamelCase(String input) {
@@ -927,5 +868,41 @@ public class ClientService {
 			dto.setFlag((String) obj[4]);
 			return dto;
 		}).collect(Collectors.toList());
+	}
+
+	// For Recurring
+	public List<ClientDTO> getClientsForRecurring(Integer userId) {
+		Short activeStatus = 1;
+		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
+
+		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
+				.collect(Collectors.toList());
+	}
+
+	// Manager Change
+	@Transactional
+	public void changeClientManager(Integer clientId, Integer managerId, HttpServletRequest httpRequest) {
+
+		if (managerId == null) {
+			throw new RuntimeException("Manager is required");
+		}
+
+		ClientEntity client = clientRepository.findById(clientId)
+				.orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+		UserLoginEntity manager = userLoginRepository.findById(managerId)
+				.orElseThrow(() -> new RuntimeException("Manager not found with id: " + managerId));
+
+		if (manager.getStatus() != 1) {
+			throw new RuntimeException("Selected manager is not active");
+		}
+
+		client.setManagerId(managerId);
+		client.setModdate(new Timestamp(System.currentTimeMillis()));
+
+		ClientEntity savedClient = clientRepository.save(client);
+
+		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), "Client Manager Changed", 8, savedClient.getClientId(), -1);
 	}
 }

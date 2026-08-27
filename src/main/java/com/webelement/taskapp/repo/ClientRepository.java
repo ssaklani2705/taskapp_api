@@ -1,6 +1,7 @@
 package com.webelement.taskapp.repo;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -72,6 +73,12 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
 	@Query("SELECT UPPER(TRIM(c.gstNo)) FROM ClientEntity c WHERE c.gstNo IS NOT NULL")
 	Set<String> findAllGstsNormalized();
+	
+	List<ClientEntity> findByManagerIdAndStatus(Integer managerId, Short status);
+	
+	Optional<ClientEntity> findByClientIdAndManagerIdAndStatus( Integer clientId, Integer managerId, Short status );
+
+	Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer userId);
 	
 	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
 	List<ClientEntity> findAllActiveClients();
