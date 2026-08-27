@@ -1,17 +1,28 @@
 package com.webelement.taskapp.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
+import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskRequestDTO;
+import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -28,6 +39,9 @@ public class TaskController {
 	@Autowired
 	private TaskService taskService;
 	
+	private final ObjectMapper objectMapper;
+
+	
 	@Autowired
 	private ClientRepository clientRepository;
 	
@@ -36,6 +50,60 @@ public class TaskController {
 	
 	@Autowired
 	private UserLoginRepository userLoginRepository;
+	
+	@GetMapping("/getTaskDetailsById")
+	public ResponseEntity<?> getTaskDetailsById(
+	        @RequestParam Integer taskId) {
+
+	    Map<String, Object> response =
+	            new HashMap<>();
+
+	    try {
+
+	        TaskEditDTO task =
+	                taskService.getTaskById(taskId);
+
+	        response.put(
+	                "success",
+	                true
+	        );
+
+	        response.put(
+	                "message",
+	                "Task details fetched successfully"
+	        );
+
+	        response.put(
+	                "data",
+	                task
+	        );
+
+	        return ResponseEntity.ok(response);
+
+	    } catch (Exception e) {
+
+	        e.printStackTrace();
+
+	        response.put(
+	                "success",
+	                false
+	        );
+
+	        response.put(
+	                "message",
+	                e.getMessage()
+	        );
+
+	        response.put(
+	                "data",
+	                null
+	        );
+
+	        return ResponseEntity
+	                .status(HttpStatus.BAD_REQUEST)
+	                .body(response);
+	    }
+	}
 
 	@GetMapping("/getTaskDetails")
 	public Map<String, Object> findTaskDetails(
@@ -95,13 +163,148 @@ public class TaskController {
 
 	    response.put(
 	            "assignedUsers",
-	            userLoginRepository.findAllActiveUsers()
+	            userLoginRepository.findActiveUsers()
 	    );
 
 
 	    return response;
 	}
 
+	
+
+    @PostMapping(
+            value = "/saveTask",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> saveTask(
+
+            @RequestParam(required = false)
+            Integer taskId,
+
+            @RequestParam
+            Integer clientId,
+
+            @RequestParam
+            String date,
+
+            @RequestParam
+            Integer taskCategoryId,
+
+            @RequestParam
+            String description,
+
+            @RequestParam
+            Integer assignedTo,
+
+            @RequestParam
+            Short priority,
+
+            @RequestParam
+            String title,
+
+            @RequestParam
+            Integer addedBy,
+
+            @RequestParam(required = false)
+            Short status,
+
+            @RequestParam(
+                    required = false,
+                    name = "fileName1"
+            )
+            MultipartFile fileName1,
+
+            @RequestParam(
+                    required = false,
+                    name = "fileName2"
+            )
+            MultipartFile fileName2) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+
+            // -----------------------------------------
+            // CREATE / UPDATE
+            // -----------------------------------------
+
+            boolean isUpdate = taskId != null;
+
+            // -----------------------------------------
+            // DATE
+            // -----------------------------------------
+
+            LocalDate taskDate =
+                    LocalDate.parse(date);
+
+            // -----------------------------------------
+            // SAVE / UPDATE
+            // -----------------------------------------
+
+            TaskEntity savedTask =
+                    taskService.saveTask(
+                            taskId,
+                            clientId,
+                            taskDate,
+                            taskCategoryId,
+                            description,
+                            assignedTo,
+                            priority,
+                            title,
+                            addedBy,
+                            status,
+                            fileName1,
+                            fileName2
+                    );
+
+            // -----------------------------------------
+            // RESPONSE
+            // -----------------------------------------
+
+            response.put(
+                    "success",
+                    true
+            );
+
+            response.put(
+                    "message",
+                    isUpdate
+                            ? "Task updated successfully"
+                            : "Task created successfully"
+            );
+
+            response.put(
+                    "data",
+                    savedTask
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.put(
+                    "success",
+                    false
+            );
+
+            response.put(
+                    "message",
+                    e.getMessage()
+            );
+
+            response.put(
+                    "data",
+                    null
+            );
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(response);
+        }
+    }
 
 	
 }

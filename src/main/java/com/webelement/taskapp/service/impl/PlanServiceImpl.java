@@ -86,7 +86,6 @@ public class PlanServiceImpl implements PlanService {
 		PlanEntity saved = planRepo.save(entity);
 
 		String action = isNew ? "Plan Added" : "Plan Updated";
-
 		commonFunction.createHistoryAccess(request.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 9, saved.getPlanId(), -1);
 		return new ApiResponse<>(true, "Plan saved successfully", null);
@@ -95,50 +94,36 @@ public class PlanServiceImpl implements PlanService {
 	@Override
 	public ApiResponse<PlanDTO> delete(PlanDTO request) {
 		Optional<PlanEntity> existing = planRepo.findById(request.getPlanId());
-
 		if (!existing.isPresent()) {
 			return new ApiResponse<>(false, "Plan not found", null);
 		}
-
 		int updatedRows = planRepo.softDelete(request.getPlanId());
-
 		if (updatedRows > 0) {
-
 			commonFunction.createHistoryAccess(request.getUserId(), commonFunction.getLocalIp(),
 					commonFunction.getLocalIp(), "Plan Deleted", 9, request.getPlanId(), -1);
-
 			return new ApiResponse<>(true, "Plan deleted successfully", null);
 		}
-
 		return new ApiResponse<>(false, "Plan delete failed", null);
 	}
 
 	@Override
 	public ApiResponse<PlanDTO> getById(Integer planId) {
 		PlanEntity entity = planRepo.findById(planId).orElse(null);
-
 		if (entity == null) {
 			return new ApiResponse<>(false, "Plan record not found", null);
 		}
-
 		PlanDTO dto = PlanDTO.builder().planId(entity.getPlanId()).name(entity.getName()).rate(entity.getRate())
 				.description(entity.getDescription()).status(entity.getStatus()).build();
-
 		List<TransactionEntity> history = commonFunction.getTransactionLogs(9, planId);
-
 		if (history != null && !history.isEmpty()) {
 			dto.setTransactionHistory(history);
 		}
-
 		return new ApiResponse<>(true, "Plan fetched successfully", dto);
 	}
 
 	@Override
 	public Page<PlanDTO> findPlanList(int page, int size, int statusIndex, String search) {
-		 return planRepo.findPlanDetails(
-	                PageRequest.of(page, size),
-	                statusIndex,
-	                search);
+		return planRepo.findPlanDetails(PageRequest.of(page, size), statusIndex, search);
 	}
 
 }

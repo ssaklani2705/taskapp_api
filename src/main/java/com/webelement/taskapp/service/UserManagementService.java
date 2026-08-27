@@ -49,7 +49,7 @@ public class UserManagementService {
 	private String file_maillog;
 
 	public List<UserActiveDTO> getActiveUsers() {
-		return loginRepository.findActiveUsers();
+		return loginRepository.findActiveManager();
 	}
 
 	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search,

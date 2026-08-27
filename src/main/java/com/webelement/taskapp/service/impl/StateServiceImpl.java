@@ -184,8 +184,6 @@ public class StateServiceImpl implements StateService  {
 
 	   
 	   
-	   
-	   
 		public List<StateEntity> getStates() {
 	        return stateRepository.findByStatus((short) 1);
 	    }

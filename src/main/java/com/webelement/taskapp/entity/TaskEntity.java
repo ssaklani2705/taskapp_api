@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -21,7 +23,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskEntity {
 
+
     @Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "i_taskid", nullable = false)
     private Integer taskId;
 

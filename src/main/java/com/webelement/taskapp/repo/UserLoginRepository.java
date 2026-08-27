@@ -24,8 +24,8 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 @Repository
 public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Integer> {
 	
-	@Query("SELECT u FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
-	List<UserLoginEntity> findAllActiveUsers();
+//	@Query("SELECT u FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
+//	List<UserLoginEntity> findAllActiveUsers();
 
 
 	boolean existsByDepartmentId(Integer departmentId);
@@ -117,6 +117,10 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers();
+	
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+			+ "FROM UserLoginEntity u WHERE u.status = 1 and u.departmentId = 1 order by u.firstName asc")
+	List<UserActiveDTO> findActiveManager();
 
 //	Optional<UserLoginEntity> findByEmail(String email);
 	Optional<UserLoginEntity> findByEmailAndStatus(String email,int status);
