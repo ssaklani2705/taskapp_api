@@ -38,4 +38,6 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 	@Query("UPDATE PlanEntity s SET s.status = 3, s.modificationDate = CURRENT_TIMESTAMP WHERE s.planId = :planId")
 	Integer softDelete(@Param("planId") Integer planId);
 
+	List<PlanEntity> findByStatus(Short status);
+
 }

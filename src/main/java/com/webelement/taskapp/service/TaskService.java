@@ -57,7 +57,10 @@ public class TaskService {
 
 	        Integer assignedTo,
 
-	        Integer priority,String fromDate, String toDate) {
+	        Integer priority,String fromDate, String toDate,String isAdmin,Integer userId) {
+		
+		System.out.println("isAdmin : "+isAdmin);
+		System.out.println("userId : "+userId);
 
 	    return taskRepository.findTaskDetails(
 	            PageRequest.of(page, size),
@@ -71,7 +74,9 @@ public class TaskService {
 	            assignedTo,
 
 	            priority,
-	            fromDate,toDate
+	            fromDate,toDate,
+	            isAdmin,
+	            userId
 	            
 	            
 	    );
