@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +26,7 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
+import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
@@ -321,5 +323,28 @@ public class TaskController {
         }
     }
 
+    
+    @PostMapping(value = "/update_task_status",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateTaskStatus(@ModelAttribute UpdateTaskStatusDTO dto) {
+        Map<String, Object> response = new HashMap<>();
+        
+        System.err.println("{ file 1 }"+dto.getFileName1());
+        System.err.print("{file 2 }"+dto.getFileName2());
+        try {
+            TaskEntity updatedTask =taskService.updateTaskStatus(dto);
+            response.put("success",true);
+            response.put("message","Task status updated successfully");
+            response.put("data",updatedTask);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            
+            System.out.println("errrrrrrrrrrrrrrr "+e.getMessage());
+            response.put("success",false);
+            response.put( "message", e.getMessage());
+            response.put("data",null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
 	
 }

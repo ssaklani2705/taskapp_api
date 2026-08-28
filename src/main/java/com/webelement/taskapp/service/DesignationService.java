@@ -37,26 +37,17 @@ public class DesignationService {
 	// ----------------------------------------------------
 
 	public ApiResponse<DesignationDTO> addOrUpdate(DesignationDTO dto, HttpServletRequest httpRequest) {
-
 		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
-
 		String name = dto.getName() != null ? dto.getName().trim() : "";
-
 		// ADD
 		if (dto.getDesigmationId() == null || dto.getDesigmationId() == 0) {
-
 			if (designationRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
-
 				return new ApiResponse<>(false, "Designation name already exists", null);
-			}
-			
+			}	
 			if (designationRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
-					
 				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
 			}
-
 		}
-
 		// UPDATE
 		else {
 
