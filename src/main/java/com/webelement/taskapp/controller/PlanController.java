@@ -68,6 +68,12 @@ public class PlanController {
 	    return planService.delete(dto);
 	}
 	
-	
+	@GetMapping("/getPlan")
+    public ApiResponse<List<PlanEntity>> getPlan() {
+
+        List<PlanEntity> plan = planService.getPlan();
+
+        return new ApiResponse<>(true, "Plan fetched successfully", plan);
+    }
 	
 }

@@ -51,7 +51,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 			+ "AND (:search IS NULL OR :search = '' " + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%')))")
+			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%'))) order by c.status,c.name asc ")
 	Page<ClientDTO> findClientDetails(Pageable pageable, @Param("status") Short status,
 			@Param("managerId") Integer managerId, @Param("stateId") Integer stateId,
 			@Param("clientName") String clientName, @Param("clientCode") String clientCode,

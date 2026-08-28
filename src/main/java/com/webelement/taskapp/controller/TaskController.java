@@ -132,7 +132,9 @@ public class TaskController {
 
 	        @RequestParam(required = false, defaultValue = "0") Integer priority,
 	        @RequestParam(required = false) String fromDate,
-	        @RequestParam(required = false) String toDate
+	        @RequestParam(required = false) String toDate,
+	        @RequestParam(required = false) String isAdmin,
+	        @RequestParam(required = false, defaultValue = "0") Integer userId
 	        ) {
 
 	    Page<TaskDetailsDTO> pageData =
@@ -143,7 +145,7 @@ public class TaskController {
 
 	                     assignedTo,
 
-	                     priority,fromDate,toDate);
+	                     priority,fromDate,toDate,isAdmin,userId);
 
 	    Map<String, Object> response =
 	            new HashMap<>();

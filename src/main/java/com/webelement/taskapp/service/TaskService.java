@@ -56,11 +56,33 @@ public class TaskService {
 	@Value("${task.upload-dir}")
 	private String uploadDir;
 
+
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId,
 			Integer assignedTo,
-			Integer priority, String fromDate, String toDate) {
-		return taskRepository.findTaskDetails(PageRequest.of(page, size),statusIndex,search,clientId,taskCategoryId,assignedTo,priority, fromDate, toDate);
+			Integer priority, String fromDate, String toDate,String isAdmin,Integer userId) {
+		
+		
+	
+	    return taskRepository.findTaskDetails(
+	            PageRequest.of(page, size),
+	            statusIndex,
+	            search,
+
+	            clientId,
+
+	            taskCategoryId,
+
+	            assignedTo,
+
+	            priority,
+	            fromDate,toDate,
+	            isAdmin,
+	            userId
+	            
+	            
+	    );
+
 	}
 
 	@Transactional

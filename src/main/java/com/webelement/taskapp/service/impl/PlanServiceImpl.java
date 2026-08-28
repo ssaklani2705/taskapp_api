@@ -126,4 +126,8 @@ public class PlanServiceImpl implements PlanService {
 		return planRepo.findPlanDetails(PageRequest.of(page, size), statusIndex, search);
 	}
 
+	public List<PlanEntity> getPlan() {
+        return planRepo.findByStatus((short) 1);
+    }
+
 }

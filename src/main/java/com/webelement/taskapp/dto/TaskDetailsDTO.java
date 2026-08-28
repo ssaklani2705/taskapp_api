@@ -28,4 +28,8 @@ public class TaskDetailsDTO {
     private String title;
     
     private Short taskStatus;
+    
+    private Integer assignedTo;
+    
+    private Integer addedBy;
 }

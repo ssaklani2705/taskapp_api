@@ -134,7 +134,7 @@ public class ClientService {
 
 		String action = isNew ? "Client Added" : "Client Updated";
 
-		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
+		commonFunction.createHistoryAccess(client.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
 
 		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
