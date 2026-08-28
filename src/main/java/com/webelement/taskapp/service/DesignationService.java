@@ -49,10 +49,10 @@ public class DesignationService {
 
 				return new ApiResponse<>(false, "Designation name already exists", null);
 			}
-
+			
 			if (designationRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
-
-				return new ApiResponse<>(false, "Sequence already exists", null);
+					
+				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
 			}
 
 		}

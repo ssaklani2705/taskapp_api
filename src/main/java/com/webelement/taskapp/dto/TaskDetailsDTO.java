@@ -26,4 +26,6 @@ public class TaskDetailsDTO {
     private Short status;
 
     private String title;
+    
+    private Short taskStatus;
 }

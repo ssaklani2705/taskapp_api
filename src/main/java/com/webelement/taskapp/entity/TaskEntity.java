@@ -79,4 +79,8 @@ public class TaskEntity {
 
 //    @Column(name = "i_taskgroupid")
 //    private Integer taskGroupId;
+    
+    @Column(name = "i_taskstatus")
+    private Short taskStatus;
+    
 }

@@ -55,7 +55,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
-		       "WHERE u.userId > 0 AND d.departmentId != 1 " +
+		       "WHERE u.userId > 0  " +
+//		       AND d.departmentId != 1
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
 		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +

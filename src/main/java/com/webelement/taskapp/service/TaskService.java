@@ -57,7 +57,7 @@ public class TaskService {
 
 	        Integer assignedTo,
 
-	        Integer priority) {
+	        Integer priority,String fromDate, String toDate) {
 
 	    return taskRepository.findTaskDetails(
 	            PageRequest.of(page, size),
@@ -70,7 +70,8 @@ public class TaskService {
 
 	            assignedTo,
 
-	            priority
+	            priority,
+	            fromDate,toDate
 	            
 	            
 	    );
@@ -104,6 +105,7 @@ public class TaskService {
 				// Default status for CREATE
 				task.setStatus((short) 1);
 				task.setAddedBy(addedBy);
+				task.setTaskStatus((short) 1);
 			}
 
 			task.setTitle(title);
