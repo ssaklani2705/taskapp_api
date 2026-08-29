@@ -90,6 +90,12 @@ public class UserLoginEntity {
 	
 	@Column(name = "i_designationid")
 	private Integer designationId;
+	
+	@Transient
+	private String departmentName;
+
+	@Transient
+	private String designationName;
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

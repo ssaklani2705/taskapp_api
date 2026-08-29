@@ -24,9 +24,13 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ModulePermissionDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.dto.UserInfo;
+import com.webelement.taskapp.entity.DepartmentEntity;
+import com.webelement.taskapp.entity.DesignationEntity;
 import com.webelement.taskapp.entity.PermissionEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
+import com.webelement.taskapp.repo.DepartmentRepository;
+import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.PermissionRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
@@ -41,6 +45,12 @@ public class UserManagementService {
 
 	@Autowired
 	private PermissionRepo permissionRepo;
+	
+	@Autowired
+	private DepartmentRepository departmentRepository;
+
+	@Autowired
+	private DesignationRepository designationRepository;
 
 	@Value("${paths:}")
 	private String paths;
@@ -75,37 +85,109 @@ public class UserManagementService {
 					.body(new ResponseApi<>(false, "Failed to delete user", null));
 		}
 	}
-
+	
 	public UserLoginEntity getUserById(int userId) {
-		UserLoginEntity user = loginRepository.getUserById(userId);
-		
 
-		if (user != null) {
+	    UserLoginEntity user = loginRepository.getUserById(userId);
 
-			int newUserId = 0;
+	    if (user != null) {
 
-			if ("N".equalsIgnoreCase(user.getPermission())) {
-				newUserId = userId;
-			} else {
-				newUserId = -1;
-			}
-			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
-			user.setModule(permissions);
+	        int newUserId = 0;
 
-			// Append transaction history
-			List<TransactionEntity> history = getTransactionLogs(1, userId);
-			user.setTransactionhistory(history);
-		} else {
-			int newUserId = (userId == 0) ? -1 : userId;
-			
-			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
+	        if ("N".equalsIgnoreCase(user.getPermission())) {
+	            newUserId = userId;
+	        } else {
+	            newUserId = -1;
+	        }
 
-			user = new UserLoginEntity(); // create new object
-			user.setModule(permissions);
-		}
+	        // Module permissions
+	        List<ModulePermissionDTO> permissions =
+	                getPermissionsByUserId(newUserId);
 
-		return user;
+	        user.setModule(permissions);
+
+	        // Transaction history
+	        List<TransactionEntity> history =
+	                getTransactionLogs(1, userId);
+
+	        user.setTransactionhistory(history);
+
+	        // Department Name
+	        if (user.getDepartmentId() != null) {
+
+	            DepartmentEntity department =
+	                    departmentRepository.findById(
+	                            user.getDepartmentId()
+	                    ).orElse(null);
+
+	            if (department != null) {
+	                user.setDepartmentName(
+	                        department.getName()
+	                );
+	            }
+	        }
+
+	        // Designation Name
+	        if (user.getDesignationId() != null) {
+
+	            DesignationEntity designation =
+	                    designationRepository.findById(
+	                            user.getDesignationId()
+	                    ).orElse(null);
+
+	            if (designation != null) {
+	                user.setDesignationName(
+	                        designation.getName()
+	                );
+	            }
+	        }
+
+	    } else {
+
+	        int newUserId =
+	                (userId == 0) ? -1 : userId;
+
+	        List<ModulePermissionDTO> permissions =
+	                getPermissionsByUserId(newUserId);
+
+	        user = new UserLoginEntity();
+
+	        user.setModule(permissions);
+	    }
+
+	    return user;
 	}
+
+//	public UserLoginEntity getUserById(int userId) {
+//		UserLoginEntity user = loginRepository.getUserById(userId);
+//		
+//
+//		if (user != null) {
+//
+//			int newUserId = 0;
+//
+//			if ("N".equalsIgnoreCase(user.getPermission())) {
+//				newUserId = userId;
+//			} else {
+//				newUserId = -1;
+//			}
+//			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
+//			user.setModule(permissions);
+//
+//			// Append transaction history
+//			List<TransactionEntity> history = getTransactionLogs(1, userId);
+//			user.setTransactionhistory(history);
+//		} else {
+//			int newUserId = (userId == 0) ? -1 : userId;
+//			
+//			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
+//
+//			user = new UserLoginEntity(); // create new object
+//			user.setModule(permissions);
+//		}
+//
+//		return user;
+//	}
 
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = loginRepository.getTransactionLogs(moduleId, recordId);

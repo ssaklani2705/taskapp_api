@@ -35,7 +35,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 //	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
 //	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
 
-	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid =1 ) OR (:logintype <> 'manager' AND i_departmentid <> 1) ) ", nativeQuery = true)
+	//@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager' AND i_departmentid <> 1 AND i_designationid <> 1) ) ", nativeQuery = true)
+	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager'AND NOT (i_departmentid = 1 AND i_designationid = 1)) ) ", nativeQuery = true)
 	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password, @Param("logintype") String logintype);
 	
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
