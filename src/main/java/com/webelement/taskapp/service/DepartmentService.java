@@ -15,6 +15,7 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
+import com.webelement.taskapp.entity.DesignationEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -42,6 +43,9 @@ public class DepartmentService {
 			if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 				return new ApiResponse<>(false, "Department name already exists", null);
 			}
+			if (departmentRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
+				return new ApiResponse<>(false, "A department with this sequence already exists", null);
+			}
 		}
 		// UPDATE
 		else {
@@ -49,6 +53,13 @@ public class DepartmentService {
 			if (existing != null && !existing.getDepartmentId().equals(dto.getDepartmentId())
 					&& existing.getStatus() != 3) {
 				return new ApiResponse<>(false, "Department name already exists", null);
+			}
+			DepartmentEntity existingSequence = departmentRepository.findBySequence(dto.getSequence());
+
+			if (existingSequence != null && !existingSequence.getDepartmentId().equals(dto.getDepartmentId())
+					&& existingSequence.getStatus() != 3) {
+
+				return new ApiResponse<>(false, "A department with this sequence already exists", null);
 			}
 		}
 		DepartmentEntity entity;

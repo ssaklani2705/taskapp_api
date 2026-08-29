@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
+import com.webelement.taskapp.entity.DesignationEntity;
 
 
 @Repository
@@ -79,4 +80,10 @@ public interface DepartmentRepository
 	
 	@Query(value = "SELECT * FROM t_department WHERE status = 1", nativeQuery = true)
 	List<DepartmentEntity> findAllActiveDepartments();
+	
+	   boolean existsBySequenceAndStatusNot(
+	            Integer sequence,
+	            Integer status);
+	DepartmentEntity findBySequence(
+            Integer sequence);
 }

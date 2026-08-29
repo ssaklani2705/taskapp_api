@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +53,12 @@ public class TaskService {
 	private final HttpServletRequest httpRequest;
 	private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10 MB
 	private static final long MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50 MB
+	private static final Map<Short, Short> STATUS_FLOW = Map.of(
+	        (short) 1, (short) 2,
+	        (short) 2, (short) 3,
+	        (short) 3, (short) 4,
+	        (short) 4, (short) 5
+	);
 
 
 	@Value("${task.upload-dir}")
@@ -237,23 +244,38 @@ public class TaskService {
 
 		TaskEntity task = taskRepository.findById(dto.getTaskId())
 				.orElseThrow(() -> new RuntimeException("Task not found"));
+
+		Short currentStatus = task.getTaskStatus();
+
+		Short nextStatus = STATUS_FLOW.get(currentStatus);
 		
-	    if (task.getTaskStatus() != null && task.getTaskStatus() == 2) {
-	        throw new RuntimeException("This task is already closed and cannot be updated.");
-	    }
+		if (nextStatus == null) {
+			if (currentStatus == 5) {
+				throw new RuntimeException("This task is already closed and cannot be updated.");
+			}
+			throw new RuntimeException("Invalid task status: " + currentStatus);
+		}
+		task.setTaskStatus(nextStatus);
 		task.setDescription(dto.getDescription());
-		task.setTaskStatus((short) 2);
 		task.setModificationDate(LocalDateTime.now());
+
 		// PDF Upload
 		if (dto.getFileName1() != null && !dto.getFileName1().isEmpty()) {
+
 			validatePdf(dto.getFileName1());
+
 			String pdfFileName = saveFile(dto.getFileName1(), "pdf");
+
 			task.setFileName1(pdfFileName);
 		}
+
 		// ZIP Upload
 		if (dto.getFileName2() != null && !dto.getFileName2().isEmpty()) {
+
 			validateZip(dto.getFileName2());
+
 			String zipFileName = saveFile(dto.getFileName2(), "zip");
+
 			task.setFileName2(zipFileName);
 		}
 
