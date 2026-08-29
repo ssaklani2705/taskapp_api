@@ -39,5 +39,9 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 	Integer softDelete(@Param("planId") Integer planId);
 
 	List<PlanEntity> findByStatus(Short status);
+	
+	@Query("SELECT u.planId FROM PlanEntity u WHERE LOWER(u.name) = LOWER(:name)")
+    Integer findIdByName(@Param("name") String name);
+
 
 }
