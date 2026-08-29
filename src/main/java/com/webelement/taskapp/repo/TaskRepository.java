@@ -24,7 +24,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer>{
             + "t.clientId, " + "t.closeRemarks, " + "t.date, " + "t.description, " + "t.fileName1, " + "t.fileName2, "
             + "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
             + "c.name, " + "tc.name, " + "u.firstName, " + // assignedTo user
-            "a.firstName) " + // addedBy user
+            "a.firstName, t.taskStatus) " + // addedBy user
             "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
             + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
             + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
