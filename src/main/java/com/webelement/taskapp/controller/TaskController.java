@@ -141,24 +141,17 @@ public class TaskController {
 	    Page<TaskDetailsDTO> pageData =
 	            taskService.findTaskDetails(page, size,statusIndex,search,
 	            		 clientId,
-
 	                     taskCategoryId,
-
 	                     assignedTo,
-
 	                     priority,fromDate,toDate,isAdmin,userId,taskStatusId);
-
 	    Map<String, Object> response =
 	            new HashMap<>();
-
 	    response.put(
 	            "data",
 	            pageData.getContent());
-
 	    response.put(
 	            "totalElements",
 	            pageData.getTotalElements());
-
 	    return response;
 	}
 	

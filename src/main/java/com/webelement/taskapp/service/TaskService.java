@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.Exceptions.FileValidationException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
+import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
@@ -211,6 +212,8 @@ public class TaskService {
 
 	public ResponseEntity<ResponseApi<String>> deleteTask(int taskId, int createdBy, HttpServletRequest httpRequest) {
 
+		 
+		
 		Optional<TaskEntity> existingTask = taskRepository.findById(taskId);
 
 		if (!existingTask.isPresent()) {
@@ -238,28 +241,19 @@ public class TaskService {
 	    if (task.getTaskStatus() != null && task.getTaskStatus() == 2) {
 	        throw new RuntimeException("This task is already closed and cannot be updated.");
 	    }
-
 		task.setDescription(dto.getDescription());
 		task.setTaskStatus((short) 2);
 		task.setModificationDate(LocalDateTime.now());
-
 		// PDF Upload
 		if (dto.getFileName1() != null && !dto.getFileName1().isEmpty()) {
-
 			validatePdf(dto.getFileName1());
-
 			String pdfFileName = saveFile(dto.getFileName1(), "pdf");
-
 			task.setFileName1(pdfFileName);
 		}
-
 		// ZIP Upload
 		if (dto.getFileName2() != null && !dto.getFileName2().isEmpty()) {
-
 			validateZip(dto.getFileName2());
-
 			String zipFileName = saveFile(dto.getFileName2(), "zip");
-
 			task.setFileName2(zipFileName);
 		}
 

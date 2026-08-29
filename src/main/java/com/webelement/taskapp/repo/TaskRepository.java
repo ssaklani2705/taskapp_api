@@ -82,6 +82,14 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer>{
 int deleteTask(@Param("status") Short status,
                @Param("taskId") int taskId);
 
+
+
+
+
+
+
+
+
 	
 	
 }

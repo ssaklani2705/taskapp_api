@@ -242,58 +242,36 @@ public class TaskCategoryService {
                         search,departmentId);
     }
 
-    public ResponseEntity<ApiResponse<String>> deleteTaskCategory(
-            Integer taskcategoryId,
-            Integer userId,
-            HttpServletRequest httpRequest) {
+	public ResponseEntity<ApiResponse<String>> deleteTaskCategory(Integer taskcategoryId, Integer userId,
+			HttpServletRequest httpRequest) {
 
-        Optional<TaskCategoryEntity> existing =
-                taskCategoryRepository
-                        .findById(taskcategoryId);
+		Integer taskCategoryExist = taskCategoryRepository.existsByTaskCategoryId(taskcategoryId);
+		if (taskCategoryExist != null && taskCategoryExist > 0) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
+					"Task Category is assigned to one or more task and cannot be deleted", null));
+		}
 
-        if (!existing.isPresent()) {
+		Optional<TaskCategoryEntity> existing = taskCategoryRepository.findById(taskcategoryId);
 
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(
-                            new ApiResponse<>(
-                                    false,
-                                    "Task Category not found",
-                                    null));
-        }
+		if (!existing.isPresent()) {
 
-        int updatedRows =
-                taskCategoryRepository.softDelete(
-                        3,
-                        taskcategoryId);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ApiResponse<>(false, "Task Category not found", null));
+		}
 
-        if (updatedRows > 0) {
+		int updatedRows = taskCategoryRepository.softDelete(3, taskcategoryId);
 
-            commonFunction.createHistoryAccess(
-                    userId,
-                    commonFunction.resolveClientIp(
-                            httpRequest),
-                    commonFunction.getLocalIp(),
-                    "Task Category Deleted",
-                    5,
-                    taskcategoryId,
-                    -1);
+		if (updatedRows > 0) {
 
-            return ResponseEntity.ok(
-                    new ApiResponse<>(
-                            true,
-                            "Task Category deleted successfully",
-                            null));
-        }
+			commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+					commonFunction.getLocalIp(), "Task Category Deleted", 5, taskcategoryId, -1);
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                        new ApiResponse<>(
-                                false,
-                                "Failed to delete Task Category",
-                                null));
-    }
+			return ResponseEntity.ok(new ApiResponse<>(true, "Task Category deleted successfully", null));
+		}
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(new ApiResponse<>(false, "Failed to delete Task Category", null));
+	}
 
     public List<TaskCategoryDTO> getActiveTaskCategories() {
 
