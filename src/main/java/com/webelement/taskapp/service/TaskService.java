@@ -60,7 +60,7 @@ public class TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId,
 			Integer assignedTo,
-			Integer priority, String fromDate, String toDate,String isAdmin,Integer userId) {
+			Integer priority, String fromDate, String toDate,String isAdmin,Integer userId,Integer taskStatusId) {
 		
 		
 	
@@ -78,7 +78,8 @@ public class TaskService {
 	            priority,
 	            fromDate,toDate,
 	            isAdmin,
-	            userId
+	            userId,
+	            taskStatusId
 	            
 	            
 	    );

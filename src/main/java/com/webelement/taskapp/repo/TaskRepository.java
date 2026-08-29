@@ -43,6 +43,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer>{
     	       "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) " +
     	       "AND (:assignedTo = 0 OR t.assignedTo = :assignedTo) " +
     	       "AND (:priority = 0 OR t.priority = :priority) " +
+    	       "AND (:taskStatusId = 0 OR t.taskStatus = :taskStatusId) " +
     	       "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) " +
     	       "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " +
     	       
@@ -70,7 +71,9 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer>{
     	        @Param("isAdmin")
     	        String isAdmin,
     	        @Param("userId")
-    	        Integer userId
+    	        Integer userId,
+    	        @Param("taskStatusId")
+    	        Integer taskStatusId
     	);
     
 @Modifying
