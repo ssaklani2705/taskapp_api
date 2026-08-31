@@ -53,12 +53,7 @@ public class TaskService {
 	private final HttpServletRequest httpRequest;
 	private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10 MB
 	private static final long MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50 MB
-	private static final Map<Short, Short> STATUS_FLOW = Map.of(
-	        (short) 1, (short) 2,
-	        (short) 2, (short) 3,
-	        (short) 3, (short) 4,
-	        (short) 4, (short) 5
-	);
+	private static final Map<Short, Short> STATUS_FLOW = Map.of((short) 1, (short) 2,(short) 2, (short) 3,(short) 3, (short) 4,(short) 4, (short) 5);
 
 
 	@Value("${task.upload-dir}")
@@ -245,16 +240,39 @@ public class TaskService {
 		TaskEntity task = taskRepository.findById(dto.getTaskId())
 				.orElseThrow(() -> new RuntimeException("Task not found"));
 
-		Short currentStatus = task.getTaskStatus();
+		System.err.print(dto.getSelectedTaskStatusId());
 
-		Short nextStatus = STATUS_FLOW.get(currentStatus);
-		
-		if (nextStatus == null) {
-			if (currentStatus == 5) {
-				throw new RuntimeException("This task is already closed and cannot be updated.");
+		Short currentStatus = task.getTaskStatus();
+		Short nextStatus;
+		// Status 2 has two choices
+		if (currentStatus == 2) {
+			Map<Short, Short> status2Flow = Map.of((short) 3, (short) 3, // Re-Open
+					(short) 5, (short) 5 // Assignor Closure
+			);
+
+			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+			nextStatus = status2Flow.get(selectedStatus);
+
+			System.err.println("{next status }" + nextStatus);
+
+			if (nextStatus == null) {
+				throw new RuntimeException("Please select a valid task status.");
 			}
-			throw new RuntimeException("Invalid task status: " + currentStatus);
+
+		} else {
+			// Normal flow
+			nextStatus = STATUS_FLOW.get(currentStatus);
+
+			if (nextStatus == null) {
+
+				if (currentStatus == 5) {
+					throw new RuntimeException("This task is already closed and cannot be updated.");
+				}
+
+				throw new RuntimeException("Invalid task status: " + currentStatus);
+			}
 		}
+
 		task.setTaskStatus(nextStatus);
 		task.setDescription(dto.getDescription());
 		task.setModificationDate(LocalDateTime.now());
@@ -286,5 +304,4 @@ public class TaskService {
 
 		return savedTask;
 	}
-
 }

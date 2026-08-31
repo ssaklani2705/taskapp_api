@@ -15,7 +15,7 @@ public class UpdateTaskStatusDTO {
 	private Integer taskId;
 
 	private String description;
-
+	private String selectedTaskStatusId;
 	private MultipartFile fileName1;
 
 	private MultipartFile fileName2;
