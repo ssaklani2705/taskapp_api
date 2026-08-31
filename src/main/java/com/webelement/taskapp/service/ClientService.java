@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -538,7 +540,7 @@ public class ClientService {
 
 				if (!emails.isEmpty() && !isValidEmailList(emails)) {
 
-					reasons.add("Invalid Emails format");
+					reasons.add("Invalid Other Emails format");
 
 				} else {
 
@@ -715,7 +717,7 @@ public class ClientService {
 		map.put("Pincode", client.getPincode() != null ? client.getPincode() : "");
 		map.put("Contact Name", client.getContactName() != null ? client.getContactName() : "");
 		map.put("Contact Email", client.getContactEmail() != null ? client.getContactEmail() : "");
-		map.put("Emails", client.getEmails() != null ? client.getEmails() : "");
+		map.put("Other Emails", client.getEmails() != null ? client.getEmails() : "");
 		map.put("Start Date",
 				client.getStartDate() != null ? new SimpleDateFormat("dd-MM-yyyy").format(client.getStartDate()) : "");
 		map.put("Monthly Charge", client.getMonthlyCharge() != null ? client.getMonthlyCharge().toString() : "");
@@ -927,7 +929,7 @@ public class ClientService {
 
 	// Manager Change
 	@Transactional
-	public void changeClientManager(Integer clientId, Integer managerId, HttpServletRequest httpRequest) {
+	public void changeClientManager(Integer clientId, Integer managerId,Integer userId, HttpServletRequest httpRequest) {
 
 		if (managerId == null) {
 			throw new RuntimeException("Society Manager is required");
@@ -948,7 +950,38 @@ public class ClientService {
 
 		ClientEntity savedClient = clientRepository.save(client);
 
-		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
+		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), "Society Manager Changed", 8, savedClient.getClientId(), -1);
 	}
+
+	@Transactional
+    public ApiResponse<ClientEntity> updateClientOutstanding(ClientDTO dto, Integer managerId,
+            HttpServletRequest httpRequest) {
+
+        if (dto.getClientId() == null || dto.getClientId() <= 0) {
+            return new ApiResponse<>(false, "Invalid client.", null);
+        }
+
+        if (dto.getOutstanding() == null || dto.getOutstanding() < 0) {
+            return new ApiResponse<>(false, "Invalid outstanding amount.", null);
+        }
+
+        Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(dto.getClientId(), managerId);
+
+        if (clientOptional.isEmpty()) {
+            return new ApiResponse<>(false, "You are not authorized to update this client.", null);
+        }
+
+        ClientEntity client = clientOptional.get();
+
+        client.setOutstanding(dto.getOutstanding());
+        client.setModdate(Timestamp.from(Instant.now()));
+
+        ClientEntity saved = clientRepository.save(client);
+
+        commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+                commonFunction.getLocalIp(), "Outstanding Updated", 8, saved.getClientId(), -1);
+
+        return new ApiResponse<>(true, "Outstanding updated successfully", saved);
+    }
 }

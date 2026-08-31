@@ -81,7 +81,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
 	Optional<ClientEntity> findByClientIdAndManagerIdAndStatus(Integer clientId, Integer managerId, Short status);
 
-	Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer userId);
+//	Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer userId);
+    Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer managerId);
+
 
 	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
 	List<ClientEntity> findAllActiveClients();

@@ -33,7 +33,7 @@ public class TaskCategoryController {
             @RequestParam int size,
             @RequestParam int statusIndex,
             @RequestParam(required = false) String search,@RequestParam int departmentId) {
-
+    		System.out.println("statusIndex :"+statusIndex);
         Page<TaskCategoryDTO> pageData =
                 taskCategoryService.findTaskCategoryDetails(
                         page,

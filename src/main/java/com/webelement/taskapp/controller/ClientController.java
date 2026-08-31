@@ -154,9 +154,19 @@ public class ClientController {
 			@RequestBody Map<String, Integer> request, HttpServletRequest httpRequest) {
 
 		Integer managerId = request.get("managerId");
+		Integer userId = request.get("userId");
 
-		clientService.changeClientManager(clientId, managerId, httpRequest);
+		clientService.changeClientManager(clientId, managerId,userId, httpRequest);
 
 		return ResponseEntity.ok(new ApiResponse<>(true, "Manager changed successfully", null));
 	}
+	
+	@PostMapping("/updateClientOutstanding")
+    public ResponseEntity<ApiResponse<ClientEntity>> updateClientOutstanding(@RequestBody ClientDTO dto,
+            @RequestParam("managerId") Integer managerId, HttpServletRequest httpRequest) {
+
+        ApiResponse<ClientEntity> response = clientService.updateClientOutstanding(dto, managerId, httpRequest);
+
+        return ResponseEntity.ok(response);
+    }
 }
