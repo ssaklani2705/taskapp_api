@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -54,6 +56,7 @@ import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
+import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.repo.StateRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
@@ -68,6 +71,9 @@ public class ClientService {
 
 	@Autowired
 	private UserLoginRepository userLoginRepository;
+
+	@Autowired
+	private PlanRepo planRepo;
 
 	@Autowired
 	private CommonFunction commonFunction;
@@ -85,6 +91,10 @@ public class ClientService {
 
 		if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
 			throw new RuntimeException("Invalid managerId: " + client.getManagerId());
+		}
+
+		if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
+			throw new RuntimeException("Invalid planId: " + client.getPlanId());
 		}
 
 		if (isNew) {
@@ -134,7 +144,7 @@ public class ClientService {
 
 		String action = isNew ? "Client Added" : "Client Updated";
 
-		commonFunction.createHistoryAccess(client.getUserId(), commonFunction.resolveClientIp(httpRequest),
+		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
 
 		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
@@ -273,6 +283,23 @@ public class ClientService {
 
 				client.setTaxFlag(getShortCellValue(row, 23));
 				client.setLocation(getCellValue(row, 24));
+
+				String planName = getCellValue(row, 25);
+
+				client.setPlanNameForExcel(planName != null ? planName.trim() : "");
+
+				if (planName != null && !planName.trim().isEmpty()) {
+
+					Integer planId = planRepo.findIdByName(planName.trim());
+
+					if (planId != null) {
+						client.setPlanId(planId);
+					} else {
+						client.setPlanId(null);
+					}
+				} else {
+					client.setPlanId(null);
+				}
 
 				clients.add(client);
 			}
@@ -513,7 +540,7 @@ public class ClientService {
 
 				if (!emails.isEmpty() && !isValidEmailList(emails)) {
 
-					reasons.add("Invalid Emails format");
+					reasons.add("Invalid Other Emails format");
 
 				} else {
 
@@ -563,11 +590,11 @@ public class ClientService {
 
 				if (managerName.isEmpty()) {
 
-					reasons.add("Manager is required");
+					reasons.add("Society Manager is required");
 
 				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
 
-					reasons.add("Invalid Manager name: " + managerName);
+					reasons.add("Invalid Society Manager name: " + managerName);
 				}
 
 				Short taxFlag = client.getTaxFlag();
@@ -579,6 +606,26 @@ public class ClientService {
 				} else if (taxFlag == null) {
 
 					client.setTaxFlag((short) 0);
+				}
+
+				String location = client.getLocation() != null ? client.getLocation().trim() : "";
+
+				if (location.isEmpty()) {
+
+					reasons.add("Location is required");
+				} else {
+					client.setLocation(location);
+				}
+
+				String planName = client.getPlanNameForExcel() != null ? client.getPlanNameForExcel().trim() : "";
+
+				if (planName.isEmpty()) {
+
+					reasons.add("Plan is required");
+
+				} else if (client.getPlanId() == null || client.getPlanId() == 0) {
+
+					reasons.add("Invalid Plan name: " + planName);
 				}
 
 				if (!reasons.isEmpty()) {
@@ -670,7 +717,7 @@ public class ClientService {
 		map.put("Pincode", client.getPincode() != null ? client.getPincode() : "");
 		map.put("Contact Name", client.getContactName() != null ? client.getContactName() : "");
 		map.put("Contact Email", client.getContactEmail() != null ? client.getContactEmail() : "");
-		map.put("Emails", client.getEmails() != null ? client.getEmails() : "");
+		map.put("Other Emails", client.getEmails() != null ? client.getEmails() : "");
 		map.put("Start Date",
 				client.getStartDate() != null ? new SimpleDateFormat("dd-MM-yyyy").format(client.getStartDate()) : "");
 		map.put("Monthly Charge", client.getMonthlyCharge() != null ? client.getMonthlyCharge().toString() : "");
@@ -682,9 +729,10 @@ public class ClientService {
 		map.put("Name 3", client.getName3() != null ? client.getName3() : "");
 		map.put("Email ID 3", client.getEmailId3() != null ? client.getEmailId3() : "");
 //		map.put("Manager ID", client.getManagerId() != null ? client.getManagerId().toString() : "");
-		map.put("Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
+		map.put("Society Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
 		map.put("Tax Flag", client.getTaxFlag() != null ? client.getTaxFlag().toString() : "");
 		map.put("Location", client.getLocation() != null ? client.getLocation() : "");
+		map.put("Plan", client.getPlanNameForExcel() != null ? client.getPlanNameForExcel() : "");
 		map.put("Status", "Unsuccessful");
 		map.put("Reason", reason);
 
@@ -881,20 +929,20 @@ public class ClientService {
 
 	// Manager Change
 	@Transactional
-	public void changeClientManager(Integer clientId, Integer managerId, HttpServletRequest httpRequest) {
+	public void changeClientManager(Integer clientId, Integer managerId,Integer userId, HttpServletRequest httpRequest) {
 
 		if (managerId == null) {
-			throw new RuntimeException("Manager is required");
+			throw new RuntimeException("Society Manager is required");
 		}
 
 		ClientEntity client = clientRepository.findById(clientId)
 				.orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
 
 		UserLoginEntity manager = userLoginRepository.findById(managerId)
-				.orElseThrow(() -> new RuntimeException("Manager not found with id: " + managerId));
+				.orElseThrow(() -> new RuntimeException("Society Manager not found with id: " + managerId));
 
 		if (manager.getStatus() != 1) {
-			throw new RuntimeException("Selected manager is not active");
+			throw new RuntimeException("Selected Society manager is not active");
 		}
 
 		client.setManagerId(managerId);
@@ -902,7 +950,38 @@ public class ClientService {
 
 		ClientEntity savedClient = clientRepository.save(client);
 
-		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), "Client Manager Changed", 8, savedClient.getClientId(), -1);
+		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), "Society Manager Changed", 8, savedClient.getClientId(), -1);
 	}
+
+	@Transactional
+    public ApiResponse<ClientEntity> updateClientOutstanding(ClientDTO dto, Integer managerId,
+            HttpServletRequest httpRequest) {
+
+        if (dto.getClientId() == null || dto.getClientId() <= 0) {
+            return new ApiResponse<>(false, "Invalid client.", null);
+        }
+
+        if (dto.getOutstanding() == null || dto.getOutstanding() < 0) {
+            return new ApiResponse<>(false, "Invalid outstanding amount.", null);
+        }
+
+        Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(dto.getClientId(), managerId);
+
+        if (clientOptional.isEmpty()) {
+            return new ApiResponse<>(false, "You are not authorized to update this client.", null);
+        }
+
+        ClientEntity client = clientOptional.get();
+
+        client.setOutstanding(dto.getOutstanding());
+        client.setModdate(Timestamp.from(Instant.now()));
+
+        ClientEntity saved = clientRepository.save(client);
+
+        commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+                commonFunction.getLocalIp(), "Outstanding Updated", 8, saved.getClientId(), -1);
+
+        return new ApiResponse<>(true, "Outstanding updated successfully", saved);
+    }
 }

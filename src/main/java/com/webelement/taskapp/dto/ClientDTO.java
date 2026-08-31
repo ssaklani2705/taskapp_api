@@ -56,6 +56,8 @@ public class ClientDTO {
 
 	private Short taxFlag;
 	private String location;
+	private Integer planId;
+	private String planName;
 
 	private List<TransactionEntity> transactionHistory;
 
@@ -65,7 +67,7 @@ public class ClientDTO {
 			String contactName, String contactEmail, String emails, LocalDate startDate, Double monthlyCharge,
 			Double outstanding, String name1, String emailId1, String name2, String emailId2, String name3,
 			String emailId3, Integer managerId, String managerName, Integer userId, Date regdate, Date moddate,
-			Short taxFlag, String location) {
+			Short taxFlag, String location, Integer planId, String planName) {
 
 		this.clientId = clientId;
 		this.name = name;
@@ -99,6 +101,8 @@ public class ClientDTO {
 		this.moddate = moddate;
 		this.taxFlag = taxFlag;
 		this.location = location;
+		this.planId = planId;
+		this.planName = planName;
 	}
 
 	// Get details
@@ -107,7 +111,7 @@ public class ClientDTO {
 			String contactName, String contactEmail, String emails, LocalDate startDate, Double monthlyCharge,
 			Double outstanding, String name1, String emailId1, String name2, String emailId2, String name3,
 			String emailId3, Integer managerId, String managerName, Integer userId, Timestamp regdate,
-			Timestamp moddate, Short taxFlag, String location) {
+			Timestamp moddate, Short taxFlag, String location, Integer planId, String planName) {
 
 		this.clientId = clientId;
 		this.name = name;
@@ -141,6 +145,8 @@ public class ClientDTO {
 		this.moddate = moddate;
 		this.taxFlag = taxFlag;
 		this.location = location;
+		this.planId = planId;
+		this.planName = planName;
 	}
 
 	// For recurring

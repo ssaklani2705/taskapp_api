@@ -1,5 +1,9 @@
 package com.webelement.taskapp.dto;
 
+import java.util.List;
+
+import com.webelement.taskapp.entity.TransactionEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +25,10 @@ public class RecurringDTO {
 	private Integer taskCatId;
 	private String taskCatName;
 	private Short status;
+	
+	private List<TransactionEntity> transactionHistory;
 
+	// For edit
 	public RecurringDTO(Integer recurringId, Integer clientId, String title, String description, Short type,
 			Integer date, Short day, Integer month, Integer taskCatId, Short status) {
 		super();
@@ -37,4 +44,22 @@ public class RecurringDTO {
 		this.status = status;
 	}
 
+	// For view
+	public RecurringDTO(Integer recurringId, Integer clientId, String clientName, String title, String description,
+			Short type, Integer date, Short day, Integer month, Integer taskCatId, String taskCatName, Short status) {
+		super();
+		this.recurringId = recurringId;
+		this.clientId = clientId;
+		this.clientName = clientName;
+		this.title = title;
+		this.description = description;
+		this.type = type;
+		this.date = date;
+		this.day = day;
+		this.month = month;
+		this.taskCatId = taskCatId;
+		this.taskCatName = taskCatName;
+		this.status = status;
+	}
+	
 }
