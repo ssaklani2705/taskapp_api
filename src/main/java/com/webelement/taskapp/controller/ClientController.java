@@ -1,5 +1,6 @@
 package com.webelement.taskapp.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,36 +82,39 @@ public class ClientController {
 
 	// For Index
 	@GetMapping("/getClientDetails")
-	public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
-			@RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
-			@RequestParam(defaultValue = "0") Integer stateId, @RequestParam(required = false) String clientName,
-			@RequestParam(required = false) String clientCode, @RequestParam(required = false) String contactName,
-			@RequestParam(required = false) String contactEmail, @RequestParam(required = false) String search,
-			@RequestParam(defaultValue = "name") String sortColumn,
-			@RequestParam(defaultValue = "asc") String sortDirection) {
+    public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
+            @RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
+            @RequestParam(defaultValue = "0") Integer stateId, @RequestParam(required = false) Short gstFlag,
+            @RequestParam(required = false) Short taxFlag, @RequestParam(defaultValue = "0") Integer planId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate toDate,
+            @RequestParam(required = false) String clientName, @RequestParam(required = false) String clientCode,
+            @RequestParam(required = false) String contactName, @RequestParam(required = false) String contactEmail,
+            @RequestParam(required = false) String search, @RequestParam(defaultValue = "name") String sortColumn,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
 
-		String sortBy = CLIENT_SORT_MAP.getOrDefault(sortColumn, "c.name");
+        String sortBy = CLIENT_SORT_MAP.getOrDefault(sortColumn, "c.name");
 
-		Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
-				: Sort.Direction.ASC;
+        Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
 
-		sortBy = sortBy.replace("c.", "").replace("u.", "").replace("s.", "");
+        sortBy = sortBy.replace("c.", "").replace("u.", "").replace("s.", "");
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-		Page<ClientDTO> clientPage = clientService.findClientDetails(pageable, status, managerId, stateId, clientName,
-				clientCode, contactName, contactEmail, search);
+        Page<ClientDTO> clientPage = clientService.findClientDetails(pageable, status, managerId, stateId, gstFlag,
+                taxFlag, planId, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
 
-		Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
-		response.put("data", clientPage.getContent());
-		response.put("totalElements", clientPage.getTotalElements());
-		response.put("totalPages", clientPage.getTotalPages());
-		response.put("currentPage", clientPage.getNumber());
-		response.put("pageSize", clientPage.getSize());
+        response.put("data", clientPage.getContent());
+        response.put("totalElements", clientPage.getTotalElements());
+        response.put("totalPages", clientPage.getTotalPages());
+        response.put("currentPage", clientPage.getNumber());
+        response.put("pageSize", clientPage.getSize());
 
-		return response;
-	}
+        return response;
+    }
 
 	// Delete client
 	@PostMapping("/deleteClient")

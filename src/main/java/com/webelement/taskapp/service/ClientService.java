@@ -81,75 +81,112 @@ public class ClientService {
 	@Value("${client_file_path}")
 	private String uploadBasePath;
 
+
 	public ApiResponse<ClientEntity> addOrUpdateClient(ClientEntity client, HttpServletRequest httpRequest) {
 
-		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
+        boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
 
-		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
-			throw new RuntimeException("Invalid stateId: " + client.getStateId());
-		}
+        if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
+            throw new RuntimeException("Invalid stateId: " + client.getStateId());
+        }
 
-		if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
-			throw new RuntimeException("Invalid managerId: " + client.getManagerId());
-		}
+        if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
+            throw new RuntimeException("Invalid managerId: " + client.getManagerId());
+        }
 
-		if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
-			throw new RuntimeException("Invalid planId: " + client.getPlanId());
-		}
+        if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
+            throw new RuntimeException("Invalid planId: " + client.getPlanId());
+        }
 
-		if (isNew) {
-			if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
-				throw new RuntimeException("Client code already exists: " + client.getCode());
-			}
+        if (client.getPan() != null) {
+            client.setPan(client.getPan().trim());
+        }
 
-			Timestamp now = new Timestamp(System.currentTimeMillis());
+        if (client.getGstNo() != null) {
+            client.setGstNo(client.getGstNo().trim());
+        }
 
-			client.setStatus((short) 1);
+        if (client.getCode() != null) {
+            client.setCode(client.getCode().trim());
+        }
 
-			if (client.getGstFlag() == null) {
-				client.setGstFlag((short) 0);
-			}
+        if (isNew) {
+            if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
+                throw new RuntimeException("Client code already exists: " + client.getCode());
+            }
 
-			if (client.getTaxFlag() == null) {
-				client.setTaxFlag((short) 0);
-			}
+            if (client.getPan() != null && !client.getPan().isEmpty()
+                    && clientRepository.existsByPan(client.getPan())) {
 
-			client.setRegdate(now);
-			client.setModdate(now);
-		} else {
+                throw new RuntimeException("PAN already exists: " + client.getPan());
+            }
 
-			ClientEntity existingClient = clientRepository.findById(client.getClientId())
-					.orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
+            if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+                    && clientRepository.existsByGstNo(client.getGstNo())) {
 
-			if (client.getCode() != null
-					&& clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
+                throw new RuntimeException("GST number already exists: " + client.getGstNo());
+            }
 
-				throw new RuntimeException("Client code already exists: " + client.getCode());
-			}
+            Timestamp now = new Timestamp(System.currentTimeMillis());
 
-			client.setRegdate(existingClient.getRegdate());
+            client.setStatus((short) 1);
 
-			client.setModdate(new Timestamp(System.currentTimeMillis()));
+            if (client.getGstFlag() == null) {
+                client.setGstFlag((short) 0);
+            }
 
-			if (client.getGstFlag() == null) {
-				client.setGstFlag(existingClient.getGstFlag());
-			}
+            if (client.getTaxFlag() == null) {
+                client.setTaxFlag((short) 0);
+            }
 
-			if (client.getTaxFlag() == null) {
-				client.setTaxFlag(existingClient.getTaxFlag());
-			}
-		}
+            client.setRegdate(now);
+            client.setModdate(now);
+        } else {
 
-		ClientEntity savedClient = clientRepository.save(client);
+            ClientEntity existingClient = clientRepository.findById(client.getClientId())
+                    .orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
 
-		String action = isNew ? "Client Added" : "Client Updated";
+            if (client.getCode() != null
+                    && clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
 
-		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
+                throw new RuntimeException("Client code already exists: " + client.getCode());
+            }
 
-		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
-				savedClient);
-	}
+            if (client.getPan() != null && !client.getPan().isEmpty()
+                    && clientRepository.existsByPanAndClientIdNot(client.getPan(), client.getClientId())) {
+
+                throw new RuntimeException("PAN already exists: " + client.getPan());
+            }
+
+            if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+                    && clientRepository.existsByGstNoAndClientIdNot(client.getGstNo(), client.getClientId())) {
+
+                throw new RuntimeException("GST number already exists: " + client.getGstNo());
+            }
+
+            client.setRegdate(existingClient.getRegdate());
+
+            client.setModdate(new Timestamp(System.currentTimeMillis()));
+
+            if (client.getGstFlag() == null) {
+                client.setGstFlag(existingClient.getGstFlag());
+            }
+
+            if (client.getTaxFlag() == null) {
+                client.setTaxFlag(existingClient.getTaxFlag());
+            }
+        }
+
+        ClientEntity savedClient = clientRepository.save(client);
+
+        String action = isNew ? "Client Added" : "Client Updated";
+
+        commonFunction.createHistoryAccess(client.getUserId(), commonFunction.resolveClientIp(httpRequest),
+                commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
+
+        return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
+                savedClient);
+    }
 
 	public ClientDTO getClientDetailsById(int clientId) {
 
@@ -164,17 +201,20 @@ public class ClientService {
 	}
 
 	public Page<ClientDTO> findClientDetails(Pageable pageable, Short status, Integer managerId, Integer stateId,
-			String clientName, String clientCode, String contactName, String contactEmail, String search) {
+            Short gstFlag, Short taxFlag, Integer planId, LocalDate fromDate, LocalDate toDate, String clientName,
+            String clientCode, String contactName, String contactEmail, String search) {
 
-		Short statusFilter = (status != null && status == 0) ? null : status;
+        Short statusFilter = (status != null && status == 0) ? null : status;
 
-		Integer managerFilter = (managerId != null && managerId == 0) ? null : managerId;
+        Integer managerFilter = (managerId != null && managerId == 0) ? null : managerId;
 
-		Integer stateFilter = (stateId != null && stateId == 0) ? null : stateId;
+        Integer stateFilter = (stateId != null && stateId == 0) ? null : stateId;
 
-		return clientRepository.findClientDetails(pageable, statusFilter, managerFilter, stateFilter, clientName,
-				clientCode, contactName, contactEmail, search);
-	}
+        Integer planFilter = (planId != null && planId == 0) ? null : planId;
+
+        return clientRepository.findClientDetails(pageable, statusFilter, managerFilter, stateFilter, planFilter,
+                gstFlag, taxFlag, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
+    }
 
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteClient(Integer clientId, Integer userId,

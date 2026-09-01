@@ -1,6 +1,7 @@
 package com.webelement.taskapp.repo;
 
 import java.awt.print.Pageable;
+import java.util.List;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -85,11 +86,21 @@ int deleteTask(@Param("status") Short status,
 
 
 
+//For manager dashboard
+@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
+        + "t.taskStatus) " + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+        + "WHERE t.status = 1")
+List<TaskEditDTO> findTasksByStatus();
 
+@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
+int countOfActiveTask();
 
+@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5")
+int countOfCompletedTask();
 
+@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1")
+int countOfPendingTask();
 
+List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
-	
-	
 }
