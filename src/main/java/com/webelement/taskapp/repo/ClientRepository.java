@@ -1,5 +1,6 @@
 package com.webelement.taskapp.repo;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,33 +34,39 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	ClientDTO getClientById(@Param("clientId") int clientId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
-			+ "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, "
-			+ "c.stateId, s.name, c.addressLine1, c.addressLine2, "
-			+ "c.city, c.pincode, c.contactName, c.contactEmail, c.emails, "
-			+ "c.startDate, c.monthlyCharge, c.outstanding, "
-			+ "c.name1, c.emailId1, c.name2, c.emailId2, c.name3, c.emailId3, "
-			+ "c.managerId, u.firstName, c.userId, c.regdate, c.moddate, " + "c.taxFlag, c.location, c.planId, p.name) "
-			+ "FROM ClientEntity c " + "LEFT JOIN StateEntity s ON c.stateId = s.stateId "
-			+ "LEFT JOIN UserLoginEntity u ON c.managerId = u.userId "
-			+ "LEFT JOIN PlanEntity p ON c.planId = p.planId WHERE c.clientId > 0 "
-			+ "AND (:status IS NULL OR c.status = :status) " + "AND (:managerId IS NULL OR c.managerId = :managerId) "
-			+ "AND (:stateId IS NULL OR c.stateId = :stateId) " + "AND (:clientName IS NULL OR :clientName = '' "
-			+ "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :clientName, '%'))) "
-			+ "AND (:clientCode IS NULL OR :clientCode = '' "
-			+ "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :clientCode, '%'))) "
-			+ "AND (:contactName IS NULL OR :contactName = '' "
-			+ "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) "
-			+ "AND (:contactEmail IS NULL OR :contactEmail = '' "
-			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :contactEmail, '%'))) "
-			+ "AND (:search IS NULL OR :search = '' " + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%')))")
-	Page<ClientDTO> findClientDetails(Pageable pageable, @Param("status") Short status,
-			@Param("managerId") Integer managerId, @Param("stateId") Integer stateId,
-			@Param("clientName") String clientName, @Param("clientCode") String clientCode,
-			@Param("contactName") String contactName, @Param("contactEmail") String contactEmail,
-			@Param("search") String search);
+            + "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, "
+            + "c.stateId, s.name, c.addressLine1, c.addressLine2, "
+            + "c.city, c.pincode, c.contactName, c.contactEmail, c.emails, "
+            + "c.startDate, c.monthlyCharge, c.outstanding, "
+            + "c.name1, c.emailId1, c.name2, c.emailId2, c.name3, c.emailId3, "
+            + "c.managerId, u.firstName, c.userId, c.regdate, c.moddate, " + "c.taxFlag, c.location, c.planId, p.name) "
+            + "FROM ClientEntity c " + "LEFT JOIN StateEntity s ON c.stateId = s.stateId "
+            + "LEFT JOIN UserLoginEntity u ON c.managerId = u.userId "
+            + "LEFT JOIN PlanEntity p ON c.planId = p.planId WHERE c.clientId > 0 "
+            + "AND (:status IS NULL OR c.status = :status) " + "AND (:managerId IS NULL OR c.managerId = :managerId) "
+            + "AND (:stateId IS NULL OR c.stateId = :stateId) " + "AND (:gstFlag IS NULL OR c.gstFlag = :gstFlag) "
+            + "AND (:taxFlag IS NULL OR c.taxFlag = :taxFlag) " + "AND (:planId IS NULL OR c.planId = :planId) "
+            + "AND (:fromDate IS NULL OR c.startDate >= :fromDate) "
+            + "AND (:toDate IS NULL OR c.startDate <= :toDate) " + "AND (:clientName IS NULL OR :clientName = '' "
+            + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :clientName, '%'))) "
+            + "AND (:clientCode IS NULL OR :clientCode = '' "
+            + "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :clientCode, '%'))) "
+            + "AND (:contactName IS NULL OR :contactName = '' "
+            + "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) "
+            + "AND (:contactEmail IS NULL OR :contactEmail = '' "
+            + "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :contactEmail, '%'))) "
+            + "AND (:search IS NULL OR :search = '' " + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+            + "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) "
+            + "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :search, '%')) "
+            + "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%'))"
+            + "OR LOWER(c.city) LIKE LOWER(CONCAT('%', :search, '%')) "
+            + "OR LOWER(c.location) LIKE LOWER(CONCAT('%', :search, '%'))) ORDER BY c.status ASC")
+    Page<ClientDTO> findClientDetails(Pageable pageable, @Param("status") Short status,
+            @Param("managerId") Integer managerId, @Param("stateId") Integer stateId, @Param("planId") Integer planId,
+            @Param("gstFlag") Short gstFlag, @Param("taxFlag") Short taxFlag, @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate, @Param("clientName") String clientName,
+            @Param("clientCode") String clientCode, @Param("contactName") String contactName,
+            @Param("contactEmail") String contactEmail, @Param("search") String search);
 
 	@Modifying
 	@Query("UPDATE ClientEntity u " + "SET u.status = :status " + "WHERE u.clientId = :clientId")
@@ -87,4 +94,12 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
 	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 AND (:isAdmin = 'Y' OR c.managerId = :userId) ORDER BY c.name ASC")
 	List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId);
+	
+	boolean existsByPan(String pan);
+
+	boolean existsByPanAndClientIdNot(String pan, Integer clientId);
+
+	boolean existsByGstNo(String gstNo);
+
+	boolean existsByGstNoAndClientIdNot(String gstNo, Integer clientId);
 }
