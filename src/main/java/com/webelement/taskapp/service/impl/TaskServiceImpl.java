@@ -250,7 +250,7 @@ public class TaskServiceImpl implements TaskService {
 
 		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
 		task.setTaskStatus(nextStatus);
-		task.setDescription(dto.getDescription());
+		task.setCloseRemarks(dto.getDescription());
 		task.setModificationDate(LocalDateTime.now());
 
 		// PDF Upload

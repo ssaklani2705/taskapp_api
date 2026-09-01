@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.webelement.taskapp.Exceptions.ClientValidationException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
@@ -112,19 +113,19 @@ public class ClientService {
 
         if (isNew) {
             if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
-                throw new RuntimeException("Client code already exists: " + client.getCode());
+                throw new ClientValidationException("Client code already exists: " + client.getCode());
             }
 
             if (client.getPan() != null && !client.getPan().isEmpty()
                     && clientRepository.existsByPan(client.getPan())) {
 
-                throw new RuntimeException("PAN already exists: " + client.getPan());
+                throw new ClientValidationException("PAN already exists: " + client.getPan());
             }
 
             if (client.getGstNo() != null && !client.getGstNo().isEmpty()
                     && clientRepository.existsByGstNo(client.getGstNo())) {
 
-                throw new RuntimeException("GST number already exists: " + client.getGstNo());
+                throw new ClientValidationException("GST number already exists: " + client.getGstNo());
             }
 
             Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -149,19 +150,19 @@ public class ClientService {
             if (client.getCode() != null
                     && clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
 
-                throw new RuntimeException("Client code already exists: " + client.getCode());
+                throw new ClientValidationException("Client code already exists: " + client.getCode());
             }
 
             if (client.getPan() != null && !client.getPan().isEmpty()
                     && clientRepository.existsByPanAndClientIdNot(client.getPan(), client.getClientId())) {
 
-                throw new RuntimeException("PAN already exists: " + client.getPan());
+                throw new ClientValidationException("PAN already exists: " + client.getPan());
             }
 
             if (client.getGstNo() != null && !client.getGstNo().isEmpty()
                     && clientRepository.existsByGstNoAndClientIdNot(client.getGstNo(), client.getClientId())) {
 
-                throw new RuntimeException("GST number already exists: " + client.getGstNo());
+                throw new ClientValidationException("GST number already exists: " + client.getGstNo());
             }
 
             client.setRegdate(existingClient.getRegdate());

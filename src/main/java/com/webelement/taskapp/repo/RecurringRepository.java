@@ -18,16 +18,6 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 
 	Optional<RecurringEntity> findById(Integer recurringId);
 
-	// For Index
-//	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
-//			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
-//			+ "tc.name, " + "r.status) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
-//			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
-//			+ "WHERE r.recurringId > 0 " + "AND (:status IS NULL OR r.status = :status) "
-//			+ "AND (:managerId IS NULL OR c.managerId = :managerId) " + "AND (:title IS NULL OR :title = '' "
-//			+ "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :title, '%'))) ")
-//	Page<RecurringDTO> findRecurringDetails(Pageable pageable, @Param("status") Short status,
-//			@Param("managerId") Integer managerId, @Param("title") String title);
 
 	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
 			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
