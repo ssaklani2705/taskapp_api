@@ -156,7 +156,8 @@ public class TaskController {
 	}
 	
 	@GetMapping("/getTaskFilterData")
-	public Map<String, Object> getTaskFilterData() {
+	public Map<String, Object> getTaskFilterData( @RequestParam String isAdmin,
+	        @RequestParam Integer userId) {
 
 	    Map<String, Object> response =
 	            new HashMap<>();
@@ -164,7 +165,7 @@ public class TaskController {
 
 	    response.put(
 	            "clients",
-	            clientRepository.findAllActiveClients()
+	            clientRepository.findAllActiveClients(isAdmin,userId)
 	    );
 
 

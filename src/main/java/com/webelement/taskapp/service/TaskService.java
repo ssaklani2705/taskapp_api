@@ -299,7 +299,7 @@ public class TaskService {
 
 		TaskEntity savedTask = taskRepository.save(task);
 
-		commonFunction.createHistoryAccess(task.getAddedBy(), commonFunction.resolveClientIp(httpRequest),
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), "Task Status Updated", 10, savedTask.getTaskId(), -1);
 
 		return savedTask;

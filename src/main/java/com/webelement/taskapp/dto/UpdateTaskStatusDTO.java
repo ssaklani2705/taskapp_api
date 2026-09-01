@@ -19,4 +19,5 @@ public class UpdateTaskStatusDTO {
 	private MultipartFile fileName1;
 
 	private MultipartFile fileName2;
+	private Integer userId;
 }
