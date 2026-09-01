@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.webelement.taskapp.entity.TransactionEntity;
@@ -66,7 +67,7 @@ public class CommonFunction {
 			return dto;
 		}).collect(Collectors.toList());
 	}
-	
+	@Async
 	public void createHistoryAccess(int userId, String ipAddrStr, String localip, String desc, int moduleId,
 			int recordid, int bankUserId) {
 		TransactionEntity entity = new TransactionEntity();

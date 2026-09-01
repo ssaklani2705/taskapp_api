@@ -64,23 +64,18 @@ public class TaskEntity {
 
     @Column(name = "s_filename4", length = 100)
     private String fileName4;
-
     @Column(name = "i_status")
     private Short status;
-
     @Column(name = "ts_regdate")
     private LocalDateTime registrationDate;
-
     @Column(name = "ts_moddate")
     private LocalDateTime modificationDate;
-
     @Column(name = "s_title", length = 100)
     private String title;
-
 //    @Column(name = "i_taskgroupid")
 //    private Integer taskGroupId;
-    
     @Column(name = "i_taskstatus")
     private Short taskStatus;
-    
+    @Column(name = "i_reopencounts")
+    private Integer reopenCount = 0;
 }

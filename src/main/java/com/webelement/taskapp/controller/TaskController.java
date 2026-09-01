@@ -6,6 +6,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,316 +34,194 @@ import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.TaskService;
+import com.webelement.taskapp.service.impl.TaskServiceImpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/admin/task")
 @CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
 @RequiredArgsConstructor
 public class TaskController {
-	
-	@Autowired
-	private TaskService taskService;
-	
-	private final ObjectMapper objectMapper;
-	
-	
-	@Autowired
-	private ClientRepository clientRepository;
-	
-	@Autowired
-	private TaskCategoryRepository taskCategoryRepository;
-	
-	@Autowired
-	private UserLoginRepository userLoginRepository;
-	
-	@PostMapping("/deleteTask")
-	public ResponseEntity<ResponseApi<String>> deleteTask(
-	        @RequestParam int taskId,
-	        @RequestParam int createdBy,
-	        HttpServletRequest httpRequest) throws Exception {
 
-	    return taskService.deleteTask(taskId, createdBy, httpRequest);
+	private final TaskServiceImpl taskService;
+	private final ObjectMapper objectMapper;
+	private final ClientRepository clientRepository;
+	private final TaskCategoryRepository taskCategoryRepository;
+	private final UserLoginRepository userLoginRepository;
+	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
+
+	@PostMapping("/deleteTask")
+	public ResponseEntity<ResponseApi<String>> deleteTask(@RequestParam int taskId, @RequestParam int createdBy,
+			HttpServletRequest httpRequest) throws Exception {
+
+		return taskService.deleteTask(taskId, createdBy, httpRequest);
 	}
 
-	
 	@GetMapping("/getTaskDetailsById")
-	public ResponseEntity<?> getTaskDetailsById(
-	        @RequestParam Integer taskId) {
+	public ResponseEntity<?> getTaskDetailsById(@RequestParam Integer taskId) {
 
-	    Map<String, Object> response =
-	            new HashMap<>();
+		Map<String, Object> response = new HashMap<>();
 
-	    try {
+		try {
 
-	        TaskEditDTO task =
-	                taskService.getTaskById(taskId);
+			TaskEditDTO task = taskService.getTaskById(taskId);
 
-	        response.put(
-	                "success",
-	                true
-	        );
+			response.put("success", true);
 
-	        response.put(
-	                "message",
-	                "Task details fetched successfully"
-	        );
+			response.put("message", "Task details fetched successfully");
 
-	        response.put(
-	                "data",
-	                task
-	        );
+			response.put("data", task);
 
-	        return ResponseEntity.ok(response);
+			return ResponseEntity.ok(response);
 
-	    } catch (Exception e) {
+		} catch (Exception e) {
 
-	        e.printStackTrace();
+			e.printStackTrace();
 
-	        response.put(
-	                "success",
-	                false
-	        );
+			response.put("success", false);
 
-	        response.put(
-	                "message",
-	                e.getMessage()
-	        );
+			response.put("message", e.getMessage());
 
-	        response.put(
-	                "data",
-	                null
-	        );
+			response.put("data", null);
 
-	        return ResponseEntity
-	                .status(HttpStatus.BAD_REQUEST)
-	                .body(response);
-	    }
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
 	}
 
 	@GetMapping("/getTaskDetails")
-	public Map<String, Object> findTaskDetails(
-	        @RequestParam int page,
-	        @RequestParam int size,@RequestParam int statusIndex ,@RequestParam String search,
-	        @RequestParam(required = false, defaultValue = "0") Integer clientId,
+	public Map<String, Object> findTaskDetails(@RequestParam int page, @RequestParam int size,
+			@RequestParam int statusIndex, @RequestParam String search,
+			@RequestParam(required = false, defaultValue = "0") Integer clientId,
 
-	        @RequestParam(required = false, defaultValue = "0") Integer taskCategoryId,
+			@RequestParam(required = false, defaultValue = "0") Integer taskCategoryId,
 
-	        @RequestParam(required = false, defaultValue = "0") Integer assignedTo,
+			@RequestParam(required = false, defaultValue = "0") Integer assignedTo,
 
-	        @RequestParam(required = false, defaultValue = "0") Integer priority,
-	        @RequestParam(required = false) String fromDate,
-	        @RequestParam(required = false) String toDate,
-	        @RequestParam(required = false) String isAdmin,
-	        @RequestParam(required = false, defaultValue = "0") Integer userId,
-	        @RequestParam(required = false, defaultValue = "0") Integer taskStatusId
-	        ) {
+			@RequestParam(required = false, defaultValue = "0") Integer priority,
+			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
+			@RequestParam(required = false) String isAdmin,
+			@RequestParam(required = false, defaultValue = "0") Integer userId,
+			@RequestParam(required = false, defaultValue = "0") Integer taskStatusId) {
 
-	    Page<TaskDetailsDTO> pageData =
-	            taskService.findTaskDetails(page, size,statusIndex,search,
-	            		 clientId,
-	                     taskCategoryId,
-	                     assignedTo,
-	                     priority,fromDate,toDate,isAdmin,userId,taskStatusId);
-	    Map<String, Object> response =
-	            new HashMap<>();
-	    response.put(
-	            "data",
-	            pageData.getContent());
-	    response.put(
-	            "totalElements",
-	            pageData.getTotalElements());
-	    return response;
+		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
+				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId);
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", pageData.getContent());
+		response.put("totalElements", pageData.getTotalElements());
+		return response;
 	}
-	
+
 	@GetMapping("/getTaskFilterData")
-	public Map<String, Object> getTaskFilterData( @RequestParam String isAdmin,
-	        @RequestParam Integer userId) {
+	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId) {
 
-	    Map<String, Object> response =
-	            new HashMap<>();
+		Map<String, Object> response = new HashMap<>();
 
+		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId));
 
-	    response.put(
-	            "clients",
-	            clientRepository.findAllActiveClients(isAdmin,userId)
-	    );
+		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 
+		response.put("assignedUsers", userLoginRepository.findActiveUsers());
 
-	    response.put(
-	            "taskCategories",
-	            taskCategoryRepository.findAllActiveTaskCategories()
-	    );
-
-
-	    response.put(
-	            "assignedUsers",
-	            userLoginRepository.findActiveUsers()
-	    );
-
-
-	    return response;
+		return response;
 	}
 
-	
+	@PostMapping(value = "/saveTask", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> saveTask(
 
-    @PostMapping(
-            value = "/saveTask",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<?> saveTask(
+			@RequestParam(required = false) Integer taskId,
 
-            @RequestParam(required = false)
-            Integer taskId,
+			@RequestParam Integer clientId,
 
-            @RequestParam
-            Integer clientId,
+			@RequestParam String date,
 
-            @RequestParam
-            String date,
+			@RequestParam Integer taskCategoryId,
 
-            @RequestParam
-            Integer taskCategoryId,
+			@RequestParam String description,
 
-            @RequestParam
-            String description,
+			@RequestParam Integer assignedTo,
 
-            @RequestParam
-            Integer assignedTo,
+			@RequestParam Short priority,
 
-            @RequestParam
-            Short priority,
+			@RequestParam String title,
 
-            @RequestParam
-            String title,
+			@RequestParam Integer addedBy,
 
-            @RequestParam
-            Integer addedBy,
+			@RequestParam(required = false) Short status,
 
-            @RequestParam(required = false)
-            Short status,
+			@RequestParam(required = false, name = "fileName1") MultipartFile fileName1,
 
-            @RequestParam(
-                    required = false,
-                    name = "fileName1"
-            )
-            MultipartFile fileName1,
+			@RequestParam(required = false, name = "fileName2") MultipartFile fileName2) {
 
-            @RequestParam(
-                    required = false,
-                    name = "fileName2"
-            )
-            MultipartFile fileName2) {
+		Map<String, Object> response = new HashMap<>();
 
-        Map<String, Object> response = new HashMap<>();
+		try {
 
-        try {
+			// -----------------------------------------
+			// CREATE / UPDATE
+			// -----------------------------------------
 
-            // -----------------------------------------
-            // CREATE / UPDATE
-            // -----------------------------------------
+			boolean isUpdate = taskId != null;
 
-            boolean isUpdate = taskId != null;
+			// -----------------------------------------
+			// DATE
+			// -----------------------------------------
 
-            // -----------------------------------------
-            // DATE
-            // -----------------------------------------
+			LocalDate taskDate = LocalDate.parse(date);
 
-            LocalDate taskDate =
-                    LocalDate.parse(date);
+			// -----------------------------------------
+			// SAVE / UPDATE
+			// -----------------------------------------
 
-            // -----------------------------------------
-            // SAVE / UPDATE
-            // -----------------------------------------
+			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskDate, taskCategoryId, description,
+					assignedTo, priority, title, addedBy, status, fileName1, fileName2);
 
-            TaskEntity savedTask =
-                    taskService.saveTask(
-                            taskId,
-                            clientId,
-                            taskDate,
-                            taskCategoryId,
-                            description,
-                            assignedTo,
-                            priority,
-                            title,
-                            addedBy,
-                            status,
-                            fileName1,
-                            fileName2
-                    );
+			// -----------------------------------------
+			// RESPONSE
+			// -----------------------------------------
 
-            // -----------------------------------------
-            // RESPONSE
-            // -----------------------------------------
+			response.put("success", true);
 
-            response.put(
-                    "success",
-                    true
-            );
+			response.put("message", isUpdate ? "Task updated successfully" : "Task created successfully");
 
-            response.put(
-                    "message",
-                    isUpdate
-                            ? "Task updated successfully"
-                            : "Task created successfully"
-            );
+			response.put("data", savedTask);
 
-            response.put(
-                    "data",
-                    savedTask
-            );
+			return ResponseEntity.ok(response);
 
-            return ResponseEntity.ok(response);
+		} catch (Exception e) {
 
-        } catch (Exception e) {
+			e.printStackTrace();
 
-            e.printStackTrace();
+			response.put("success", false);
 
-            response.put(
-                    "success",
-                    false
-            );
+			response.put("message", e.getMessage());
 
-            response.put(
-                    "message",
-                    e.getMessage()
-            );
+			response.put("data", null);
 
-            response.put(
-                    "data",
-                    null
-            );
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+	}
 
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(response);
-        }
-    }
+	@PostMapping(value = "/update_task_status", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> updateTaskStatus(@ModelAttribute UpdateTaskStatusDTO dto) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+			TaskEntity updatedTask = taskService.updateTaskStatus(dto);
+			response.put("success", true);
+			response.put("message", "Task status updated successfully");
+			response.put("data", updatedTask);
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			e.printStackTrace();
 
-    
-    @PostMapping(value = "/update_task_status",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateTaskStatus(@ModelAttribute UpdateTaskStatusDTO dto) {
-        Map<String, Object> response = new HashMap<>();
-        
-        System.err.println("{ file 1 }"+dto.getFileName1());
-        System.err.print("{file 2 }"+dto.getFileName2());
-        try {
-            TaskEntity updatedTask =taskService.updateTaskStatus(dto);
-            response.put("success",true);
-            response.put("message","Task status updated successfully");
-            response.put("data",updatedTask);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            
-            System.out.println("errrrrrrrrrrrrrrr "+e.getMessage());
-            response.put("success",false);
-            response.put( "message", e.getMessage());
-            response.put("data",null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
-	
+			logger.error("message " + e.getMessage());
+			response.put("success", false);
+			response.put("message", e.getMessage());
+			response.put("data", null);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+	}
+
 }
