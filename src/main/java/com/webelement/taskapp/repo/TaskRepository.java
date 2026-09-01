@@ -18,10 +18,7 @@ import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
-
-
 	Optional<TaskEntity> findByTaskId(Integer taskId);
-
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.addedBy, " + "t.assignedTo, "
 			+ "t.clientId, " + "t.closeRemarks, " + "t.date, " + "t.description, " + "t.fileName1, " + "t.fileName2, "
 			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
@@ -63,11 +60,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 	
 	
-	
-	
-	
-	
-
 
 //For manager dashboard
 @Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
