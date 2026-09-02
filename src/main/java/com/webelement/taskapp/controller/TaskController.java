@@ -104,10 +104,11 @@ public class TaskController {
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
 			@RequestParam(required = false) String isAdmin,
 			@RequestParam(required = false, defaultValue = "0") Integer userId,
-			@RequestParam(required = false, defaultValue = "0") Integer taskStatusId) {
+			@RequestParam(required = false, defaultValue = "0") Integer taskStatusId,
+			@RequestParam(required = false) String loginType) {
 
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
-				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId);
+				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", pageData.getContent());
 		response.put("totalElements", pageData.getTotalElements());
@@ -115,16 +116,12 @@ public class TaskController {
 	}
 
 	@GetMapping("/getTaskFilterData")
-	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId) {
-
+	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
+			@RequestParam String loginType) {
 		Map<String, Object> response = new HashMap<>();
-
-		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId));
-
+		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-
 		response.put("assignedUsers", userLoginRepository.findActiveUsers());
-
 		return response;
 	}
 

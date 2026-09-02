@@ -92,8 +92,12 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer managerId);
 
 
-	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 AND (:isAdmin = 'Y' OR c.managerId = :userId) ORDER BY c.name ASC")
-	List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId);
+//	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 AND (:isAdmin = 'Y' OR c.managerId = :userId) ORDER BY c.name ASC")
+    @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 "
+    		+ "AND  ( (:loginType = 'manager' AND c.managerId = :userId) "
+    		+ "OR (:loginType <> 'manager' AND (:isAdmin = 'Y' OR c.managerId = :userId)) ) "
+    		+ "ORDER BY c.name ASC")
+    List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,@Param("loginType") String loginType);
 	
 	boolean existsByPan(String pan);
 

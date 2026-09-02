@@ -44,18 +44,24 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "AND (:assignedTo = 0 OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) "
 			+ "AND (:taskStatusId = 0 OR t.taskStatus = :taskStatusId) "
 			+ "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
-			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " +
-
+			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " 
+			
 			// ADMIN / USER ACCESS
-			"AND (" + ":isAdmin = 'Y' " + "OR (" + "t.assignedTo = :userId " + "OR t.addedBy = :userId" + ")" + ") " +
+//			"AND (" + ":isAdmin = 'Y' " + "OR (" + "t.assignedTo = :userId " + "OR t.addedBy = :userId" + ")" + ") " +
 
-			"ORDER BY t.status ASC,  c.name ASC")
+			 + "AND ("
+			 + "    (:loginType = 'manager' AND (t.assignedTo = :userId OR t.addedBy = :userId OR c.managerId = :userId)) "
+			 + "    OR "
+			 + "    (:loginType <> 'manager' AND (:isAdmin = 'Y' OR t.assignedTo = :userId OR t.addedBy = :userId))"
+			 + ") "
+			
+			+ "ORDER BY t.status ASC,  c.name ASC")
 	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("clientId") Integer clientId,
 			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,
 			@Param("priority") Integer priority, @Param("fromDate") String fromDate, @Param("toDate") String toDate,
 			@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,
-			@Param("taskStatusId") Integer taskStatusId);
+			@Param("taskStatusId") Integer taskStatusId,@Param("loginType") String loginType);
 
 	@Modifying
 	@Transactional
