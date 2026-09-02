@@ -3,9 +3,11 @@ package com.webelement.taskapp.service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -34,35 +36,33 @@ import com.webelement.taskapp.repo.UserLoginRepository;
 
 @Service
 public class AuthService {
-	
+
 	@Autowired
 	private CommonFunction commonFunction;
 	@Autowired
 	UserLoginRepository userLoginRepository;
-	
+
 	@Autowired
 	private MailLogRepo logRepo;
-	
+
 	@Autowired
 	private SmtpRepo smtpRepo;
-	
+
 	@Autowired
 	private UserAccessLogService accessLogService;
-	
+
 	@Autowired
 	private MyUserDetailsService detailsService;
 
 	@Autowired
 	private JwtUtil jwtUtil;
-	
+
 	@Value("${file_maillog:}")
 	private String file_maillog;
 	@Value("${paths:}")
 	private String paths;
-	
 	@Autowired
 	private MailService mailService;
-
 
 	public ResponseEntity<ResponseApi<LoginResponse>> login(LoginRequest request, HttpSession session,
 			HttpServletRequest httpRequest) throws Exception {
@@ -77,32 +77,22 @@ public class AuthService {
 		String password = request.getPassword() != null ? request.getPassword() : "";
 		String iplocal = commonFunction.getLocalIp();
 		String logintype = request.getLogintype();
-		System.out.println("logintype : "+logintype);
-		
 
-//		UserInfo info = getUserAccess(loginId, password, iplocal);
 		UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
-
 		String permission = "N";
 		if (info != null) {
-
 			if (info.getStatus() < 1) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseApi<>(false,
 						"Your account has been expired, please contact the administrator.", null));
-
 			} else {
-
 				int userId = 0;
 				userId = info.getUserId();
 				permission = info.getPermission() != null ? info.getPermission() : "";
-
 				if (userId > 0) {
-
 					detailsService.setUser(request);
 					String token = jwtUtil.generateAccessToken(loginId);
 					boolean b = false;
 					if (permission.equals("Y")) {
-
 						b = true;
 					}
 					List<ModulePermissionDTO> modules = getModuleListByName(userId, b);
@@ -145,7 +135,7 @@ public class AuthService {
 		}
 
 	}
-	
+
 	public int getLoginIdMatch(String userName, String password) throws Exception {
 		int cc = 0;
 		List<Map<String, Object>> result = userLoginRepository.findLoginByEmail(userName);
@@ -173,9 +163,7 @@ public class AuthService {
 
 		return cc;
 	}
-	
-	
-//	private UserInfo getUserAccess(String username, String password, String ip) {
+
 	private UserInfo getUserAccess(String username, String password, String ip, String logintype) {
 		String newPassword = "";
 		try {
@@ -185,8 +173,7 @@ public class AuthService {
 			e.printStackTrace();
 		}
 
-//		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword);
-		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword,logintype);
+		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword, logintype);
 
 		UserInfo info = null;
 		if (!results.isEmpty()) {
@@ -204,15 +191,13 @@ public class AuthService {
 		return info;
 	}
 
-	
-
 	public String escapeApostrophes(String input) {
 		if (input == null) {
 			return "";
 		}
 		return input.replace("'", "''");
 	}
-	
+
 	public List<ModulePermissionDTO> getModuleListByName(int userId, boolean isFullList) {
 		List<Map<String, Object>> rows = userLoginRepository.getModuleListByName(userId);
 		List<ModulePermissionDTO> list = new ArrayList<>();
@@ -221,7 +206,8 @@ public class AuthService {
 			ModulePermissionDTO dto = new ModulePermissionDTO(userId, getInt(row.get("i_moduleid")),
 					getString(row.get("s_name")), getInt(row.get("i_type")), getString(row.get("s_add")),
 					getString(row.get("s_edit")), getString(row.get("s_delete")), getString(row.get("s_approve")),
-					getString(row.get("s_adminapprove")), getString(row.get("s_view")), getString(row.get("s_exportexcel")));
+					getString(row.get("s_adminapprove")), getString(row.get("s_view")),
+					getString(row.get("s_exportexcel")));
 			if (isFullList) {
 				dto.setAddPer("Y");
 				dto.setEditPer("Y");
@@ -240,11 +226,12 @@ public class AuthService {
 
 		return list; // Return actual list
 	}
-	
+
 	private boolean anyPermissionGranted(ModulePermissionDTO dto) {
 		return "Y".equalsIgnoreCase(dto.getViewPer()) || "Y".equalsIgnoreCase(dto.getAddPer())
 				|| "Y".equalsIgnoreCase(dto.getEditPer()) || "Y".equalsIgnoreCase(dto.getDeletePer())
-				|| "Y".equalsIgnoreCase(dto.getApprovePer()) || "Y".equalsIgnoreCase(dto.getAdminApprovePer()) || "Y".equalsIgnoreCase(dto.getExportExcel());
+				|| "Y".equalsIgnoreCase(dto.getApprovePer()) || "Y".equalsIgnoreCase(dto.getAdminApprovePer())
+				|| "Y".equalsIgnoreCase(dto.getExportExcel());
 	}
 
 	private String getString(Object obj) {
@@ -254,12 +241,18 @@ public class AuthService {
 	private Integer getInt(Object obj) {
 		return obj instanceof Number ? ((Number) obj).intValue() : 0;
 	}
-	
-	
-	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId, HttpServletRequest httpRequest)
-			throws Exception {
 
-		Optional<UserLoginEntity> userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
+	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId, HttpServletRequest httpRequest,
+			Boolean isManager) throws Exception {
+
+		Optional<UserLoginEntity> userOpt;
+
+		System.err.println(isManager);
+		if (Boolean.TRUE.equals(isManager)) {
+			userOpt = userLoginRepository.findByEmailExcludeStatuses1(emailId);
+		} else {
+			userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
+		}
 
 		if (!userOpt.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, "Email not found", null));
@@ -270,7 +263,7 @@ public class AuthService {
 
 		String ip = commonFunction.resolveClientIp(httpRequest);
 
-		int ccv = sendUserCreationEmail(user, "", userId, ip);
+		int ccv = sendUserCreationEmail(user, "", userId, ip, isManager);
 
 		if (ccv == 1) {
 			return ResponseEntity.ok(new ResponseApi<>(true, "Password reset link sent successfully.", null));
@@ -279,15 +272,16 @@ public class AuthService {
 					.body(new ResponseApi<>(false, "Failed to send password reset link.", null));
 		}
 	}
-	
-	private int sendUserCreationEmail(UserLoginEntity userRequest, String password, int uid, String ip)
-			throws Exception {
+
+	private int sendUserCreationEmail(UserLoginEntity userRequest, String password, int uid, String ip,
+			Boolean isManager) throws Exception {
 		String usernameN = userRequest.getEmail();
 		int ccv = 0;
 		if (usernameN != null && !usernameN.isEmpty()) {
 			String websitePath = paths;
 			String link = websitePath + "forgot-password?emailId=" + commonFunction.cipher(usernameN) + "&userId="
-					+ commonFunction.cipher(Integer.toString(uid));
+					+ commonFunction.cipher(Integer.toString(uid)) + "&isManagerLogin="
+					+ commonFunction.cipher(Boolean.toString(isManager));
 			String mailBody = commonFunction.getForgotMessageCreate(userRequest.getFirstName(), link, websitePath);
 			String filePath = commonFunction.createFolder(file_maillog);
 			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
@@ -316,7 +310,7 @@ public class AuthService {
 		}
 		return ccv;
 	}
-	
+
 	private void createMailLog(int type, String name, String to, String cc, String bcc, String from, String subject,
 			String filename, String ip, String iplocal, int status) {
 		MailLogEntity log = new MailLogEntity();
@@ -335,21 +329,25 @@ public class AuthService {
 		log.setLocalIp(iplocal);
 		logRepo.save(log);
 	}
-	
-	
+
 	@Transactional
 	public int updateForgotpasswordlink(String username, String password, String linksentdate) throws Exception {
 		Timestamp linkDateTs = linksentdate != null && !linksentdate.isEmpty() ? Timestamp.valueOf(linksentdate) : null;
 
 		return userLoginRepository.updateForgotPasswordLink(username, commonFunction.cipher(password), linkDateTs);
 	}
-	
-	public ResponseEntity<ResponseApi<String>> forgotpassword(String emailId, String userId, String password)
-			throws Exception {
+
+	public ResponseEntity<ResponseApi<String>> forgotpassword(String emailId, String userId, String password,
+			String isManager) throws Exception {
 		// Decode inputs
 		String decodedEmail = commonFunction.decipher(emailId).trim();
 		String decodedUserId = commonFunction.decipher(userId).trim();
 		String encodedPassword = commonFunction.cipher(password);
+		String isManger = commonFunction.decipher(isManager);
+
+		System.err.println("IsManager " + isManger);
+		System.err.println("decodedEmail " + decodedEmail);
+		System.err.println("encodedPassword " + encodedPassword);
 
 		// Validate if userId is numeric before parsing
 		int result = 0;
@@ -360,16 +358,13 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseApi<>(false, "Invalid User ID in URL", null));
 		}
-
 		if (result > 0) {
-
 			Optional<Integer> findUserIdByEmailAndStatus = userLoginRepository.findUserIdByEmailAndStatus(decodedEmail,
 					1);
 			Integer uId = findUserIdByEmailAndStatus.get();
 			if (uId > 0) {
 				int count = userLoginRepository.updateForgotPassword(Integer.parseInt(decodedUserId), encodedPassword,
 						null);
-
 				if (count == 1) {
 					return ResponseEntity.ok(new ResponseApi<>(true, "Password has been created successfully.", null));
 				} else {
@@ -380,7 +375,6 @@ public class AuthService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(new ResponseApi<>(false, "Invalid user details.", null));
 			}
-
 		} else {
 			// Invalid URL → error response
 			String message = "URL is no longer valid or has expired. "
@@ -388,7 +382,7 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, message, null));
 		}
 	}
-	
+
 	public int checkURLValidity(String email, int userId) {
 		// Assuming repository returns Optional<Integer>
 		return userLoginRepository.checkURLValidity(email, userId).orElse(0);

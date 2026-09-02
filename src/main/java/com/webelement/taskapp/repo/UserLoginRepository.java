@@ -75,6 +75,9 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3)")
 	Optional<UserLoginEntity> findByEmailExcludeStatuses(@Param("email") String email);
+	
+	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) AND u.departmentId = 1 AND u.designationId = 1 ORDER BY u.userId DESC")
+	Optional<UserLoginEntity> findByEmailExcludeStatuses1(@Param("email") String email);
 
 	@Query(value = "SELECT DATE_FORMAT(t.ts_regdate, '%d-%m-%Y %h:%i %p') AS entryDate, REPLACE(CONCAT_WS(' ', u.s_firstname), '  ', ' ') AS name, t.s_action AS action, t.i_userid AS userId, t.s_flag AS flag FROM t_transaction t LEFT JOIN t_userlogin u ON u.i_userid = t.i_userid WHERE t.i_moduleid = :moduleId AND t.s_action NOT LIKE '%Log%' AND (:recordId IS NULL OR t.i_recordid = :recordId)  order by t.ts_regdate desc", nativeQuery = true)
 	List<Object[]> getTransactionLogs(@Param("moduleId") int moduleId, @Param("recordId") Integer recordId);
