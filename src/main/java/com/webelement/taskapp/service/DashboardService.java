@@ -3,6 +3,7 @@ package com.webelement.taskapp.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,9 @@ public class DashboardService {
     private TaskRepository taskRepository;
 
     /*
-     * Task Status
+     * =========================================================
+     * TASK STATUS
+     * =========================================================
      */
     private static final short TODO = 1;
     private static final short IN_PROGRESS = 2;
@@ -37,18 +40,64 @@ public class DashboardService {
      */
     public TaskDashboardResponse getDashboard(Integer userId) {
 
+        /*
+         * Current date
+         */
         LocalDate today = LocalDate.now();
 
-        /*
-         * Current week:
-         *
-         * Monday -> Sunday
-         */
-        LocalDate startOfWeek =
-                today.with(DayOfWeek.MONDAY);
 
-        LocalDate endOfWeek =
-                today.with(DayOfWeek.SUNDAY);
+        /*
+         * =====================================================
+         * CURRENT WEEK
+         * =====================================================
+         *
+         * Monday 00:00:00
+         *       ->
+         * Sunday 23:59:59.999999999
+         *
+         * IMPORTANT:
+         *
+         * task.getDate() is LocalDateTime,
+         * therefore startOfWeek and endOfWeek
+         * must also be LocalDateTime.
+         */
+        LocalDateTime startOfWeek =
+                today.with(DayOfWeek.MONDAY)
+                     .atStartOfDay();
+
+        LocalDateTime endOfWeek =
+                today.with(DayOfWeek.SUNDAY)
+                     .atTime(LocalTime.MAX);
+
+
+        /*
+         * =====================================================
+         * TODAY RANGE
+         * =====================================================
+         *
+         * Today:
+         *
+         * 2026-09-07 00:00:00
+         *
+         * until
+         *
+         * 2026-09-08 00:00:00
+         */
+        LocalDateTime startOfToday =
+                today.atStartOfDay();
+
+        LocalDateTime startOfTomorrow =
+                today.plusDays(1)
+                     .atStartOfDay();
+
+
+        /*
+         * =====================================================
+         * CURRENT DATE/TIME
+         * =====================================================
+         */
+        LocalDateTime now =
+                LocalDateTime.now();
 
 
         /*
@@ -56,17 +105,14 @@ public class DashboardService {
          * GET EMPLOYEE TASKS
          * =====================================================
          *
-         * Employee should see:
+         * Employee sees:
          *
          * 1. Tasks assigned to employee
          * OR
          * 2. Tasks added by employee
          */
-//        List<TaskEntity> tasks =
-//                taskRepository.findDashboardTasks(userId);
-        
         List<TaskEntity> tasks =
-                taskRepository.findByAssignedTo(userId);
+                taskRepository.findDashboardTasks(userId);
 
 
         /*
@@ -74,20 +120,29 @@ public class DashboardService {
          * MY TASKS TODAY
          * =====================================================
          *
-         * Based ONLY on task start date (d_date).
+         * Since d_date is LocalDateTime,
+         * compare the complete datetime range.
          *
          * Example:
          *
-         * d_date = 2026-09-04
+         * d_date = 2026-09-07 15:30:00
          *
-         * Then it is "My tasks today".
+         * This will be counted as today's task.
          */
         List<TaskEntity> tasksToday =
                 tasks.stream()
-                        .filter(task ->
-                                task.getDate() != null
-                                        && task.getDate().equals(today)
-                        )
+                        .filter(task -> {
+
+                            LocalDateTime taskDate =
+                                    task.getDate();
+
+                            if (taskDate == null) {
+                                return false;
+                            }
+
+                            return !taskDate.isBefore(startOfToday)
+                                    && taskDate.isBefore(startOfTomorrow);
+                        })
                         .collect(Collectors.toList());
 
 
@@ -96,38 +151,25 @@ public class DashboardService {
          * DUE THIS WEEK
          * =====================================================
          *
-         * IMPORTANT:
+         * Based on task start date (d_date).
          *
-         * Due This Week is based on TASK START DATE.
-         *
-         * d_date = 2026-09-01
-         *
-         * If 2026-09-01 is inside the current week,
-         * it is counted in Due This Week.
-         *
-         * We DO NOT use ts_duetime here.
-         *
-         * This allows the same task to be:
-         *
-         * Due This Week = 1
-         * AND
-         * Overdue = 1
+         * Monday 00:00
+         * ->
+         * Sunday 23:59:59.999999999
          */
         List<TaskEntity> dueThisWeek =
                 tasks.stream()
                         .filter(task -> {
 
-                            LocalDate taskStartDate =
+                            LocalDateTime taskStartDate =
                                     task.getDate();
 
                             if (taskStartDate == null) {
                                 return false;
                             }
 
-                            return !taskStartDate
-                                    .isBefore(startOfWeek)
-                                    && !taskStartDate
-                                    .isAfter(endOfWeek);
+                            return !taskStartDate.isBefore(startOfWeek)
+                                    && !taskStartDate.isAfter(endOfWeek);
                         })
                         .collect(Collectors.toList());
 
@@ -143,25 +185,18 @@ public class DashboardService {
          *
          * Example:
          *
-         * d_date     = 2026-09-01
+         * d_date     = 2026-09-01 10:30:00
          * ts_duetime = 50
          *
-         * Start:
-         * 2026-09-01 00:00
-         *
-         * + 50 hours
-         *
          * Due:
-         * 2026-09-03 02:00
          *
-         * If current date/time is after that,
+         * 2026-09-03 12:30:00
+         *
+         * If current datetime is after the due datetime,
          * task is overdue.
          *
          * DONE tasks are NOT overdue.
          */
-        LocalDateTime now =
-                LocalDateTime.now();
-
         List<TaskEntity> overdueTasks =
                 tasks.stream()
                         .filter(task -> {
@@ -178,7 +213,7 @@ public class DashboardService {
 
         /*
          * =====================================================
-         * TODO
+         * TODO TASKS
          * =====================================================
          */
         List<TaskEntity> todoTasks =
@@ -192,7 +227,7 @@ public class DashboardService {
 
         /*
          * =====================================================
-         * IN PROGRESS
+         * IN PROGRESS TASKS
          * =====================================================
          */
         List<TaskEntity> inProgressTasks =
@@ -206,7 +241,7 @@ public class DashboardService {
 
         /*
          * =====================================================
-         * DONE
+         * DONE TASKS
          * =====================================================
          */
         List<TaskEntity> doneTasks =
@@ -295,30 +330,38 @@ public class DashboardService {
      * CALCULATE DUE DATE/TIME
      * =========================================================
      *
-     * d_date       = task start date
+     * d_date       = LocalDateTime task start date
+     *
      * ts_duetime   = number of hours from task category
      *
      * Example:
      *
-     * d_date = 2026-09-01
+     * d_date = 2026-09-01 10:30:00
+     *
      * ts_duetime = 50
      *
      * Result:
      *
-     * 2026-09-03 02:00
+     * 2026-09-03 12:30:00
      */
     private LocalDateTime getDueDateTime(
             TaskEntity task) {
 
-        if (task == null ||
-                task.getDate() == null) {
+        /*
+         * Validate task
+         */
+        if (task == null
+                || task.getDate() == null
+                || task.getTaskCategoryId() == null) {
 
             return null;
         }
 
 
         /*
-         * Get ts_duetime from t_taskcategory
+         * =====================================================
+         * GET DUE HOURS FROM TASK CATEGORY
+         * =====================================================
          */
         String dueTime =
                 taskRepository.findDueTimeByTaskCategoryId(
@@ -326,8 +369,11 @@ public class DashboardService {
                 );
 
 
-        if (dueTime == null ||
-                dueTime.trim().isEmpty()) {
+        /*
+         * No due time configured
+         */
+        if (dueTime == null
+                || dueTime.trim().isEmpty()) {
 
             return null;
         }
@@ -351,27 +397,26 @@ public class DashboardService {
 
 
             /*
-             * Convert LocalDate to LocalDateTime
+             * IMPORTANT:
              *
-             * 2026-09-01
+             * task.getDate() is already LocalDateTime.
              *
-             * becomes:
+             * DO NOT use:
              *
-             * 2026-09-01 00:00
+             * task.getDate().atStartOfDay()
+             *
+             * because atStartOfDay() belongs to LocalDate.
+             *
+             * Simply add the due hours directly.
              */
-            LocalDateTime startDateTime =
-                    task.getDate().atStartOfDay();
-
-
-            /*
-             * Add due hours
-             */
-            return startDateTime.plusHours(
-                    dueHours
-            );
+            return task.getDate()
+                    .plusHours(dueHours);
 
         } catch (NumberFormatException e) {
 
+            /*
+             * Invalid due time
+             */
             return null;
         }
     }
@@ -384,7 +429,8 @@ public class DashboardService {
      */
     private boolean isDone(TaskEntity task) {
 
-        return task.getTaskStatus() != null
+        return task != null
+                && task.getTaskStatus() != null
                 && task.getTaskStatus() == DONE;
     }
 

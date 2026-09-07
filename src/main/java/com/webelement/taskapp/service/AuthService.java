@@ -379,7 +379,7 @@ public class AuthService {
 				int count = userLoginRepository.updateForgotPassword(Integer.parseInt(decodedUserId), encodedPassword,
 						null);
 				if (count == 1) {
-					return ResponseEntity.ok(new ResponseApi<>(true, "Password has been created successfully.", null));
+					return ResponseEntity.ok(new ResponseApi<>(true, "Password has been created successfully.", isManger));
 				} else {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 							.body(new ResponseApi<>(false, "Something went wrong while updating the password.", null));
@@ -392,7 +392,7 @@ public class AuthService {
 			// Invalid URL → error response
 			String message = "URL is no longer valid or has expired. "
 					+ "Please go to the Login Page, enter your email ID, and use the Forgot Password link again.";
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, message, isManger));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, message, null));
 		}
 	}
 
