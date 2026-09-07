@@ -1,6 +1,8 @@
 package com.webelement.taskapp.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -165,8 +167,10 @@ public class TaskController {
 			// -----------------------------------------
 			// DATE
 			// -----------------------------------------
-
-			LocalDate taskDate = LocalDate.parse(date);
+			DateTimeFormatter formatter =
+			        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//			LocalDateTime taskDate = LocalDateTime.parse(date);
+			LocalDateTime taskDate = LocalDateTime.parse(date, formatter);
 
 			// -----------------------------------------
 			// SAVE / UPDATE

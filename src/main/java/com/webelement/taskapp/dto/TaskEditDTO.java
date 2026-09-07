@@ -1,6 +1,7 @@
 package com.webelement.taskapp.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.webelement.taskapp.entity.TransactionEntity;
@@ -19,7 +20,7 @@ public class TaskEditDTO {
 	private Integer assignedTo;
 	private Integer clientId;
 	private String closeRemarks;
-	private LocalDate date;
+	private LocalDateTime date;
 	private String description;
 	private String fileName1;
 	private String fileName2;
@@ -38,7 +39,7 @@ public class TaskEditDTO {
 	private Short taskStatus;
 	private List<TransactionEntity> transactionHistory;
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,
-			LocalDate date, String description, String fileName1, String fileName2, String fileName3, String fileName4,
+			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3, String fileName4,
 			Short priority, Short status, Integer taskCategoryId, String title, String clientName,
 			String taskCategoryName, String assignedUserName, String addedByName,Short taskStatus) {
 		super();

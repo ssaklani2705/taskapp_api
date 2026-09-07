@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -19,7 +20,7 @@ public class TaskDashboardItem {
 
     private String title;
 
-    private LocalDate date;
+    private LocalDateTime date;
 
     private String priority;
 

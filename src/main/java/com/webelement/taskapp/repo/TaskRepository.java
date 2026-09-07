@@ -92,9 +92,31 @@ List<TaskEntity> findByAssignedTo(Integer assignedTo);
 	);
 
 
-@Query("SELECT t FROM TaskEntity t WHERE t.assignedTo = :userId OR t.addedBy = :userId ")
-	List<TaskEntity> findDashboardTasks(
-	        @Param("userId") Integer userId
-	);
+/*
+ * =========================================================
+ * EMPLOYEE DASHBOARD
+ * =========================================================
+ *
+ * Employee sees:
+ *
+ * 1. Tasks assigned to employee
+ * OR
+ * 2. Tasks added by employee
+ *
+ * status = 1 means active task.
+ */
+@Query(
+    "SELECT t " +
+    "FROM TaskEntity t " +
+    "WHERE t.status = 1 " +
+    "AND (" +
+    "t.assignedTo = :userId " +
+    "OR t.addedBy = :userId" +
+    ")"
+)
+List<TaskEntity> findDashboardTasks(
+        @Param("userId") Integer userId
+);
+
 
 }
