@@ -35,6 +35,7 @@ public class TaskEntity {
     @Column(name = "d_date")
     private LocalDateTime date;
 
+
     @Column(name = "i_taskcategoryid")
     private Integer taskCategoryId;
 

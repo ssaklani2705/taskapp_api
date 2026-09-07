@@ -65,6 +65,9 @@ public class TaskServiceImpl implements TaskService {
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
+		
+		
+		System.err.println("date +++"+date);
 
 		// =====================================================
 		// CREATE / UPDATE
