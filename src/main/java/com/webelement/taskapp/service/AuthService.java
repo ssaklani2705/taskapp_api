@@ -1,5 +1,4 @@
 package com.webelement.taskapp.service;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,17 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.LoginRequest;
@@ -33,6 +29,7 @@ import com.webelement.taskapp.jwttoken.JwtUtil;
 import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
+
 
 @Service
 public class AuthService {

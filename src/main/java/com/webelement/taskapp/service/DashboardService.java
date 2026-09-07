@@ -20,14 +20,19 @@ import com.webelement.taskapp.repo.TaskRepository;
 @Service
 public class DashboardService {
 
-    @Autowired
-    private TaskRepository taskRepository;
+	@Autowired
+	private TaskRepository taskRepository;
+	
+   
+	 // Change these values according to your database
+
 
     /*
      * =========================================================
      * TASK STATUS
      * =========================================================
      */
+
     private static final short TODO = 1;
     private static final short IN_PROGRESS = 2;
     private static final short DONE = 5;
