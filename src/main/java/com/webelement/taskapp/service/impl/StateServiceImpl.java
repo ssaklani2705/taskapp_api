@@ -162,32 +162,20 @@ public class StateServiceImpl implements StateService  {
 
 		@Override
 		public ApiResponse<StateDTO> delete(StateDTO dto) {
-
 			Optional<StateEntity> existing = stateRepository.findById(dto.getStateId());
-
 			if (!existing.isPresent()) {
 				return new ApiResponse<>(false, "State not found", null);
 			}
-
 			int updatedRows = stateRepository.softDelete(dto.getStateId());
-
 			if (updatedRows > 0) {
-
 				commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.getLocalIp(),
 						commonFunction.getLocalIp(), "State Deleted", 4, dto.getStateId(), -1);
-
 				return new ApiResponse<>(true, "State deleted successfully", null);
 			}
-
 			return new ApiResponse<>(false, "State delete failed", null);
 		}
-
-	   
-	   
+		
 		public List<StateEntity> getStates() {
 	        return stateRepository.findByStatus((short) 1);
 	    }
-	
-
-
 }
