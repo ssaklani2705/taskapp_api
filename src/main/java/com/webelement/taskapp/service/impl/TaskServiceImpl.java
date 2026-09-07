@@ -54,9 +54,9 @@ public class TaskServiceImpl implements TaskService {
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
-			String isAdmin, Integer userId, Integer taskStatusId) {
+			String isAdmin, Integer userId, Integer taskStatusId,String loginType) {
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
-				assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId);
+				assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
 
 	}
 

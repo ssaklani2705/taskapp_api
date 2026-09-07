@@ -34,6 +34,9 @@ public class TaskCategoryEntity {
 
     @Column(name = "ts_moddate")
     private Timestamp moddate;
+    
+    @Column(name = "ts_duetime")
+    private String duedatetime;
 
     public TaskCategoryEntity() {
     }
@@ -93,4 +96,14 @@ public class TaskCategoryEntity {
     public void setModdate(Timestamp moddate) {
         this.moddate = moddate;
     }
+
+	public String getDuedatetime() {
+		return duedatetime;
+	}
+
+	public void setDuedatetime(String duedatetime) {
+		this.duedatetime = duedatetime;
+	}
+    
+    
 }

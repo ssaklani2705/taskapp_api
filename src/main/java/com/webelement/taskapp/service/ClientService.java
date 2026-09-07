@@ -4,16 +4,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,112 +81,115 @@ public class ClientService {
 	@Value("${client_file_path}")
 	private String uploadBasePath;
 
-
 	public ApiResponse<ClientEntity> addOrUpdateClient(ClientEntity client, HttpServletRequest httpRequest) {
 
-        boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
+		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
 
-        if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
-            throw new RuntimeException("Invalid stateId: " + client.getStateId());
-        }
+		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
+			throw new RuntimeException("Invalid stateId: " + client.getStateId());
+		}
 
-        if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
-            throw new RuntimeException("Invalid managerId: " + client.getManagerId());
-        }
+		if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
+			throw new RuntimeException("Invalid managerId: " + client.getManagerId());
+		}
 
-        if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
-            throw new RuntimeException("Invalid planId: " + client.getPlanId());
-        }
+		if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
+			throw new RuntimeException("Invalid planId: " + client.getPlanId());
+		}
 
-        if (client.getPan() != null) {
-            client.setPan(client.getPan().trim());
-        }
+		if (client.getOutstanding() != null && client.getOutstanding() < 0) {
+			throw new ClientValidationException("Outstanding amount cannot be negative.");
+		}
 
-        if (client.getGstNo() != null) {
-            client.setGstNo(client.getGstNo().trim());
-        }
+		if (client.getPan() != null) {
+			client.setPan(client.getPan().trim());
+		}
 
-        if (client.getCode() != null) {
-            client.setCode(client.getCode().trim());
-        }
+		if (client.getGstNo() != null) {
+			client.setGstNo(client.getGstNo().trim());
+		}
 
-        if (isNew) {
-            if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
-                throw new ClientValidationException("Client code already exists: " + client.getCode());
-            }
+		if (client.getCode() != null) {
+			client.setCode(client.getCode().trim());
+		}
 
-            if (client.getPan() != null && !client.getPan().isEmpty()
-                    && clientRepository.existsByPan(client.getPan())) {
+		if (isNew) {
+			if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
+				throw new ClientValidationException("Client code already exists: " + client.getCode());
+			}
 
-                throw new ClientValidationException("PAN already exists: " + client.getPan());
-            }
+			if (client.getPan() != null && !client.getPan().isEmpty()
+					&& clientRepository.existsByPan(client.getPan())) {
 
-            if (client.getGstNo() != null && !client.getGstNo().isEmpty()
-                    && clientRepository.existsByGstNo(client.getGstNo())) {
+				throw new ClientValidationException("PAN already exists: " + client.getPan());
+			}
 
-                throw new ClientValidationException("GST number already exists: " + client.getGstNo());
-            }
+			if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+					&& clientRepository.existsByGstNo(client.getGstNo())) {
 
-            Timestamp now = new Timestamp(System.currentTimeMillis());
+				throw new ClientValidationException("GST number already exists: " + client.getGstNo());
+			}
 
-            client.setStatus((short) 1);
+			Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            if (client.getGstFlag() == null) {
-                client.setGstFlag((short) 0);
-            }
+			client.setStatus((short) 1);
 
-            if (client.getTaxFlag() == null) {
-                client.setTaxFlag((short) 0);
-            }
+			if (client.getGstFlag() == null) {
+				client.setGstFlag((short) 0);
+			}
 
-            client.setRegdate(now);
-            client.setModdate(now);
-        } else {
+			if (client.getTaxFlag() == null) {
+				client.setTaxFlag((short) 0);
+			}
 
-            ClientEntity existingClient = clientRepository.findById(client.getClientId())
-                    .orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
+			client.setRegdate(now);
+			client.setModdate(now);
+		} else {
 
-            if (client.getCode() != null
-                    && clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
+			ClientEntity existingClient = clientRepository.findById(client.getClientId())
+					.orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
 
-                throw new ClientValidationException("Client code already exists: " + client.getCode());
-            }
+			if (client.getCode() != null
+					&& clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
 
-            if (client.getPan() != null && !client.getPan().isEmpty()
-                    && clientRepository.existsByPanAndClientIdNot(client.getPan(), client.getClientId())) {
+				throw new ClientValidationException("Client code already exists: " + client.getCode());
+			}
 
-                throw new ClientValidationException("PAN already exists: " + client.getPan());
-            }
+			if (client.getPan() != null && !client.getPan().isEmpty()
+					&& clientRepository.existsByPanAndClientIdNot(client.getPan(), client.getClientId())) {
 
-            if (client.getGstNo() != null && !client.getGstNo().isEmpty()
-                    && clientRepository.existsByGstNoAndClientIdNot(client.getGstNo(), client.getClientId())) {
+				throw new ClientValidationException("PAN already exists: " + client.getPan());
+			}
 
-                throw new ClientValidationException("GST number already exists: " + client.getGstNo());
-            }
+			if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+					&& clientRepository.existsByGstNoAndClientIdNot(client.getGstNo(), client.getClientId())) {
 
-            client.setRegdate(existingClient.getRegdate());
+				throw new ClientValidationException("GST number already exists: " + client.getGstNo());
+			}
 
-            client.setModdate(new Timestamp(System.currentTimeMillis()));
+			client.setRegdate(existingClient.getRegdate());
 
-            if (client.getGstFlag() == null) {
-                client.setGstFlag(existingClient.getGstFlag());
-            }
+			client.setModdate(new Timestamp(System.currentTimeMillis()));
 
-            if (client.getTaxFlag() == null) {
-                client.setTaxFlag(existingClient.getTaxFlag());
-            }
-        }
+			if (client.getGstFlag() == null) {
+				client.setGstFlag(existingClient.getGstFlag());
+			}
 
-        ClientEntity savedClient = clientRepository.save(client);
+			if (client.getTaxFlag() == null) {
+				client.setTaxFlag(existingClient.getTaxFlag());
+			}
+		}
 
-        String action = isNew ? "Client Added" : "Client Updated";
+		ClientEntity savedClient = clientRepository.save(client);
 
-        commonFunction.createHistoryAccess(client.getUserId(), commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
+		String action = isNew ? "Client Added" : "Client Updated";
 
-        return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
-                savedClient);
-    }
+		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
+
+		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
+				savedClient);
+	}
 
 	public ClientDTO getClientDetailsById(int clientId) {
 
@@ -202,20 +204,17 @@ public class ClientService {
 	}
 
 	public Page<ClientDTO> findClientDetails(Pageable pageable, Short status, Integer managerId, Integer stateId,
-            Short gstFlag, Short taxFlag, Integer planId, LocalDate fromDate, LocalDate toDate, String clientName,
-            String clientCode, String contactName, String contactEmail, String search) {
+			Short gstFlag, Short taxFlag, Integer planId, LocalDate fromDate, LocalDate toDate, String clientName,
+			String clientCode, String contactName, String contactEmail, String search) {
 
-        Short statusFilter = (status != null && status == 0) ? null : status;
+		Short statusFilter = (status != null && status == 0) ? null : status;
+		Integer managerFilter = (managerId != null && managerId == 0) ? null : managerId;
+		Integer stateFilter = (stateId != null && stateId == 0) ? null : stateId;
+		Integer planFilter = (planId != null && planId == 0) ? null : planId;
 
-        Integer managerFilter = (managerId != null && managerId == 0) ? null : managerId;
-
-        Integer stateFilter = (stateId != null && stateId == 0) ? null : stateId;
-
-        Integer planFilter = (planId != null && planId == 0) ? null : planId;
-
-        return clientRepository.findClientDetails(pageable, statusFilter, managerFilter, stateFilter, planFilter,
-                gstFlag, taxFlag, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
-    }
+		return clientRepository.findClientDetails(pageable, statusFilter, managerFilter, stateFilter, planFilter,
+				gstFlag, taxFlag, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
+	}
 
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteClient(Integer clientId, Integer userId,
@@ -241,7 +240,13 @@ public class ClientService {
 
 			Sheet sheet = workbook.getSheetAt(0);
 
-			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+			if (sheet == null || sheet.getLastRowNum() < 1) {
+				throw new IllegalArgumentException("Excel file is empty");
+			}
+
+			validateClientExcelHeaders(sheet.getRow(1));
+
+			for (int i = 2; i <= sheet.getLastRowNum(); i++) {
 
 				Row row = sheet.getRow(i);
 
@@ -249,72 +254,31 @@ public class ClientService {
 					continue;
 				}
 
+				if (isEmptyRow(row)) {
+					continue;
+				}
+
+				String firstCell = getCellValue(row, 0);
+
+				if ("sr no".equalsIgnoreCase(firstCell.trim())) {
+					continue;
+				}
+
 				int rowNum = i + 1;
 
 				ClientEntity client = new ClientEntity();
 
-				client.setName(toCamelCase(getCellValue(row, 0)));
-				client.setCode(getCellValue(row, 1));
-				client.setPan(getCellValue(row, 2));
+				String managerEmail = getCellValue(row, 1);
 
-				client.setGstFlag(getShortCellValue(row, 3));
-				client.setGstNo(getCellValue(row, 4));
+				managerEmail = managerEmail != null ? managerEmail.trim().toLowerCase() : "";
 
-				String rawStateName = getCellValue(row, 5);
+				client.setManagerNameForExcel(managerEmail);
 
-				String stateName = rawStateName == null ? ""
-						: rawStateName.replace("\u00A0", "").replace("\n", "").replace("\t", "").replaceAll("\\s+", " ")
-								.trim();
+				if (!managerEmail.isEmpty()) {
+					Optional<Integer> managerId = userLoginRepository.findIdByEmail(managerEmail);
 
-				if (!stateName.isEmpty()) {
-
-					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCase(stateName);
-
-					if (stateOptional.isPresent()) {
-						client.setStateId(stateOptional.get().getStateId());
-					} else {
-						client.setStateId(null);
-						client.setStateNameForExcel(stateName);
-					}
-
-				} else {
-					client.setStateId(null);
-					client.setStateNameForExcel("");
-				}
-
-				client.setAddressLine1(getCellValue(row, 6));
-				client.setAddressLine2(getCellValue(row, 7));
-				client.setCity(getCellValue(row, 8));
-				client.setPincode(getCellValue(row, 9));
-
-				client.setContactName(toCamelCase(getCellValue(row, 10)));
-				client.setContactEmail(getCellValue(row, 11));
-				client.setEmails(getCellValue(row, 12));
-
-				client.setStartDate(getDateCellValue(row, 13));
-
-				client.setMonthlyCharge(getDoubleCellValue(row, 14));
-				client.setOutstanding(getDoubleCellValue(row, 15));
-
-				client.setName1(getCellValue(row, 16));
-				client.setEmailId1(getCellValue(row, 17));
-
-				client.setName2(getCellValue(row, 18));
-				client.setEmailId2(getCellValue(row, 19));
-
-				client.setName3(getCellValue(row, 20));
-				client.setEmailId3(getCellValue(row, 21));
-
-				String managerName = getCellValue(row, 22);
-
-				client.setManagerNameForExcel(managerName != null ? managerName.trim() : "");
-
-				if (managerName != null && !managerName.trim().isEmpty()) {
-
-					Integer managerId = userLoginRepository.findIdByName(managerName.trim());
-
-					if (managerId != null) {
-						client.setManagerId(managerId);
+					if (managerId.isPresent()) {
+						client.setManagerId(managerId.get());
 					} else {
 						client.setManagerId(null);
 					}
@@ -322,25 +286,64 @@ public class ClientService {
 					client.setManagerId(null);
 				}
 
-				client.setTaxFlag(getShortCellValue(row, 23));
-				client.setLocation(getCellValue(row, 24));
+				client.setName(toCamelCase(getCellValue(row, 2)));
+				client.setCode(getCellValue(row, 3));
+				client.setPan(getCellValue(row, 4));
+				client.setGstFlag(getFlagCellValue(row, 5));
+				client.setGstNo(getCellValue(row, 6));
+				client.setTaxFlag(getFlagCellValue(row, 7));
+				client.setAddressLine1(getCellValue(row, 8));
+				client.setAddressLine2(getCellValue(row, 9));
+				client.setCity(getCellValue(row, 10));
+				String rawStateName = getCellValue(row, 11);
 
-				String planName = getCellValue(row, 25);
+				String stateName = rawStateName == null ? ""
+						: rawStateName.replace("\u00A0", " ").replace("\n", " ").replace("\t", " ")
+								.replaceAll("\\s+", " ").trim();
 
-				client.setPlanNameForExcel(planName != null ? planName.trim() : "");
+				client.setStateNameForExcel(stateName);
 
-				if (planName != null && !planName.trim().isEmpty()) {
+				if (!stateName.isEmpty()) {
+					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCase(stateName);
 
-					Integer planId = planRepo.findIdByName(planName.trim());
-
-					if (planId != null) {
-						client.setPlanId(planId);
+					if (stateOptional.isPresent()) {
+						client.setStateId(stateOptional.get().getStateId());
 					} else {
-						client.setPlanId(null);
+						client.setStateId(null);
 					}
+				} else {
+					client.setStateId(null);
+				}
+
+				client.setLocation(getCellValue(row, 12));
+				client.setPincode(getCellValue(row, 13));
+				client.setContactName(toCamelCase(getCellValue(row, 14)));
+				client.setContactEmail(getCellValue(row, 15));
+				client.setName1(getCellValue(row, 16));
+				client.setEmailId1(getCellValue(row, 17));
+				client.setName2(getCellValue(row, 18));
+				client.setEmailId2(getCellValue(row, 19));
+				client.setName3(getCellValue(row, 20));
+				client.setEmailId3(getCellValue(row, 21));
+				client.setEmails(getCellValue(row, 22));
+				client.setStartDate(getDateCellValue(row, 23));
+
+				String planName = getCellValue(row, 24);
+				planName = planName != null ? planName.trim() : "";
+
+				client.setPlanNameForExcel(planName);
+
+				if (!planName.isEmpty()) {
+					Integer planId = planRepo.findIdByName(planName);
+
+					client.setPlanId(planId);
 				} else {
 					client.setPlanId(null);
 				}
+
+				client.setOutstanding(getDoubleCellValue(row, 25));
+				client.setStatus(getStatusCellValue(row, 26));
+				client.setExcelRowNumber(rowNum);
 
 				clients.add(client);
 			}
@@ -354,35 +357,32 @@ public class ClientService {
 			HttpServletRequest request) {
 
 		List<ClientEntity> validClients = new ArrayList<>();
-
 		List<ClientEntity> savedClients = new ArrayList<>();
-
 		List<String> skipped = Collections.synchronizedList(new ArrayList<>());
-
 		List<Map<String, String>> failedRecords = Collections.synchronizedList(new ArrayList<>());
 
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 
-		List<String> allNames = clients.stream().map(ClientEntity::getName).filter(Objects::nonNull).map(String::trim)
-				.filter(s -> !s.isEmpty()).collect(Collectors.toList());
-
-		List<String> allCodes = clients.stream().map(ClientEntity::getCode).filter(Objects::nonNull).map(String::trim)
-				.filter(s -> !s.isEmpty()).collect(Collectors.toList());
-
-		List<String> allGsts = clients.stream().map(ClientEntity::getGstNo).filter(Objects::nonNull).map(String::trim)
-				.filter(s -> !s.isEmpty()).collect(Collectors.toList());
-
-		Set<String> existingNames = new HashSet<>(clientRepository.findExistingNames(allNames));
-
-		Set<String> existingCodes = new HashSet<>(clientRepository.findExistingCodes(allCodes));
-
 		Set<String> existingGsts = clientRepository.findAllGstsNormalized();
-
-		Set<String> excelNames = new HashSet<>();
-
+		Set<String> excelGsts = new HashSet<>();
 		Set<String> excelCodes = new HashSet<>();
 
-		Set<String> excelGsts = new HashSet<>();
+		Map<String, ClientEntity> existingClientsByCode = new HashMap<>();
+
+		for (ClientEntity client : clients) {
+
+			String code = client.getCode();
+
+			if (code != null && !code.trim().isEmpty()) {
+				String normalizedCode = code.trim().toLowerCase();
+
+				Optional<ClientEntity> existingClient = clientRepository.findByCodeIgnoreCase(code.trim());
+
+				if (existingClient.isPresent()) {
+					existingClientsByCode.put(normalizedCode, existingClient.get());
+				}
+			}
+		}
 
 		for (int rowIndex = 0; rowIndex < clients.size(); rowIndex++) {
 
@@ -400,41 +400,23 @@ public class ClientService {
 				String name = client.getName() != null ? client.getName().trim() : "";
 
 				if (name.isEmpty()) {
-
 					reasons.add("Client Name is required");
-
 				} else if (name.length() < 2 || name.length() > 100) {
-
 					reasons.add("Client Name must be between 2 and 100 characters");
-
 				} else {
-
 					client.setName(name);
-
-					if (existingNames.contains(name.toLowerCase())) {
-						reasons.add("Client Name already exists");
-					}
-
-					if (!excelNames.add(name.toLowerCase())) {
-						reasons.add("Duplicate Client Name in uploaded file");
-					}
 				}
 
 				String code = client.getCode() != null ? client.getCode().trim() : "";
 
 				if (code.isEmpty()) {
-
 					reasons.add("Client Code is required");
-
 				} else {
-
 					client.setCode(code);
 
-					if (existingCodes.contains(code.toLowerCase())) {
-						reasons.add("Client Code already exists");
-					}
+					String normalizedCode = code.toLowerCase();
 
-					if (!excelCodes.add(code.toLowerCase())) {
+					if (!excelCodes.add(normalizedCode)) {
 						reasons.add("Duplicate Client Code in uploaded file");
 					}
 				}
@@ -442,75 +424,69 @@ public class ClientService {
 				String pan = client.getPan() != null ? client.getPan().trim().toUpperCase() : "";
 
 				if (pan.isEmpty()) {
-
 					reasons.add("PAN is required");
-
 				} else if (!pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]$")) {
-
 					reasons.add("Invalid PAN format");
-
 				} else {
-
 					client.setPan(pan);
 				}
 
 				Short gstFlag = client.getGstFlag();
 
-				if (gstFlag != null && gstFlag != 0 && gstFlag != 1) {
+				if (gstFlag == null) {
+					reasons.add("GST Applicable is required");
+				} else if (gstFlag != 0 && gstFlag != 1) {
+					reasons.add("GST Applicable must be Yes/No or 1/0");
+				}
 
-					reasons.add("GST Flag must be 0 or 1");
+				String gst = client.getGstNo() != null ? client.getGstNo().trim().toUpperCase() : "";
 
-				} else {
+				if (gstFlag != null && gstFlag == 1) {
 
-					if (gstFlag == null) {
-						gstFlag = 0;
-						client.setGstFlag((short) 0);
-					}
-
-					String gst = client.getGstNo() != null ? client.getGstNo().trim().toUpperCase() : "";
-
-					if (gstFlag == 1) {
-
-						if (gst.isEmpty()) {
-
-							reasons.add("GST Number is required when GST Flag is 1");
-
-						} else if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
-
-							reasons.add("Invalid GST format");
-
-						} else {
-
-							client.setGstNo(gst);
-
-							if (existingGsts.contains(gst)) {
-								reasons.add("GST Number already exists");
-							}
-
-							if (!excelGsts.add(gst)) {
-								reasons.add("Duplicate GST Number in uploaded file");
-							}
-						}
-
+					if (gst.isEmpty()) {
+						reasons.add("GST Number is required when GST Applicable is Yes");
+					} else if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
+						reasons.add("Invalid GST format");
 					} else {
-						if (!gst.isEmpty()) {
+						client.setGstNo(gst);
 
-							if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
+						ClientEntity existingClient = existingClientsByCode.get(code.toLowerCase());
 
-								reasons.add("Invalid GST format");
-							} else {
-								client.setGstNo(gst);
-							}
+						boolean sameExistingGst = existingClient != null && existingClient.getGstNo() != null
+								&& existingClient.getGstNo().trim().equalsIgnoreCase(gst);
+
+						if (!sameExistingGst && existingGsts.contains(gst)) {
+							reasons.add("GST Number already exists");
 						}
+
+						if (!excelGsts.add(gst)) {
+							reasons.add("Duplicate GST Number in uploaded file");
+						}
+					}
+				} else {
+					if (!gst.isEmpty()) {
+						if (!gst.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")) {
+							reasons.add("Invalid GST format");
+						} else {
+							client.setGstNo(gst);
+						}
+					} else {
+						client.setGstNo(null);
 					}
 				}
 
-				if (client.getStateId() == null || client.getStateId() == 0) {
+				Short taxFlag = client.getTaxFlag();
 
+				if (taxFlag == null) {
+					reasons.add("Tax Payable is required");
+				} else if (taxFlag != 0 && taxFlag != 1) {
+					reasons.add("Tax Payable must be Yes/No or 1/0");
+				}
+
+				if (client.getStateId() == null || client.getStateId() == 0) {
 					String stateName = client.getStateNameForExcel();
 
 					if (stateName == null || stateName.trim().isEmpty()) {
-
 						reasons.add("State is required");
 					} else {
 						reasons.add("Invalid State name: " + stateName);
@@ -520,139 +496,101 @@ public class ClientService {
 				String addressLine1 = client.getAddressLine1() != null ? client.getAddressLine1().trim() : "";
 
 				if (addressLine1.isEmpty()) {
-
 					reasons.add("Address Line 1 is required");
 				} else {
 					client.setAddressLine1(addressLine1);
 				}
 
+				String addressLine2 = client.getAddressLine2() != null ? client.getAddressLine2().trim() : "";
+
+				client.setAddressLine2(addressLine2.isEmpty() ? null : addressLine2);
+
 				String city = client.getCity() != null ? client.getCity().trim() : "";
 
 				if (city.isEmpty()) {
-
 					reasons.add("City is required");
 				} else {
-
 					client.setCity(city);
 				}
 
 				String pincode = client.getPincode() != null ? client.getPincode().trim() : "";
 
 				if (pincode.isEmpty()) {
-
 					reasons.add("Pincode is required");
-
 				} else if (!pincode.matches("^[0-9]{6}$")) {
-
 					reasons.add("Pincode must be exactly 6 digits");
-
 				} else {
-
 					client.setPincode(pincode);
 				}
 
 				String contactName = client.getContactName() != null ? client.getContactName().trim() : "";
 
 				if (contactName.isEmpty()) {
-
 					reasons.add("Contact Name is required");
-
 				} else {
-
 					client.setContactName(contactName);
 				}
 
 				String contactEmail = client.getContactEmail() != null ? client.getContactEmail().trim() : "";
 
 				if (contactEmail.isEmpty()) {
-
 					reasons.add("Contact Email is required");
-
 				} else if (!isValidEmail(contactEmail)) {
-
 					reasons.add("Invalid Contact Email");
-
 				} else {
-
 					client.setContactEmail(contactEmail);
-				}
-
-				String emails = client.getEmails() != null ? client.getEmails().trim() : "";
-
-				if (!emails.isEmpty() && !isValidEmailList(emails)) {
-
-					reasons.add("Invalid Other Emails format");
-
-				} else {
-
-					client.setEmails(emails.isEmpty() ? null : emails);
-				}
-
-				if (client.getStartDate() == null) {
-
-					reasons.add("Start Date is required");
 				}
 
 				String emailId1 = client.getEmailId1() != null ? client.getEmailId1().trim() : "";
 
 				if (!emailId1.isEmpty() && !isValidEmail(emailId1)) {
-
 					reasons.add("Invalid Email ID 1");
-
 				} else {
-
 					client.setEmailId1(emailId1.isEmpty() ? null : emailId1);
 				}
 
 				String emailId2 = client.getEmailId2() != null ? client.getEmailId2().trim() : "";
 
 				if (!emailId2.isEmpty() && !isValidEmail(emailId2)) {
-
 					reasons.add("Invalid Email ID 2");
-
 				} else {
-
 					client.setEmailId2(emailId2.isEmpty() ? null : emailId2);
 				}
 
 				String emailId3 = client.getEmailId3() != null ? client.getEmailId3().trim() : "";
 
 				if (!emailId3.isEmpty() && !isValidEmail(emailId3)) {
-
 					reasons.add("Invalid Email ID 3");
-
 				} else {
-
 					client.setEmailId3(emailId3.isEmpty() ? null : emailId3);
 				}
 
-				String managerName = client.getManagerNameForExcel() != null ? client.getManagerNameForExcel().trim()
-						: "";
+				String emails = client.getEmails() != null ? client.getEmails().trim() : "";
 
-				if (managerName.isEmpty()) {
-
-					reasons.add("Society Manager is required");
-
-				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
-
-					reasons.add("Invalid Society Manager name: " + managerName);
+				if (!emails.isEmpty() && !isValidEmailList(emails)) {
+					reasons.add("Invalid Other Emails format");
+				} else {
+					client.setEmails(emails.isEmpty() ? null : emails);
 				}
 
-				Short taxFlag = client.getTaxFlag();
+				if (client.getStartDate() == null) {
+					reasons.add("Start Date is required");
+				}
 
-				if (taxFlag != null && taxFlag != 0 && taxFlag != 1) {
+				String managerEmail = client.getManagerNameForExcel() != null ? client.getManagerNameForExcel().trim()
+						: "";
 
-					reasons.add("Tax Flag must be 0 or 1");
-
-				} else if (taxFlag == null) {
-
-					client.setTaxFlag((short) 0);
+				if (managerEmail.isEmpty()) {
+					reasons.add("Society Manager Email is required");
+				} else if (!isValidEmail(managerEmail)) {
+					reasons.add("Invalid Society Manager Email: " + managerEmail);
+				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
+					reasons.add("Invalid Society Manager Email: " + managerEmail);
 				}
 
 				String location = client.getLocation() != null ? client.getLocation().trim() : "";
 
 				if (location.isEmpty()) {
-
 					reasons.add("Location is required");
 				} else {
 					client.setLocation(location);
@@ -661,32 +599,74 @@ public class ClientService {
 				String planName = client.getPlanNameForExcel() != null ? client.getPlanNameForExcel().trim() : "";
 
 				if (planName.isEmpty()) {
-
 					reasons.add("Plan is required");
-
 				} else if (client.getPlanId() == null || client.getPlanId() == 0) {
-
 					reasons.add("Invalid Plan name: " + planName);
 				}
 
+				Short status = client.getStatus();
+
+				if (status == null) {
+					reasons.add("Status is required. Allowed values: 1=Active, 2=Inactive");
+				} else if (status != 1 && status != 2) {
+					reasons.add("Invalid Status. Allowed values: 1=Active, 2=Inactive");
+				}
+
 				if (!reasons.isEmpty()) {
+					String reason = String.join("; ", reasons);
 
-					skipped.add(rowIdentifier + " (" + String.join("; ", reasons) + ")");
+					skipped.add(rowIdentifier + " (" + reason + ")");
 
-					addFailedRecord(failedRecords, client, String.join("; ", reasons));
+					addFailedRecord(failedRecords, client, reason);
 
 					continue;
 				}
 
-				client.setStatus((short) 1);
-				client.setUserId(userId);
-				client.setRegdate(now);
-				client.setModdate(now);
+				String normalizedCode = code.toLowerCase();
 
-				validClients.add(client);
+				ClientEntity existingClient = existingClientsByCode.get(normalizedCode);
 
+				if (existingClient != null) {
+
+					Integer clientId = existingClient.getClientId();
+
+					existingClient.setName(client.getName());
+					existingClient.setCode(client.getCode());
+					existingClient.setPan(client.getPan());
+					existingClient.setGstFlag(client.getGstFlag());
+					existingClient.setGstNo(client.getGstNo());
+					existingClient.setTaxFlag(client.getTaxFlag());
+					existingClient.setAddressLine1(client.getAddressLine1());
+					existingClient.setAddressLine2(client.getAddressLine2());
+					existingClient.setCity(client.getCity());
+					existingClient.setStateId(client.getStateId());
+					existingClient.setLocation(client.getLocation());
+					existingClient.setPincode(client.getPincode());
+					existingClient.setContactName(client.getContactName());
+					existingClient.setContactEmail(client.getContactEmail());
+					existingClient.setName1(client.getName1());
+					existingClient.setEmailId1(client.getEmailId1());
+					existingClient.setName2(client.getName2());
+					existingClient.setEmailId2(client.getEmailId2());
+					existingClient.setName3(client.getName3());
+					existingClient.setEmailId3(client.getEmailId3());
+					existingClient.setEmails(client.getEmails());
+					existingClient.setStartDate(client.getStartDate());
+					existingClient.setPlanId(client.getPlanId());
+					existingClient.setOutstanding(client.getOutstanding());
+					existingClient.setManagerId(client.getManagerId());
+					existingClient.setStatus(client.getStatus());
+					existingClient.setModdate(now);
+					validClients.add(existingClient);
+				} else {
+					client.setUserId(userId);
+					client.setRegdate(now);
+					client.setModdate(now);
+					client.setStatus(client.getStatus());
+
+					validClients.add(client);
+				}
 			} catch (Exception e) {
-
 				String reason = e.getMessage() != null ? e.getMessage() : "Unknown error";
 
 				skipped.add(rowIdentifier + " (Error: " + reason + ")");
@@ -703,10 +683,10 @@ public class ClientService {
 		for (ClientEntity saved : savedClients) {
 
 			commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(request),
-					commonFunction.getLocalIp(), "Client Added from Excel", 8, saved.getClientId(), -1);
+					commonFunction.getLocalIp(), "Client Added/Updated from Excel", 8, saved.getClientId(), -1);
 		}
 
-		String msg = String.format("Clients processed. Saved: %d, Failed: %d", savedClients.size(),
+		String msg = String.format("Clients processed. Saved/Updated: %d, Failed: %d", savedClients.size(),
 				failedRecords.size());
 
 		String downloadPath = null;
@@ -731,9 +711,7 @@ public class ClientService {
 						.toUriString();
 
 				msg += ". Failed records exported.";
-
 			} catch (Exception e) {
-
 				msg += ". Failed to export: " + e.getMessage();
 			}
 		}
@@ -750,7 +728,6 @@ public class ClientService {
 		map.put("PAN", client.getPan() != null ? client.getPan() : "");
 		map.put("GST Flag", client.getGstFlag() != null ? client.getGstFlag().toString() : "");
 		map.put("GST No", client.getGstNo() != null ? client.getGstNo() : "");
-//		map.put("State ID", client.getStateId() != null ? client.getStateId().toString() : "");
 		map.put("State", client.getStateNameForExcel() != null ? client.getStateNameForExcel() : "");
 		map.put("Address Line 1", client.getAddressLine1() != null ? client.getAddressLine1() : "");
 		map.put("Address Line 2", client.getAddressLine2() != null ? client.getAddressLine2() : "");
@@ -758,9 +735,10 @@ public class ClientService {
 		map.put("Pincode", client.getPincode() != null ? client.getPincode() : "");
 		map.put("Contact Name", client.getContactName() != null ? client.getContactName() : "");
 		map.put("Contact Email", client.getContactEmail() != null ? client.getContactEmail() : "");
-		map.put("Other Emails", client.getEmails() != null ? client.getEmails() : "");
+		map.put("Emails", client.getEmails() != null ? client.getEmails() : "");
 		map.put("Start Date",
-				client.getStartDate() != null ? new SimpleDateFormat("dd-MM-yyyy").format(client.getStartDate()) : "");
+				client.getStartDate() != null ? client.getStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+						: "");
 		map.put("Monthly Charge", client.getMonthlyCharge() != null ? client.getMonthlyCharge().toString() : "");
 		map.put("Outstanding", client.getOutstanding() != null ? client.getOutstanding().toString() : "");
 		map.put("Name 1", client.getName1() != null ? client.getName1() : "");
@@ -769,8 +747,9 @@ public class ClientService {
 		map.put("Email ID 2", client.getEmailId2() != null ? client.getEmailId2() : "");
 		map.put("Name 3", client.getName3() != null ? client.getName3() : "");
 		map.put("Email ID 3", client.getEmailId3() != null ? client.getEmailId3() : "");
-//		map.put("Manager ID", client.getManagerId() != null ? client.getManagerId().toString() : "");
-		map.put("Society Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
+//		map.put("Society Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
+		map.put("Society Manager Email",
+				client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
 		map.put("Tax Flag", client.getTaxFlag() != null ? client.getTaxFlag().toString() : "");
 		map.put("Location", client.getLocation() != null ? client.getLocation() : "");
 		map.put("Plan", client.getPlanNameForExcel() != null ? client.getPlanNameForExcel() : "");
@@ -798,19 +777,16 @@ public class ClientService {
 			Row headerRow = sheet.createRow(0);
 
 			for (int c = 0; c < headers.size(); c++) {
-
 				Cell cell = headerRow.createCell(c);
 				cell.setCellValue(headers.get(c));
 			}
 
 			for (int r = 0; r < failedRecords.size(); r++) {
-
 				Row row = sheet.createRow(r + 1);
 
 				Map<String, String> record = failedRecords.get(r);
 
 				for (int c = 0; c < headers.size(); c++) {
-
 					String key = headers.get(c);
 
 					String value = record.getOrDefault(key, "");
@@ -819,7 +795,6 @@ public class ClientService {
 			}
 
 			for (int c = 0; c < headers.size(); c++) {
-
 				sheet.autoSizeColumn(c);
 			}
 
@@ -828,7 +803,6 @@ public class ClientService {
 			outFile.getParentFile().mkdirs();
 
 			try (FileOutputStream fos = new FileOutputStream(outFile)) {
-
 				workbook.write(fos);
 			}
 		}
@@ -841,6 +815,122 @@ public class ClientService {
 		}
 
 		return email.matches("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$");
+	}
+
+	private Short getFlagCellValue(Row row, int columnIndex) {
+
+		if (row == null) {
+			throw new IllegalArgumentException("Excel row is missing");
+		}
+
+		Cell cell = row.getCell(columnIndex);
+
+		String header = "";
+
+		Row headerRow = row.getSheet().getRow(1);
+
+		if (headerRow != null) {
+			header = getCellValue(headerRow, columnIndex);
+		}
+
+		String rawValue = getCellValue(row, columnIndex);
+
+		if (rawValue == null) {
+			rawValue = "";
+		}
+
+		rawValue = rawValue.replace("\u00A0", " ").trim();
+
+		if (header != null && !header.trim().isEmpty() && rawValue.equalsIgnoreCase(header.trim())) {
+			throw new IllegalArgumentException("Header row was processed as data at column " + (columnIndex + 1) + ": "
+					+ header + ". Please check the Excel row structure.");
+		}
+
+		if (rawValue.isEmpty()) {
+			return (short) 0;
+		}
+
+		String value = rawValue.toLowerCase();
+
+		switch (value) {
+
+		case "yes":
+		case "y":
+		case "true":
+		case "1":
+		case "1.0":
+			return (short) 1;
+
+		case "no":
+		case "n":
+		case "false":
+		case "0":
+		case "0.0":
+			return (short) 0;
+
+		default:
+
+			throw new IllegalArgumentException("Invalid flag value at column " + (columnIndex + 1) + ": " + header
+					+ ". Excel value = [" + rawValue + "]. Allowed values: Yes/No, 1/0, True/False");
+		}
+	}
+
+	private Short getStatusCellValue(Row row, int columnIndex) {
+
+		Cell cell = row.getCell(columnIndex);
+
+		String header = getCellValue(row.getSheet().getRow(1), columnIndex);
+
+		if (cell == null || cell.getCellType() == CellType.BLANK) {
+
+			throw new RuntimeException("Status is required at column " + (columnIndex + 1) + ": " + header);
+		}
+
+		if (cell.getCellType() == CellType.NUMERIC) {
+
+			double value = cell.getNumericCellValue();
+
+			if (value == 1) {
+				return 1;
+			}
+
+			if (value == 2) {
+				return 2;
+			}
+
+			throw new RuntimeException("Invalid Status at column " + (columnIndex + 1) + ": " + header
+					+ ". Allowed values: 1=Active, 2=Inactive");
+		}
+
+		if (cell.getCellType() == CellType.BOOLEAN) {
+
+			throw new RuntimeException("Invalid Status at column " + (columnIndex + 1) + ": " + header
+					+ ". Allowed values: Active/Inactive or 1/2");
+		}
+
+		String value = cell.getStringCellValue();
+
+		if (value == null || value.trim().isEmpty()) {
+
+			throw new RuntimeException("Status is required at column " + (columnIndex + 1) + ": " + header);
+		}
+
+		value = value.trim().toLowerCase();
+
+		switch (value) {
+
+		case "1":
+		case "active":
+			return 1;
+
+		case "2":
+		case "inactive":
+			return 2;
+
+		default:
+			throw new RuntimeException("Invalid Status at column " + (columnIndex + 1) + ": " + header
+					+ ". Allowed values: Active/Inactive or 1/2");
+		}
 	}
 
 	private boolean isValidEmailList(String emails) {
@@ -874,19 +964,46 @@ public class ClientService {
 		return formatter.formatCellValue(cell).trim();
 	}
 
-	private Short getShortCellValue(Row row, int cellIndex) {
+	private void validateClientExcelHeaders(Row headerRow) {
 
-		String value = getCellValue(row, cellIndex);
-
-		if (value == null || value.trim().isEmpty()) {
-			return null;
+		if (headerRow == null) {
+			throw new IllegalArgumentException("Excel header row is missing");
 		}
 
-		try {
-			return Short.valueOf(value.trim());
-		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Invalid numeric value at column " + (cellIndex + 1) + ": " + value);
+		String[] expectedHeaders = { "Sr No", "Society Manager Email", "Client Name", "Client Code", "PAN", "GST Applicable",
+				"GST Number", "Tax Payable", "Address Line 1", "Address Line 2", "City", "State", "Location", "Pincode",
+				"Contact Name", "Contact Email", "Contact Person 1 Name", "Contact Person 1 Email",
+				"Contact Person 2 Name", "Contact Person 2 Email", "Contact Person 3 Name", "Contact Person 3 Email",
+				"Other Emails", "Start Date", "Plan", "Outstanding", "Status" };
+
+		for (int i = 0; i < expectedHeaders.length; i++) {
+
+			String actualHeader = getCellValue(headerRow, i);
+
+			String expectedHeader = expectedHeaders[i];
+
+			if (!expectedHeader.equalsIgnoreCase(actualHeader != null ? actualHeader.trim() : "")) {
+
+				throw new IllegalArgumentException("Invalid Excel header at column " + (i + 1) + ". Expected: "
+						+ expectedHeader + ", Found: " + actualHeader);
+			}
 		}
+	}
+
+	private boolean isEmptyRow(Row row) {
+
+		if (row == null) {
+			return true;
+		}
+
+		for (int i = 0; i <= 26; i++) {
+			Cell cell = row.getCell(i);
+
+			if (cell != null && cell.getCellType() != CellType.BLANK && !getCellValue(row, i).trim().isEmpty()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Double getDoubleCellValue(Row row, int cellIndex) {
@@ -928,11 +1045,8 @@ public class ClientService {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy").withResolverStyle(ResolverStyle.STRICT);
 
 		try {
-
 			return LocalDate.parse(value.trim(), formatter);
-
 		} catch (DateTimeParseException e) {
-
 			throw new IllegalArgumentException("Invalid Start Date: " + value + ". Expected format dd-MM-yyyy");
 		}
 	}
@@ -970,7 +1084,7 @@ public class ClientService {
 
 	// Manager Change
 	@Transactional
-	public void changeClientManager(Integer clientId, Integer managerId,Integer userId, HttpServletRequest httpRequest) {
+	public void changeClientManager(Integer clientId, Integer managerId,Integer userId,HttpServletRequest httpRequest) {
 
 		if (managerId == null) {
 			throw new RuntimeException("Society Manager is required");
@@ -995,34 +1109,36 @@ public class ClientService {
 				commonFunction.getLocalIp(), "Society Manager Changed", 8, savedClient.getClientId(), -1);
 	}
 
+	// Change Outstanding
 	@Transactional
-    public ApiResponse<ClientEntity> updateClientOutstanding(ClientDTO dto, Integer managerId,
-            HttpServletRequest httpRequest) {
+	public ApiResponse<ClientEntity> updateClientOutstanding(ClientDTO dto, Integer managerId,
+			HttpServletRequest httpRequest) {
 
-        if (dto.getClientId() == null || dto.getClientId() <= 0) {
-            return new ApiResponse<>(false, "Invalid client.", null);
-        }
+		if (dto.getClientId() == null || dto.getClientId() <= 0) {
+			return new ApiResponse<>(false, "Invalid client.", null);
+		}
 
-        if (dto.getOutstanding() == null || dto.getOutstanding() < 0) {
-            return new ApiResponse<>(false, "Invalid outstanding amount.", null);
-        }
+		if (dto.getOutstanding() == null || dto.getOutstanding() < 0) {
+			return new ApiResponse<>(false, "Invalid outstanding amount.", null);
+		}
 
-        Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(dto.getClientId(), managerId);
+		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(dto.getClientId(),
+				managerId);
 
-        if (clientOptional.isEmpty()) {
-            return new ApiResponse<>(false, "You are not authorized to update this client.", null);
-        }
+		if (clientOptional.isEmpty()) {
+			return new ApiResponse<>(false, "You are not authorized to update this client.", null);
+		}
 
-        ClientEntity client = clientOptional.get();
+		ClientEntity client = clientOptional.get();
 
-        client.setOutstanding(dto.getOutstanding());
-        client.setModdate(Timestamp.from(Instant.now()));
+		client.setOutstanding(dto.getOutstanding());
+		client.setModdate(Timestamp.from(Instant.now()));
 
-        ClientEntity saved = clientRepository.save(client);
+		ClientEntity saved = clientRepository.save(client);
 
-        commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(), "Outstanding Updated", 8, saved.getClientId(), -1);
+		commonFunction.createHistoryAccess(saved.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), "Outstanding Updated", 8, saved.getClientId(), -1);
 
-        return new ApiResponse<>(true, "Outstanding updated successfully", saved);
-    }
+		return new ApiResponse<>(true, "Outstanding updated successfully", saved);
+	}
 }

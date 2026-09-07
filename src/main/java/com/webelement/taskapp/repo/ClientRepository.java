@@ -22,6 +22,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	boolean existsByCode(String code);
 
 	boolean existsByCodeAndClientIdNot(String code, Integer clientId);
+	
+	Optional<ClientEntity> findByCodeIgnoreCase(String code);
+
 
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
 			+ "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, c.stateId, s.name, c.addressLine1, c.addressLine2, "
@@ -92,8 +95,12 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer managerId);
 
 
-	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 AND (:isAdmin = 'Y' OR c.managerId = :userId) ORDER BY c.name ASC")
-	List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId);
+//	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 AND (:isAdmin = 'Y' OR c.managerId = :userId) ORDER BY c.name ASC")
+    @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 "
+    		+ "AND  ( (:loginType = 'manager' AND c.managerId = :userId) "
+    		+ "OR (:loginType <> 'manager' AND (:isAdmin = 'Y' OR c.managerId = :userId)) ) "
+    		+ "ORDER BY c.name ASC")
+    List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,@Param("loginType") String loginType);
 	
 	boolean existsByPan(String pan);
 

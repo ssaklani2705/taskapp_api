@@ -55,21 +55,23 @@ public class AuthController {
 
 	@PostMapping("/forgotpasswordMail")
 	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(@RequestParam String emailId,
+			@RequestParam String loginType,
 			HttpServletRequest httpRequest) throws Exception {
 		 isManager = false;
-		return authService.forgotpasswordMail(emailId, httpRequest,isManager);
+		return authService.forgotpasswordMail(emailId, httpRequest,isManager,loginType);
 	}
 
-	@PostMapping("/forgot_password_manager_login")
-	public ResponseEntity<ResponseApi<String>> forgotpasswordManagerLoginMail(@RequestParam String emailId,HttpServletRequest httpRequest) throws Exception {
-		 isManager = true;
-		return authService.forgotpasswordMail(emailId, httpRequest,isManager);
-	}
+//	@PostMapping("/forgot_password_manager_login")
+//	public ResponseEntity<ResponseApi<String>> forgotpasswordManagerLoginMail(@RequestParam String emailId,HttpServletRequest httpRequest) throws Exception {
+//		 isManager = true;
+//		return authService.forgotpasswordMail(emailId, httpRequest,isManager);
+//	}
 
 	@PostMapping("/forgotpassword")
 	public ResponseEntity<ResponseApi<String>> forgotpassword(@RequestParam String emailId, @RequestParam String userId,
-			@RequestParam String password,@RequestParam String isManager) throws Exception {
-		return authService.forgotpassword(emailId, userId, password,isManager);
+			@RequestParam String password,@RequestParam(required = false) String isManagerLogin) throws Exception {
+//		System.out.println("isManagerLogin : "+isManagerLogin);
+		return authService.forgotpassword(emailId, userId, password,isManagerLogin);
 	}
 
 }

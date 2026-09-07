@@ -73,7 +73,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId
 
-	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3)")
+	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) AND u.departmentId <> 1 AND u.designationId <> 1")
 	Optional<UserLoginEntity> findByEmailExcludeStatuses(@Param("email") String email);
 	
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) AND u.departmentId = 1 AND u.designationId = 1 ORDER BY u.userId DESC")
@@ -130,7 +130,10 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 //	Optional<UserLoginEntity> findByEmail(String email);
 	Optional<UserLoginEntity> findByEmailAndStatus(String email,int status);
 
-	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.firstName) = LOWER(:name)")
-	Integer findIdByName(@Param("name") String name);
+	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(TRIM(u.firstName)) = LOWER(TRIM0(:name))")
+    List<Integer> findIdsByName(@Param("name") String name);
+	
+	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.email) = LOWER(:email)")
+    Optional<Integer> findIdByEmail(@Param("email") String email);
 
 }

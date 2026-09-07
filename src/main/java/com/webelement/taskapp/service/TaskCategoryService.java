@@ -103,6 +103,8 @@ public class TaskCategoryService {
             entity.setDepartmentId(dto.getDepartmentId());
             entity.setName(name);
             entity.setUserId(dto.getUserId());
+            
+            entity.setDuedatetime(dto.getDueDateTime());
 
             if (dto.getStatus() != null) {
                 entity.setStatus(dto.getStatus());
@@ -121,6 +123,7 @@ public class TaskCategoryService {
             entity.setUserId(dto.getUserId());
             entity.setStatus(1);
             entity.setRegdate(timestamp);
+            entity.setDuedatetime(dto.getDueDateTime());
         }
 
         TaskCategoryEntity saved =
@@ -190,7 +193,7 @@ public class TaskCategoryService {
         dto.setUserId(entity.getUserId());
         dto.setRegdate(entity.getRegdate());
         dto.setModdate(entity.getModdate());
-
+        dto.setDueDateTime(entity.getDuedatetime());
         /*
          * Get Department Name
          */

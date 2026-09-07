@@ -64,12 +64,13 @@ public class TaskEditDTO {
 		this.taskStatus = taskStatus;
 	}
 	
-	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus) {
+	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,Integer addedBy) {
         this.taskId = taskId;
         this.assignedTo = assignedTo;
         this.assignedUserName = assignedUserName;
         this.title = title;
         this.taskStatus = taskStatus;
+        this.addedBy = addedBy;
     }
 
 	
