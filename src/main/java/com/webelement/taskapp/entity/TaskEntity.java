@@ -33,12 +33,9 @@ public class TaskEntity {
     private Integer clientId;
 
     @Column(name = "d_date")
-<<<<<<< HEAD
-    
-    private LocalDate date;
-=======
+
     private LocalDateTime date;
->>>>>>> 2c668cd9899624ecf551d23fc47b60cfbe98e87c
+
 
     @Column(name = "i_taskcategoryid")
     private Integer taskCategoryId;
