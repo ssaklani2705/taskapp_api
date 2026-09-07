@@ -69,7 +69,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 //For manager dashboard
 @Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
-        + "t.taskStatus) " + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+        + "t.taskStatus,t.addedBy) " + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
         + "WHERE t.status = 1")
 List<TaskEditDTO> findTasksByStatus();
 
@@ -84,5 +84,17 @@ int countOfPendingTask();
 
 List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
+
+
+@Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
+	String findDueTimeByTaskCategoryId(
+	        @Param("taskCategoryId") Integer taskCategoryId
+	);
+
+
+@Query("SELECT t FROM TaskEntity t WHERE t.assignedTo = :userId OR t.addedBy = :userId ")
+	List<TaskEntity> findDashboardTasks(
+	        @Param("userId") Integer userId
+	);
 
 }

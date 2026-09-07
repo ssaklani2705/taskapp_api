@@ -243,12 +243,20 @@ public class AuthService {
 	}
 
 	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId, HttpServletRequest httpRequest,
-			Boolean isManager) throws Exception {
+			Boolean isManager,String loginType) throws Exception {
 
 		Optional<UserLoginEntity> userOpt;
-
-		System.err.println(isManager);
-		if (Boolean.TRUE.equals(isManager)) {
+		System.err.println(emailId);
+		System.err.println(loginType);
+//		String loginType1 = commonFunction.decipher(loginType).trim();
+//		System.err.println(loginType1);
+//		if (Boolean.TRUE.equals(isManager)) {
+//			userOpt = userLoginRepository.findByEmailExcludeStatuses1(emailId);
+//		} else {
+//			userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
+//		}
+		
+		if (loginType.equals("manager")) {
 			userOpt = userLoginRepository.findByEmailExcludeStatuses1(emailId);
 		} else {
 			userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
@@ -263,7 +271,7 @@ public class AuthService {
 
 		String ip = commonFunction.resolveClientIp(httpRequest);
 
-		int ccv = sendUserCreationEmail(user, "", userId, ip, isManager);
+		int ccv = sendUserCreationEmail(user, "", userId, ip, loginType);
 
 		if (ccv == 1) {
 			return ResponseEntity.ok(new ResponseApi<>(true, "Password reset link sent successfully.", null));
@@ -274,14 +282,14 @@ public class AuthService {
 	}
 
 	private int sendUserCreationEmail(UserLoginEntity userRequest, String password, int uid, String ip,
-			Boolean isManager) throws Exception {
+			String isManager) throws Exception {
 		String usernameN = userRequest.getEmail();
 		int ccv = 0;
 		if (usernameN != null && !usernameN.isEmpty()) {
 			String websitePath = paths;
 			String link = websitePath + "forgot-password?emailId=" + commonFunction.cipher(usernameN) + "&userId="
 					+ commonFunction.cipher(Integer.toString(uid)) + "&isManagerLogin="
-					+ commonFunction.cipher(Boolean.toString(isManager));
+					+ commonFunction.cipher(isManager);
 			String mailBody = commonFunction.getForgotMessageCreate(userRequest.getFirstName(), link, websitePath);
 			String filePath = commonFunction.createFolder(file_maillog);
 			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
@@ -290,7 +298,7 @@ public class AuthService {
 			String cc[] = new String[0];
 			String bcc[] = new String[0];
 			String subject = "";
-			subject = "Task App :: Forgot Password";
+			subject = "Society Task App :: Forgot Password";
 			SmtpEntity findLatestSmtpDetail = smtpRepo.findLatestSmtpDetails();
 
 			ccv = mailService.postMailAttach(to, cc, bcc, mailBody, subject, "", "", -1, "", findLatestSmtpDetail);
@@ -343,9 +351,14 @@ public class AuthService {
 		String decodedEmail = commonFunction.decipher(emailId).trim();
 		String decodedUserId = commonFunction.decipher(userId).trim();
 		String encodedPassword = commonFunction.cipher(password);
-		String isManger = commonFunction.decipher(isManager);
+		String isManger = null;
 
-		System.err.println("IsManager " + isManger);
+		
+	    if (isManager != null && !isManager.trim().isEmpty()) {
+	        isManger = commonFunction.decipher(isManager);
+	    }
+
+	    System.err.println("isManger " + isManger);
 		System.err.println("decodedEmail " + decodedEmail);
 		System.err.println("encodedPassword " + encodedPassword);
 
@@ -379,7 +392,7 @@ public class AuthService {
 			// Invalid URL → error response
 			String message = "URL is no longer valid or has expired. "
 					+ "Please go to the Login Page, enter your email ID, and use the Forgot Password link again.";
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, message, null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, message, isManger));
 		}
 	}
 

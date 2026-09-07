@@ -4,7 +4,9 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.webelement.taskapp.entity.TransactionEntity;
+import java.sql.Timestamp;
 
 public class TaskCategoryDTO {
 
@@ -16,6 +18,11 @@ public class TaskCategoryDTO {
     private Integer userId;
     private Timestamp regdate;
     private Timestamp moddate;
+    
+    @JsonFormat(
+    	    pattern = "yyyy-MM-dd HH:mm:ss"
+    	)
+    	private String dueDateTime;
 
     private List<TransactionEntity> transactionHistory;
 
@@ -145,6 +152,16 @@ public class TaskCategoryDTO {
             Timestamp moddate) {
 
         this.moddate = moddate;
+    }
+    
+    public String getDueDateTime() {
+        return dueDateTime;
+    }
+
+    public void setDueDateTime(
+    		String dueDateTime
+    ) {
+        this.dueDateTime = dueDateTime;
     }
 
     public List<TransactionEntity> getTransactionHistory() {

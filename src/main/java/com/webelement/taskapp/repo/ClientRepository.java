@@ -22,6 +22,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	boolean existsByCode(String code);
 
 	boolean existsByCodeAndClientIdNot(String code, Integer clientId);
+	
+	Optional<ClientEntity> findByCodeIgnoreCase(String code);
+
 
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
 			+ "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, c.stateId, s.name, c.addressLine1, c.addressLine2, "
