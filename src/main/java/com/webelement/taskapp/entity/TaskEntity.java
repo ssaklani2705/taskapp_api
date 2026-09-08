@@ -33,7 +33,6 @@ public class TaskEntity {
     private Integer clientId;
 
     @Column(name = "d_date")
-
     private LocalDateTime date;
 
 

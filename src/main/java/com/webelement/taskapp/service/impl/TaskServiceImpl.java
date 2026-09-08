@@ -257,23 +257,42 @@ public class TaskServiceImpl implements TaskService {
 		task.setModificationDate(LocalDateTime.now());
 
 		// PDF Upload
-		if (dto.getFileName1() != null && !dto.getFileName1().isEmpty()) {
+//		if (dto.getFileName1() != null && !dto.getFileName1().isEmpty()) {
+//
+//			validatePdf(dto.getFileName1());
+//
+//			String pdfFileName = saveFile(dto.getFileName1(), "pdf");
+//
+//			task.setFileName1(pdfFileName);
+//		}
+//
+//		// ZIP Upload
+//		if (dto.getFileName2() != null && !dto.getFileName2().isEmpty()) {
+//
+//			validateZip(dto.getFileName2());
+//
+//			String zipFileName = saveFile(dto.getFileName2(), "zip");
+//
+//			task.setFileName2(zipFileName);
+//		}
+		
+		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
 
-			validatePdf(dto.getFileName1());
+			validatePdf(dto.getFileName3());
 
-			String pdfFileName = saveFile(dto.getFileName1(), "pdf");
+			String pdfFileName = saveFile(dto.getFileName3(), "pdf");
 
-			task.setFileName1(pdfFileName);
+			task.setFileName3(pdfFileName);
 		}
 
 		// ZIP Upload
-		if (dto.getFileName2() != null && !dto.getFileName2().isEmpty()) {
+		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
 
-			validateZip(dto.getFileName2());
+			validateZip(dto.getFileName4());
 
-			String zipFileName = saveFile(dto.getFileName2(), "zip");
+			String zipFileName = saveFile(dto.getFileName4(), "zip");
 
-			task.setFileName2(zipFileName);
+			task.setFileName4(zipFileName);
 		}
 
 		TaskEntity savedTask = taskRepository.save(task);
