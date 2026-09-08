@@ -55,18 +55,10 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
-			+ "t.taskStatus,t.addedBy) " + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-			+ "WHERE t.status = 1")
-	Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
-
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
-	int countOfActiveTask();
-
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5")
-	int countOfCompletedTask();
-
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1")
-	int countOfPendingTask();
+            + "t.taskStatus, t.addedBy, a.firstName, t.date, t.priority) "
+            + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+            + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1")
+    Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
 
 	List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
@@ -78,16 +70,27 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "AND (t.assignedTo = :userId OR t.addedBy = :userId)")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1")
-	int countOfAssignedTask();
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1")
-	int countOfAssigneeClosureTask();
+	//NEW
+	   @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
+	    int countOfActiveTask();
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1")
-	int countOfReOpenTask();
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1")
+	    int countOfCompletedTask();
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1")
-	int countOfAssigneeReClosureTask();
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1")
+	    int countOfPendingTask();
+
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1")
+	    int countOfAssignedTask();
+
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1")
+	    int countOfAssigneeClosureTask();
+
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1")
+	    int countOfReOpenTask();
+
+	    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1")
+	    int countOfAssigneeReClosureTask();
 
 }

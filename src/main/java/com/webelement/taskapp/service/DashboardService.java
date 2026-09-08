@@ -431,21 +431,6 @@ public class DashboardService {
 
 	
 
-	public int countOfActiveTask() {
-
-		return taskRepository.countOfActiveTask();
-	}
-
-	public int countOfCompletedTask() {
-
-		return taskRepository.countOfCompletedTask();
-	}
-
-	public int countOfPendingTask() {
-
-		return taskRepository.countOfPendingTask();
-	}
-
 	private static String calculateDueDateTime(LocalDateTime date, String dueDateTimeHours) {
 
 		if (date == null || dueDateTimeHours == null || dueDateTimeHours.isBlank()) {
@@ -462,15 +447,26 @@ public class DashboardService {
 
 
     
-    public Page<TaskEditDTO> getTasksByStatus(int page, int size) {
+	public Page<TaskEditDTO> getTasksByStatus(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable);
 
         return taskList;
     }
+  
+    //NEW
+    public int countOfActiveTask() {
+        return taskRepository.countOfActiveTask();
+    }
 
-    
+    public int countOfCompletedTask() {
+        return taskRepository.countOfCompletedTask();
+    }
+
+    public int countOfPendingTask() {
+        return taskRepository.countOfPendingTask();
+    }
 
     public int countOfAssignedTask() {
         return taskRepository.countOfAssignedTask();
