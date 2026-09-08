@@ -119,8 +119,17 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	int deleteUser(@Param("status") int status, @Param("userId") int userId);
 
 	// Fetch only active users (status = 1)
+//	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+//			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
+	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
-			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
+			+ "FROM UserLoginEntity u WHERE u.status = 1  "
+			+ "AND (u.userId = (SELECT c.managerId FROM ClientEntity c WHERE c.clientId = :clientId )  OR (u.designationId <> 1))"
+			+ "order by u.firstName asc")
+	List<UserActiveDTO> findActiveUsers(int clientId);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers();
 	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,10 @@ import com.webelement.taskapp.service.TaskService;
 public class DashboardController {
 	
 	@Autowired
-	private DashboardService dashboardService;
+	private DashboardService taskService;
+	
+//	@Autowired
+//	private TaskService taskService;
 	
 	// For Employee dashboard
 	 @GetMapping("/dashboard")
@@ -32,20 +36,38 @@ public class DashboardController {
 	            @RequestParam Integer userId) {
 
 	        TaskDashboardResponse response =
-	        		dashboardService.getDashboard(userId);
+	        		taskService.getDashboard(userId);
 
 	        return ResponseEntity.ok(response);
 	    }
 	
 	// For manager dashboard
-    @GetMapping("/getTasksByStatus")
-    public ResponseEntity<Map<String, Object>> getTasksByStatus() {
+//    @GetMapping("/getTasksByStatus")
+//    public ResponseEntity<Map<String, Object>> getTasksByStatus() {
+//
+//        Map<String, Object> map = new HashMap<>();
+//
+//        List<TaskEditDTO> taskList = taskService.getTasksByStatus();
+//
+//        map.put("taskList", taskList);
+//
+//        return ResponseEntity.ok(map);
+//    }
+
+
+    //NEW
+
+@GetMapping("/getTasksByStatus")
+    public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
         Map<String, Object> map = new HashMap<>();
+        size = Math.min(size, 20);
 
-        List<TaskEditDTO> taskList = dashboardService.getTasksByStatus();
+        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size);
 
-        map.put("taskList", taskList);
+        map.put("taskList", taskList.getContent());
+        map.put("totalTasks", taskList.getTotalElements());
 
         return ResponseEntity.ok(map);
     }
@@ -55,35 +77,82 @@ public class DashboardController {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = dashboardService.countOfActiveTask();
+        int count = taskService.countOfActiveTask();
 
         map.put("count", count);
 
         return ResponseEntity.ok(map);
     }
-    
+
     @GetMapping("/countOfCompletedTask")
     public ResponseEntity<Map<String, Object>> countOfCompletedTask() {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = dashboardService.countOfCompletedTask();
+        int count = taskService.countOfCompletedTask();
 
         map.put("count", count);
 
         return ResponseEntity.ok(map);
     }
-    
+
     @GetMapping("/countOfPendingTask")
     public ResponseEntity<Map<String, Object>> countOfPendingTask() {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = dashboardService.countOfPendingTask();
+        int count = taskService.countOfPendingTask();
 
         map.put("count", count);
 
         return ResponseEntity.ok(map);
     }
 
+    @GetMapping("/countOfAssignedTask")
+    public ResponseEntity<Map<String, Object>> countOfAssignedTask() {
+
+        Map<String, Object> map = new HashMap<>();
+
+        int count = taskService.countOfAssignedTask();
+
+        map.put("count", count);
+
+        return ResponseEntity.ok(map);
+    }
+
+    @GetMapping("/countOfAssigneeClosureTask")
+    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask() {
+
+        Map<String, Object> map = new HashMap<>();
+
+        int count = taskService.countOfAssigneeClosureTask();
+
+        map.put("count", count);
+
+        return ResponseEntity.ok(map);
+    }
+
+    @GetMapping("/countOfReOpenTask")
+    public ResponseEntity<Map<String, Object>> countOfReOpenTask() {
+
+        Map<String, Object> map = new HashMap<>();
+
+        int count = taskService.countOfReOpenTask();
+
+        map.put("count", count);
+
+        return ResponseEntity.ok(map);
+    }
+
+    @GetMapping("/countOfAssigneeReClosureTask")
+    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask() {
+
+        Map<String, Object> map = new HashMap<>();
+
+        int count = taskService.countOfAssigneeReClosureTask();
+
+        map.put("count", count);
+
+        return ResponseEntity.ok(map);
+    }
 }

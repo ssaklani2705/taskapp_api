@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,9 @@ public class TaskEntity {
 
     @Column(name = "i_clientid")
     private Integer clientId;
+    
+//    @Transient
+//    private String clientName;
 
     @Column(name = "d_date")
     private LocalDateTime date;

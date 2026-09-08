@@ -1,6 +1,5 @@
 package com.webelement.taskapp.repo;
 
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +7,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -58,15 +58,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "WHERE t.status = 1")
 	List<TaskEditDTO> findTasksByStatus();
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
-	int countOfActiveTask();
-
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5")
-	int countOfCompletedTask();
-
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1")
-	int countOfPendingTask();
-
 	List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
 	@Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
@@ -85,5 +76,32 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("SELECT t " + "FROM TaskEntity t " + "WHERE t.status = 1 " + "AND (" + "t.assignedTo = :userId "
 			+ "OR t.addedBy = :userId" + ")")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
+            + "t.taskStatus, t.addedBy, a.firstName, t.date, t.priority) "
+            + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+            + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1")
+    Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
+    int countOfActiveTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1")
+    int countOfCompletedTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1")
+    int countOfPendingTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1")
+    int countOfAssignedTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1")
+    int countOfAssigneeClosureTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1")
+    int countOfReOpenTask();
+
+    @Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1")
+    int countOfAssigneeReClosureTask();
 
 }
