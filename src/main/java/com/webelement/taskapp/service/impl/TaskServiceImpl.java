@@ -256,25 +256,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setCloseRemarks(dto.getDescription());
 		task.setModificationDate(LocalDateTime.now());
 
-		// PDF Upload
-//		if (dto.getFileName1() != null && !dto.getFileName1().isEmpty()) {
-//
-//			validatePdf(dto.getFileName1());
-//
-//			String pdfFileName = saveFile(dto.getFileName1(), "pdf");
-//
-//			task.setFileName1(pdfFileName);
-//		}
-//
-//		// ZIP Upload
-//		if (dto.getFileName2() != null && !dto.getFileName2().isEmpty()) {
-//
-//			validateZip(dto.getFileName2());
-//
-//			String zipFileName = saveFile(dto.getFileName2(), "zip");
-//
-//			task.setFileName2(zipFileName);
-//		}
+
 		
 		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
 

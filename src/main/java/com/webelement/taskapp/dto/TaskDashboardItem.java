@@ -14,35 +14,41 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TaskDashboardItem {
 
-    private Integer taskId;
+	private Integer taskId;
 
-    private Integer clientId;
+	private Integer clientId;
 
-    private String title;
+	private String clientName;
 
-    private LocalDateTime date;
+	private String taskCategoryName;
+	private String dueDateTime;
+	private String assignedUser;
 
-    private String priority;
+	private String title;
 
-    private String status;
+	private LocalDateTime date;
 
-    private Integer progress;
+	private String priority;
 
-    private String description;
+	private String status;
 
-    private Integer assignedTo;
+	private Integer progress;
 
-    private Integer addedBy;
+	private String description;
 
-    private Integer taskCategoryId;
+	private Integer assignedTo;
 
-    private String fileName1;
+	private Integer addedBy;
 
-    private String fileName2;
+	private Integer taskCategoryId;
 
-    private String fileName3;
+	private String fileName1;
 
-    private String fileName4;
+	private String fileName2;
 
-    private String closeRemarks;
+	private String fileName3;
+
+	private String fileName4;
+
+	private String closeRemarks;
 }

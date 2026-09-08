@@ -8,6 +8,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -82,8 +83,9 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	 *
 	 * status = 1 means active task.
 	 */
-	@Query("SELECT t " + "FROM TaskEntity t " + "WHERE t.status = 1 " + "AND (" + "t.assignedTo = :userId "
-			+ "OR t.addedBy = :userId" + ")")
+	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser" })
+	@Query("SELECT t " + "FROM TaskEntity t " + "WHERE t.status = 1 "
+			+ "AND (t.assignedTo = :userId OR t.addedBy = :userId)")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId);
 
 }
