@@ -116,6 +116,16 @@ public class TaskController {
 		response.put("totalElements", pageData.getTotalElements());
 		return response;
 	}
+	
+	@GetMapping("/getTaskFilterDataOnChange")
+	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
+			@RequestParam String loginType, @RequestParam Integer clientId) {
+		Map<String, Object> response = new HashMap<>();
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+		return response;
+	}
 
 	@GetMapping("/getTaskFilterData")
 	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,

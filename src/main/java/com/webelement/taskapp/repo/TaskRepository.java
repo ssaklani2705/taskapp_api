@@ -1,6 +1,6 @@
 package com.webelement.taskapp.repo;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,10 +32,11 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
 	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, " + "c.name, " + "t.date, " + "tc.duedatetime, " + // <--
-																															// replace
-																															// CASE
-																															// block
+	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, " + "c.name, " + "t.date, "
+			+ "tc.duedatetime, " + // <--
+			// replace
+			// CASE
+			// block
 			"tc.name, " + "u.firstName, " + "t.priority, " + "t.status, " + "t.title, " + "t.taskStatus, "
 			+ "t.assignedTo, " + "t.addedBy" + ") " + "FROM TaskEntity t "
 			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
@@ -53,11 +54,10 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
-//For manager dashboard
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
 			+ "t.taskStatus,t.addedBy) " + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
 			+ "WHERE t.status = 1")
-	List<TaskEditDTO> findTasksByStatus();
+	Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
 
 	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
 	int countOfActiveTask();
@@ -73,19 +73,21 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
 	String findDueTimeByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
 
-	/*
-	 * ========================================================= EMPLOYEE DASHBOARD
-	 * =========================================================
-	 *
-	 * Employee sees:
-	 *
-	 * 1. Tasks assigned to employee OR 2. Tasks added by employee
-	 *
-	 * status = 1 means active task.
-	 */
 	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser" })
 	@Query("SELECT t " + "FROM TaskEntity t " + "WHERE t.status = 1 "
 			+ "AND (t.assignedTo = :userId OR t.addedBy = :userId)")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId);
+
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1")
+	int countOfAssignedTask();
+
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1")
+	int countOfAssigneeClosureTask();
+
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1")
+	int countOfReOpenTask();
+
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1")
+	int countOfAssigneeReClosureTask();
 
 }

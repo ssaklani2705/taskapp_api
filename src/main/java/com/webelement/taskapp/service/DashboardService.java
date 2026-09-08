@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.dto.TaskDashboardItem;
@@ -426,10 +429,7 @@ public class DashboardService {
 	 * =========================================================
 	 */
 
-	public List<TaskEditDTO> getTasksByStatus() {
-
-		return taskRepository.findTasksByStatus();
-	}
+	
 
 	public int countOfActiveTask() {
 
@@ -459,4 +459,33 @@ public class DashboardService {
 			return null;
 		}
 	}
+
+
+    
+    public Page<TaskEditDTO> getTasksByStatus(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable);
+
+        return taskList;
+    }
+
+    
+
+    public int countOfAssignedTask() {
+        return taskRepository.countOfAssignedTask();
+    }
+
+    public int countOfAssigneeClosureTask() {
+        return taskRepository.countOfAssigneeClosureTask();
+    }
+
+    public int countOfReOpenTask() {
+        return taskRepository.countOfReOpenTask();
+    }
+
+    public int countOfAssigneeReClosureTask() {
+        return taskRepository.countOfAssigneeReClosureTask();
+    }
+
 }

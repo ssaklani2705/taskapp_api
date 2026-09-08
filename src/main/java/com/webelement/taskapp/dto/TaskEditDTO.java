@@ -74,5 +74,17 @@ public class TaskEditDTO {
         this.addedBy = addedBy;
     }
 
+	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
+            Integer addedBy, String addedByName, LocalDateTime date, Short priority) {
+        this.taskId = taskId;
+        this.assignedTo = assignedTo;
+        this.assignedUserName = assignedUserName;
+        this.title = title;
+        this.taskStatus = taskStatus;
+        this.addedBy = addedBy;
+        this.addedByName = addedByName;
+        this.date = date;
+        this.priority = priority;
+    }
 	
 }
