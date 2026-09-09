@@ -14,12 +14,16 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "t_task")
@@ -27,6 +31,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class TaskEntity {
 
 	@Id
@@ -96,6 +101,7 @@ public class TaskEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_assignedto", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedUser;
 }

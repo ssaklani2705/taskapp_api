@@ -32,16 +32,44 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
 	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, " + "c.name, " + "t.date, "
-			+ "tc.duedatetime, " + // <--
-			// replace
-			// CASE
-			// block
-			"tc.name, " + "u.firstName, " + "t.priority, " + "t.status, " + "t.title, " + "t.taskStatus, "
-			+ "t.assignedTo, " + "t.addedBy" + ") " + "FROM TaskEntity t "
-			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+//	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, " + "c.name, " + "t.date, "
+//			+ "tc.duedatetime, " + // <--
+//			// replace
+//			// CASE
+//			// block
+//			"tc.name, " + "u.firstName, " + "t.priority, " + "t.status, " + "t.title, " + "t.taskStatus, "
+//			+ "t.assignedTo, " + "t.addedBy" + ") " + "FROM TaskEntity t "
+//			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+//			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+//			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo " + "WHERE t.taskId > 0")
+//	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,
+//			@Param("search") String search, @Param("clientId") Integer clientId,
+//			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,
+//			@Param("priority") Integer priority, @Param("fromDate") String fromDate, @Param("toDate") String toDate,
+//			@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,
+//			@Param("taskStatusId") Integer taskStatusId, @Param("loginType") String loginType);
+
+	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(t.taskId, c.name, t.date,tc.duedatetime, tc.name, u.firstName, t.priority, t.status, t.title,t.taskStatus,t.assignedTo,t.addedBy) "
+			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo " + "WHERE t.taskId > 0")
+			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo " + "WHERE t.taskId > 0 "
+			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) "
+			+ "AND (:search IS NULL OR :search = '' OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))) "
+			+ "AND (:clientId = 0 OR t.clientId = :clientId) "
+			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
+			+ "AND (:assignedTo = 0 OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) "
+			+ "AND (:taskStatusId = 0 OR t.taskStatus = :taskStatusId) "
+			+ "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
+			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " + "AND (" + ":isAdmin = 'Y' " + "OR ("
+			+ "t.assignedTo = :userId " + "OR t.addedBy = :userId" + ")" + ") " 
+			
+ + "AND ("
+ + "    (:loginType = 'manager' AND (t.assignedTo = :userId OR t.addedBy = :userId OR c.managerId = :userId)) "
+ + "    OR "
+ + "    (:loginType <> 'manager' AND (:isAdmin = 'Y' OR t.assignedTo = :userId OR t.addedBy = :userId))"
+ + ") "
+			
+			+ "ORDER BY t.status ASC,  c.name ASC")
 	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("clientId") Integer clientId,
 			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,
@@ -69,7 +97,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser" })
 	@Query("SELECT t " + "FROM TaskEntity t " + "WHERE t.status = 1 "
-			+ "AND (t.assignedTo = :userId OR t.addedBy = :userId)")
+			+ "AND (t.assignedTo = :userId OR t.addedBy = :userId OR t.assignedTo = 0)")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId);
 
 

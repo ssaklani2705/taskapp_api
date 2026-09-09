@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,192 +43,437 @@ public class DashboardService {
 	 * ========================================================= EMPLOYEE DASHBOARD
 	 * =========================================================
 	 */
+	
+	private String getAssignedUserName(TaskEntity task) {
+
+	    if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
+	        return "Unassigned";
+	    }
+
+	    if (task.getAssignedUser() == null) {
+	        return "Unassigned";
+	    }
+
+	    return task.getAssignedUser().getFirstName();
+	}
+	
 	public TaskDashboardResponse getDashboard(Integer userId) {
 
-		/*
-		 * Current date
-		 */
-		LocalDate today = LocalDate.now();
+	    /*
+	     * =====================================================
+	     * CURRENT DATE
+	     * =====================================================
+	     */
+	    LocalDate today = LocalDate.now();
 
-		/*
-		 * ===================================================== CURRENT WEEK
-		 * =====================================================
-		 *
-		 * Monday 00:00:00 -> Sunday 23:59:59.999999999
-		 *
-		 * IMPORTANT:
-		 *
-		 * task.getDate() is LocalDateTime, therefore startOfWeek and endOfWeek must
-		 * also be LocalDateTime.
-		 */
-		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+	    /*
+	     * =====================================================
+	     * CURRENT WEEK
+	     * =====================================================
+	     */
+	    LocalDateTime startOfWeek =
+	            today.with(DayOfWeek.MONDAY).atStartOfDay();
 
-		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+	    LocalDateTime endOfWeek =
+	            today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 
-		/*
-		 * ===================================================== TODAY RANGE
-		 * =====================================================
-		 *
-		 * Today:
-		 *
-		 * 2026-09-07 00:00:00
-		 *
-		 * until
-		 *
-		 * 2026-09-08 00:00:00
-		 */
-		LocalDateTime startOfToday = today.atStartOfDay();
+	    /*
+	     * =====================================================
+	     * TODAY RANGE
+	     * =====================================================
+	     */
+	    LocalDateTime startOfToday =
+	            today.atStartOfDay();
 
-		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+	    LocalDateTime startOfTomorrow =
+	            today.plusDays(1).atStartOfDay();
 
-		/*
-		 * ===================================================== CURRENT DATE/TIME
-		 * =====================================================
-		 */
-		LocalDateTime now = LocalDateTime.now();
+	    /*
+	     * =====================================================
+	     * CURRENT DATE/TIME
+	     * =====================================================
+	     */
+	    LocalDateTime now = LocalDateTime.now();
 
-		/*
-		 * ===================================================== GET EMPLOYEE TASKS
-		 * =====================================================
-		 *
-		 * Employee sees:
-		 *
-		 * 1. Tasks assigned to employee OR 2. Tasks added by employee
-		 */
-		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId);
+	    /*
+	     * =====================================================
+	     * GET EMPLOYEE TASKS
+	     *
+	     * Employee sees:
+	     * 1. Tasks assigned to employee
+	     * 2. Tasks added by employee
+	     * =====================================================
+	     */
+	    List<TaskEntity> tasks =
+	            taskRepository.findDashboardTasks(userId);
 
-		/*
-		 * ===================================================== MY TASKS TODAY
-		 * =====================================================
-		 *
-		 * Since d_date is LocalDateTime, compare the complete datetime range.
-		 *
-		 * Example:
-		 *
-		 * d_date = 2026-09-07 15:30:00
-		 *
-		 * This will be counted as today's task.
-		 */
-		List<TaskEntity> tasksToday = tasks.parallelStream().filter(task -> {
-//			System.out.println(
-//					"tasksToday -> Thread: " + Thread.currentThread().getName() + " | Task ID: " + task.getTaskId());
-			LocalDateTime taskDate = task.getDate();
+	    System.err.println("Dashboard User ID : " + userId);
+	    System.err.println("Dashboard Task Count : "
+	            + (tasks == null ? 0 : tasks.size()));
 
-			if (taskDate == null) {
-				return false;
-			}
+	    /*
+	     * =====================================================
+	     * NO TASKS
+	     * =====================================================
+	     */
+	    if (tasks == null || tasks.isEmpty()) {
 
-			return !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
-		}).collect(Collectors.toList());
+	        return TaskDashboardResponse.builder()
+	                .myTasksToday(0)
+	                .dueThisWeek(0)
+	                .overdue(0)
 
-		/*
-		 * ===================================================== DUE THIS WEEK
-		 * =====================================================
-		 *
-		 * Based on task start date (d_date).
-		 *
-		 * Monday 00:00 -> Sunday 23:59:59.999999999
-		 */
+	                .todo(
+	                    TaskGroupResponse.builder()
+	                        .count(0)
+	                        .tasks(Collections.emptyList())
+	                        .build()
+	                )
 
-		List<TaskEntity> dueThisWeek = tasks.parallelStream().filter(task -> {
+	                .inProgress(
+	                    TaskGroupResponse.builder()
+	                        .count(0)
+	                        .tasks(Collections.emptyList())
+	                        .build()
+	                )
 
-			LocalDateTime taskStartDate = task.getDate();
-			if (taskStartDate == null) {
-				return false;
-			}
-			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
-					&& !taskStartDate.isAfter(endOfWeek);
-		}).collect(Collectors.toList());
-		/*
-		 * ===================================================== OVERDUE
-		 * =====================================================
-		 *
-		 * Overdue is calculated using:
-		 *
-		 * Task Start Date + Due Hours
-		 *
-		 * Example:
-		 *
-		 * d_date = 2026-09-01 10:30:00 ts_duetime = 50
-		 *
-		 * Due:
-		 *
-		 * 2026-09-03 12:30:00
-		 *
-		 * If current datetime is after the due datetime, task is overdue.
-		 *
-		 * DONE tasks are NOT overdue.
-		 */
-		List<TaskEntity> overdueTasks = tasks.parallelStream().filter(task -> {
+	                .done(
+	                    TaskGroupResponse.builder()
+	                        .count(0)
+	                        .tasks(Collections.emptyList())
+	                        .build()
+	                )
 
-			LocalDateTime dueDateTime = getDueDateTime(task);
+	                .build();
+	    }
 
-			return dueDateTime != null && dueDateTime.isBefore(now) && !isDone(task);
-		}).collect(Collectors.toList());
+	    /*
+	     * =====================================================
+	     * MY TASKS TODAY
+	     * =====================================================
+	     */
+	    List<TaskEntity> tasksToday = tasks.stream()
+	            .filter(task -> {
 
-		/*
-		 * ===================================================== TODO TASKS
-		 * =====================================================
-		 */
-		List<TaskEntity> todoTasks = tasks.parallelStream()
-				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
-				.collect(Collectors.toList());
+	                LocalDateTime taskDate = task.getDate();
 
-		/*
-		 * ===================================================== IN PROGRESS TASKS
-		 * =====================================================
-		 */
-		List<TaskEntity> inProgressTasks = tasks.parallelStream()
-				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
-				.collect(Collectors.toList());
+	                if (taskDate == null) {
+	                    return false;
+	                }
 
-		/*
-		 * ===================================================== DONE TASKS
-		 * =====================================================
-		 */
-		List<TaskEntity> doneTasks = tasks.parallelStream()
-				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)
-				.collect(Collectors.toList());
+	                return !taskDate.isBefore(startOfToday)
+	                        && taskDate.isBefore(startOfTomorrow);
+	            })
+	            .collect(Collectors.toList());
 
-		/*
-		 * ===================================================== BUILD DASHBOARD
-		 * RESPONSE =====================================================
-		 */
-		return TaskDashboardResponse.builder()
+	    /*
+	     * =====================================================
+	     * DUE THIS WEEK
+	     * =====================================================
+	     */
+	    List<TaskEntity> dueThisWeek = tasks.stream()
+	            .filter(task -> {
 
-				/*
-				 * My Tasks Today
-				 */
-				.myTasksToday(tasksToday.size())
+	                LocalDateTime taskStartDate = task.getDate();
 
-				/*
-				 * Due This Week
-				 */
-				.dueThisWeek(dueThisWeek.size())
+	                if (taskStartDate == null) {
+	                    return false;
+	                }
 
-				/*
-				 * Overdue
-				 */
-				.overdue(overdueTasks.size())
+	                return task.getTaskStatus() != null
+	                        && task.getTaskStatus() != 5
+	                        && !taskStartDate.isBefore(startOfWeek)
+	                        && !taskStartDate.isAfter(endOfWeek);
+	            })
+	            .collect(Collectors.toList());
 
-				/*
-				 * TODO
-				 */
-				.todo(TaskGroupResponse.builder().count(todoTasks.size()).tasks(toDashboardItems(todoTasks)).build())
+	    /*
+	     * =====================================================
+	     * OVERDUE
+	     * =====================================================
+	     */
+	    List<TaskEntity> overdueTasks = tasks.stream()
+	            .filter(task -> {
 
-				/*
-				 * IN PROGRESS
-				 */
-				.inProgress(TaskGroupResponse.builder().count(inProgressTasks.size())
-						.tasks(toDashboardItems(inProgressTasks)).build())
+	                LocalDateTime dueDateTime =
+	                        getDueDateTime(task);
 
-				/*
-				 * DONE
-				 */
-				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
+	                return dueDateTime != null
+	                        && dueDateTime.isBefore(now)
+	                        && !isDone(task);
+	            })
+	            .collect(Collectors.toList());
 
-				.build();
+	    /*
+	     * =====================================================
+	     * TODO
+	     * =====================================================
+	     */
+	    List<TaskEntity> todoTasks = tasks.stream()
+	            .filter(task ->
+	                    task.getTaskStatus() != null
+	                    && task.getTaskStatus() == TODO
+	            )
+	            .collect(Collectors.toList());
+
+	    /*
+	     * =====================================================
+	     * IN PROGRESS
+	     * =====================================================
+	     */
+	    List<TaskEntity> inProgressTasks = tasks.stream()
+	            .filter(task ->
+	                    task.getTaskStatus() != null
+	                    && task.getTaskStatus() == IN_PROGRESS
+	            )
+	            .collect(Collectors.toList());
+
+	    /*
+	     * =====================================================
+	     * DONE
+	     * =====================================================
+	     */
+	    List<TaskEntity> doneTasks = tasks.stream()
+	            .filter(task ->
+	                    task.getTaskStatus() != null
+	                    && task.getTaskStatus() == DONE
+	            )
+	            .collect(Collectors.toList());
+
+	    /*
+	     * =====================================================
+	     * BUILD DASHBOARD RESPONSE
+	     * =====================================================
+	     */
+	    return TaskDashboardResponse.builder()
+
+	            .myTasksToday(tasksToday.size())
+
+	            .dueThisWeek(dueThisWeek.size())
+
+	            .overdue(overdueTasks.size())
+
+	            .todo(
+	                TaskGroupResponse.builder()
+	                    .count(todoTasks.size())
+	                    .tasks(toDashboardItems(todoTasks))
+	                    .build()
+	            )
+
+	            .inProgress(
+	                TaskGroupResponse.builder()
+	                    .count(inProgressTasks.size())
+	                    .tasks(toDashboardItems(inProgressTasks))
+	                    .build()
+	            )
+
+	            .done(
+	                TaskGroupResponse.builder()
+	                    .count(doneTasks.size())
+	                    .tasks(toDashboardItems(doneTasks))
+	                    .build()
+	            )
+
+	            .build();
 	}
+	
+//	public TaskDashboardResponse getDashboard(Integer userId) {
+//
+//		/*
+//		 * Current date
+//		 */
+//		LocalDate today = LocalDate.now();
+//
+//		/*
+//		 * ===================================================== CURRENT WEEK
+//		 * =====================================================
+//		 *
+//		 * Monday 00:00:00 -> Sunday 23:59:59.999999999
+//		 *
+//		 * IMPORTANT:
+//		 *
+//		 * task.getDate() is LocalDateTime, therefore startOfWeek and endOfWeek must
+//		 * also be LocalDateTime.
+//		 */
+//		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+//
+//		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+//
+//		/*
+//		 * ===================================================== TODAY RANGE
+//		 * =====================================================
+//		 *
+//		 * Today:
+//		 *
+//		 * 2026-09-07 00:00:00
+//		 *
+//		 * until
+//		 *
+//		 * 2026-09-08 00:00:00
+//		 */
+//		LocalDateTime startOfToday = today.atStartOfDay();
+//
+//		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+//
+//		/*
+//		 * ===================================================== CURRENT DATE/TIME
+//		 * =====================================================
+//		 */
+//		LocalDateTime now = LocalDateTime.now();
+//
+//		/*
+//		 * ===================================================== GET EMPLOYEE TASKS
+//		 * =====================================================
+//		 *
+//		 * Employee sees:
+//		 *
+//		 * 1. Tasks assigned to employee OR 2. Tasks added by employee
+//		 */
+//		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId);
+//		
+//		
+//		
+//		System.err.println("In LIST "+tasks);
+//		if (tasks == null || tasks.isEmpty()) {
+//			
+//			return TaskDashboardResponse.builder().myTasksToday(0).dueThisWeek(0).overdue(0)
+//					.todo(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+//					.inProgress(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+//					.done(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build()).build();
+//		}
+//
+//		/*
+//		 * ===================================================== MY TASKS TODAY
+//		 * =====================================================
+//		 *
+//		 * Since d_date is LocalDateTime, compare the complete datetime range.
+//		 *
+//		 * Example:
+//		 *
+//		 * d_date = 2026-09-07 15:30:00
+//		 *
+//		 * This will be counted as today's task.
+//		 */
+//		List<TaskEntity> tasksToday = tasks.parallelStream().filter(task -> {
+////			System.out.println(
+////					"tasksToday -> Thread: " + Thread.currentThread().getName() + " | Task ID: " + task.getTaskId());
+//			LocalDateTime taskDate = task.getDate();
+//
+//			if (taskDate == null) {
+//				return false;
+//			}
+//
+//			return !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
+//		}).collect(Collectors.toList());
+//
+//		/*
+//		 * ===================================================== DUE THIS WEEK
+//		 * =====================================================
+//		 *
+//		 * Based on task start date (d_date).
+//		 *
+//		 * Monday 00:00 -> Sunday 23:59:59.999999999
+//		 */
+//
+//		List<TaskEntity> dueThisWeek = tasks.parallelStream().filter(task -> {
+//
+//			LocalDateTime taskStartDate = task.getDate();
+//			if (taskStartDate == null) {
+//				return false;
+//			}
+//			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
+//					&& !taskStartDate.isAfter(endOfWeek);
+//		}).collect(Collectors.toList());
+//		/*
+//		 * ===================================================== OVERDUE
+//		 * =====================================================
+//		 *
+//		 * Overdue is calculated using:
+//		 *
+//		 * Task Start Date + Due Hours
+//		 *
+//		 * Example:
+//		 *
+//		 * d_date = 2026-09-01 10:30:00 ts_duetime = 50
+//		 *
+//		 * Due:
+//		 *
+//		 * 2026-09-03 12:30:00
+//		 *
+//		 * If current datetime is after the due datetime, task is overdue.
+//		 *
+//		 * DONE tasks are NOT overdue.
+//		 */
+//		List<TaskEntity> overdueTasks = tasks.parallelStream().filter(task -> {
+//
+//			LocalDateTime dueDateTime = getDueDateTime(task);
+//
+//			return dueDateTime != null && dueDateTime.isBefore(now) && !isDone(task);
+//		}).collect(Collectors.toList());
+//
+//		/*
+//		 * ===================================================== TODO TASKS
+//		 * =====================================================
+//		 */
+//		List<TaskEntity> todoTasks = tasks.parallelStream()
+//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
+//				.collect(Collectors.toList());
+//
+//		/*
+//		 * ===================================================== IN PROGRESS TASKS
+//		 * =====================================================
+//		 */
+//		List<TaskEntity> inProgressTasks = tasks.parallelStream()
+//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
+//				.collect(Collectors.toList());
+//
+//		/*
+//		 * ===================================================== DONE TASKS
+//		 * =====================================================
+//		 */
+//		List<TaskEntity> doneTasks = tasks.parallelStream()
+//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)
+//				.collect(Collectors.toList());
+//
+//		/*
+//		 * ===================================================== BUILD DASHBOARD
+//		 * RESPONSE =====================================================
+//		 */
+//		return TaskDashboardResponse.builder()
+//
+//				/*
+//				 * My Tasks Today
+//				 */
+//				.myTasksToday(tasksToday.size())
+//
+//				/*
+//				 * Due This Week
+//				 */
+//				.dueThisWeek(dueThisWeek.size())
+//
+//				/*
+//				 * Overdue
+//				 */
+//				.overdue(overdueTasks.size())
+//
+//				/*
+//				 * TODO
+//				 */
+//				.todo(TaskGroupResponse.builder().count(todoTasks.size()).tasks(toDashboardItems(todoTasks)).build())
+//
+//				/*
+//				 * IN PROGRESS
+//				 */
+//				.inProgress(TaskGroupResponse.builder().count(inProgressTasks.size())
+//						.tasks(toDashboardItems(inProgressTasks)).build())
+//
+//				/*
+//				 * DONE
+//				 */
+//				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
+//
+//				.build();
+//	}
 
 	/*
 	 * ========================================================= CALCULATE DUE

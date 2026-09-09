@@ -108,7 +108,9 @@ public class TaskController {
 			@RequestParam(required = false, defaultValue = "0") Integer userId,
 			@RequestParam(required = false, defaultValue = "0") Integer taskStatusId,
 			@RequestParam(required = false) String loginType) {
-
+		
+		
+		System.err.println("Status " +statusIndex );
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
 				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
 		Map<String, Object> response = new HashMap<>();

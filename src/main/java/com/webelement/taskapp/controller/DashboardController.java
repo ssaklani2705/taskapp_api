@@ -33,7 +33,7 @@ public class DashboardController {
 	// For Employee dashboard
 	 @GetMapping("/dashboard")
 	    public ResponseEntity<TaskDashboardResponse> getDashboard(
-	            @RequestParam Integer userId) {
+	            @RequestParam(defaultValue = "0") Integer userId) {
 
 	        TaskDashboardResponse response =
 	        		taskService.getDashboard(userId);
