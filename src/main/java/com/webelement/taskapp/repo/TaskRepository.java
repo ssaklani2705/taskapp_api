@@ -54,9 +54,11 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, u.firstName ," + "t.title, "
-            + "t.taskStatus, t.addedBy, a.firstName, t.date, t.priority) "
+	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, t.assignedTo, COALESCE(NULLIF(u.firstName,''),'-') ," + "COALESCE(NULLIF(t.title,''),'-'), "
+            + "t.taskStatus, t.addedBy, COALESCE(NULLIF(a.firstName,''),'-'), t.date as startDate ,tc.duedatetime, t.priority,COALESCE(NULLIF(c.name, ''), '-')) "
             + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+            + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+            + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
             + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1")
     Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
 

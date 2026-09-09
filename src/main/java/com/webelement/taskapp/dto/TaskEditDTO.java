@@ -2,6 +2,7 @@ package com.webelement.taskapp.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.webelement.taskapp.entity.TransactionEntity;
@@ -14,13 +15,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskEditDTO {
-
+	 private static final DateTimeFormatter DATE_TIME_FORMATTER =
+	            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private Integer taskId;
 	private Integer addedBy;
 	private Integer assignedTo;
 	private Integer clientId;
 	private String closeRemarks;
 	private LocalDateTime date;
+	  private String dueDateTime;
 	private String description;
 	private String fileName1;
 	private String fileName2;
@@ -75,16 +78,29 @@ public class TaskEditDTO {
     }
 
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
-            Integer addedBy, String addedByName, LocalDateTime date, Short priority) {
-        this.taskId = taskId;
-        this.assignedTo = assignedTo;
-        this.assignedUserName = assignedUserName;
-        this.title = title;
-        this.taskStatus = taskStatus;
-        this.addedBy = addedBy;
-        this.addedByName = addedByName;
-        this.date = date;
-        this.priority = priority;
-    }
+			Integer addedBy, String addedByName, LocalDateTime date, String dueDateTimeHours, Short priority,
+			String clientName) {
+		this.taskId = taskId;
+		this.assignedTo = assignedTo;
+		this.assignedUserName = assignedUserName;
+		this.title = title;
+		this.taskStatus = taskStatus;
+		this.addedBy = addedBy;
+		this.addedByName = addedByName;
+		this.date = date;
+
+		if (date != null && dueDateTimeHours != null && !dueDateTimeHours.isBlank()) {
+			try {
+				long hours = Long.parseLong(dueDateTimeHours.trim());
+				this.dueDateTime = date.plusHours(hours).format(DATE_TIME_FORMATTER);
+			} catch (NumberFormatException e) {
+				this.dueDateTime = null; // or log a warning
+			}
+		} else {
+			this.dueDateTime = null;
+		}
+		this.priority = priority;
+		this.clientName = clientName;
+	}
 	
 }
