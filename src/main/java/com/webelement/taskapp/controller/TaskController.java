@@ -122,7 +122,7 @@ public class TaskController {
 			@RequestParam String loginType, @RequestParam Integer clientId) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategoriesByclientId(clientId));
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
 		return response;
 	}

@@ -19,6 +19,17 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity, Integer> {
 	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
 	List<TaskCategoryEntity> findAllActiveTaskCategories();
+	
+	@Query("SELECT tc FROM TaskCategoryEntity tc " +
+		       "WHERE tc.status = 1 " +
+		       "AND tc.departmentId = (" +
+		       "    SELECT ul.departmentId FROM UserLoginEntity ul " +
+		       "    WHERE ul.userId = (" +
+		       "        SELECT c.managerId FROM ClientEntity c WHERE c.clientId = :clientId" +
+		       "    )" +
+		       ") " +
+		       "ORDER BY tc.name ASC")
+		List<TaskCategoryEntity> findAllActiveTaskCategoriesByclientId(@Param("clientId") int clientId);
 
 	@Transactional
 	@Modifying

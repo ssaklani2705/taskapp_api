@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,7 +36,6 @@ public class TaskEntity {
 
 	@Column(name = "i_clientid")
 	private Integer clientId;
-
 
 	@Column(name = "d_date")
 	private LocalDateTime date;
@@ -84,14 +85,17 @@ public class TaskEntity {
 	private Integer reopenCount = 0;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
 	@JoinColumn(name = "i_clientid", referencedColumnName = "i_clientid", insertable = false, updatable = false)
 	private ClientEntity client;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
 	@JoinColumn(name = "i_taskcategoryid", referencedColumnName = "i_taskcategoryid", insertable = false, updatable = false)
 	private TaskCategoryEntity taskCategory;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
 	@JoinColumn(name = "i_assignedto", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedUser;
 }
