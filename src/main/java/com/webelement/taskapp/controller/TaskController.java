@@ -124,8 +124,18 @@ public class TaskController {
 			@RequestParam String loginType, @RequestParam Integer clientId) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategoriesByclientId(clientId));
+		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+		return response;
+	}
+	
+	@GetMapping("/changesCategoryIdgetUserFilterData")
+	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
+			@RequestParam String loginType, @RequestParam Integer clientId, @RequestParam Integer categoryId) {
+		Map<String, Object> response = new HashMap<>();
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId,categoryId));
 		return response;
 	}
 
@@ -133,7 +143,8 @@ public class TaskController {
 	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
 			@RequestParam String loginType) {
 		Map<String, Object> response = new HashMap<>();
-		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+		response.put("clients", clientRepository.findAllActiveClients(userId,loginType));
 		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 		response.put("assignedUsers", userLoginRepository.findActiveUsers());
 		return response;
