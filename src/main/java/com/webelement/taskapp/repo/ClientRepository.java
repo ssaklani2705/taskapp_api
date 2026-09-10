@@ -108,6 +108,10 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     		+ "ORDER BY c.name ASC")
     List<ClientEntity> findAllActiveClients( @Param("userId") Integer userId,@Param("loginType") String loginType);
 	
+    @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
+    List<ClientEntity> findAllActiveClients();
+    
+    
 //    List<ClientEntity> findAllActiveClients(@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,@Param("loginType") String loginType);
 	
 	boolean existsByPan(String pan);
@@ -117,4 +121,8 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	boolean existsByGstNo(String gstNo);
 
 	boolean existsByGstNoAndClientIdNot(String gstNo, Integer clientId);
+	
+	@Query("SELECT c FROM ClientEntity c " + "WHERE c.status = 1 " + "AND c.managerId = :managerId "
+            + "ORDER BY c.name ASC")
+    List<ClientEntity> findAllActiveClientsByManagerId(@Param("managerId") Integer managerId);
 }

@@ -87,8 +87,13 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             + "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
             + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
             + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-            + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1")
-    Page<TaskEditDTO> findTasksByStatus(Pageable pageable);
+            + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1"
+            + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + ":permission = 'Y' "
+            + "OR t.assignedTo = :userId " + "OR t.addedBy = :userId " + "OR c.managerId = :userId" + ") "
+            + "ORDER BY t.status ASC"
+			)
+	 Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
+	            @Param("userId") Integer userId, @Param("permission") String permission);
 
 	List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
