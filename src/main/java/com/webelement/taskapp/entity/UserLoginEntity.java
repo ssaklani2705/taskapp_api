@@ -18,6 +18,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "t_userlogin")
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

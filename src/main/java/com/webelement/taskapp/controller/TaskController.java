@@ -3,8 +3,11 @@ package com.webelement.taskapp.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,6 +34,7 @@ import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
+import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
@@ -110,7 +114,7 @@ public class TaskController {
 			@RequestParam(required = false) String loginType) {
 		
 		
-		System.err.println("Status " +statusIndex );
+		System.err.println("Status " +assignedTo );
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
 				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
 		Map<String, Object> response = new HashMap<>();
@@ -125,17 +129,31 @@ public class TaskController {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategoriesByclientId(clientId));
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+		List<UserActiveDTO> assignedUsers = userLoginRepository.findActiveUsers(clientId);
+		// Add dummy "Unassigned User" at the top
+		assignedUsers.add(0, new UserActiveDTO(0, "Unassigned User"));
+		response.put("assignedUsers", assignedUsers);
 		return response;
 	}
 
 	@GetMapping("/getTaskFilterData")
 	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
 			@RequestParam String loginType) {
+
+		CompletableFuture<List<?>> clientsFuture = CompletableFuture
+				.supplyAsync(() -> clientRepository.findAllActiveClients(isAdmin, userId, loginType));
+		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
+				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());
+		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
+			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsers());
+			users.add(0, new UserActiveDTO(0, "Unassigned User"));
+			return users;
+		});
+		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
 		Map<String, Object> response = new HashMap<>();
-		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		response.put("assignedUsers", userLoginRepository.findActiveUsers());
+		response.put("clients", clientsFuture.join());
+		response.put("taskCategories", taskCategoriesFuture.join());
+		response.put("assignedUsers", assignedUsersFuture.join());
 		return response;
 	}
 

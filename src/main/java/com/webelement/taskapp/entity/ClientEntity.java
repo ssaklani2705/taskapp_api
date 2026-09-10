@@ -15,6 +15,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "t_client")
+
 @Getter
 @Setter
 @NoArgsConstructor
