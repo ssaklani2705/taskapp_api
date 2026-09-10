@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.TaskEntity;
+import com.webelement.taskapp.entity.UserLoginEntity;
+import com.webelement.taskapp.repo.ClientRepository;
+import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.DashboardService;
 import com.webelement.taskapp.service.TaskService;
 
@@ -26,6 +30,12 @@ public class DashboardController {
 	
 	@Autowired
 	private DashboardService taskService;
+	
+	@Autowired
+	private UserLoginRepository userLoginRepository;
+	
+	@Autowired
+	private ClientRepository clientRepository;
 	
 //	@Autowired
 //	private TaskService taskService;
@@ -57,20 +67,25 @@ public class DashboardController {
 
     //NEW
 
-@GetMapping("/getTasksByStatus")
-    public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+	 @GetMapping("/getTasksByStatus")
+	    public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
+	            @RequestParam(defaultValue = "20") int size,
+	            @RequestParam(required = false, defaultValue = "0") Integer clientId,
+	            @RequestParam("userId") Integer userId) {
 
-        Map<String, Object> map = new HashMap<>();
-        size = Math.min(size, 20);
+	        Map<String, Object> map = new HashMap<>();
 
-        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size);
+	        size = Math.min(size, 20);
 
-        map.put("taskList", taskList.getContent());
-        map.put("totalTasks", taskList.getTotalElements());
+	        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
 
-        return ResponseEntity.ok(map);
-    }
+	        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
+
+	        map.put("taskList", taskList.getContent());
+	        map.put("totalTasks", taskList.getTotalElements());
+
+	        return ResponseEntity.ok(map);
+	    }
 
     @GetMapping("/countOfActiveTask")
     public ResponseEntity<Map<String, Object>> countOfActiveTask() {
@@ -154,5 +169,27 @@ public class DashboardController {
         map.put("count", count);
 
         return ResponseEntity.ok(map);
+    }
+    
+    @GetMapping("/getTaskClient")
+    public Map<String, Object> getTaskClient(@RequestParam("userId") Integer userId) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
+
+        List<ClientEntity> clients;
+
+        if ("Y".equalsIgnoreCase(permission)) {
+            // Admin -> all active societies
+            clients = clientRepository.findAllActiveClients();
+        } else {
+            // Society Manager -> only societies managed by logged-in user
+            clients = clientRepository.findAllActiveClientsByManagerId(userId);
+        }
+
+        response.put("clients", clients);
+
+        return response;
     }
 }

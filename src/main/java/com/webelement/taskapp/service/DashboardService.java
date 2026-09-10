@@ -693,12 +693,14 @@ public class DashboardService {
 
 
     
-	public Page<TaskEditDTO> getTasksByStatus(int page, int size) {
+	public Page<TaskEditDTO> getTasksByStatus(int page, int size, Integer clientId, Integer userId, String permission) {
+
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable);
+        Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId, permission);
 
         return taskList;
+
     }
   
     //NEW
