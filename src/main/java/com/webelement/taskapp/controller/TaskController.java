@@ -128,11 +128,19 @@ public class TaskController {
 			@RequestParam String loginType, @RequestParam Integer clientId) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategoriesByclientId(clientId));
-		List<UserActiveDTO> assignedUsers = userLoginRepository.findActiveUsers(clientId);
-		// Add dummy "Unassigned User" at the top
-		assignedUsers.add(0, new UserActiveDTO(0, "Unassigned User"));
-		response.put("assignedUsers", assignedUsers);
+		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+
+		return response;
+	}
+	
+	@GetMapping("/changesCategoryIdgetUserFilterData")
+	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
+			@RequestParam String loginType, @RequestParam Integer clientId, @RequestParam Integer categoryId) {
+		Map<String, Object> response = new HashMap<>();
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId,categoryId));
 		return response;
 	}
 
@@ -141,7 +149,7 @@ public class TaskController {
 			@RequestParam String loginType) {
 
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
-				.supplyAsync(() -> clientRepository.findAllActiveClients(isAdmin, userId, loginType));
+				.supplyAsync(() -> clientRepository.findAllActiveClients(userId,loginType));
 		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
 				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
@@ -151,9 +159,13 @@ public class TaskController {
 		});
 		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
 		Map<String, Object> response = new HashMap<>();
+
 		response.put("clients", clientsFuture.join());
 		response.put("taskCategories", taskCategoriesFuture.join());
 		response.put("assignedUsers", assignedUsersFuture.join());
+
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+	
 		return response;
 	}
 
