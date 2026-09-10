@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.webelement.taskapp.dto.ClientDashboardDTO;
 import com.webelement.taskapp.dto.TaskDashboardItem;
 import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
@@ -28,6 +29,26 @@ public class DashboardService {
 	@Autowired
 	private TaskRepository taskRepository;
 
+	
+	public List<ClientDashboardDTO> findDashboardClients(
+            Integer userId,
+            String isAdmin,
+            String loginType) {
+
+        List<Object[]> result = taskRepository.findDashboardClients(
+                userId,
+                isAdmin,
+                loginType
+        );
+
+        return result.stream()
+                .map(row -> new ClientDashboardDTO(
+                        (Integer) row[0],
+                        (String) row[1]
+                ))
+                .collect(Collectors.toList());
+    }
+	
 	// Change these values according to your database
 
 	/*
@@ -57,7 +78,7 @@ public class DashboardService {
 	    return task.getAssignedUser().getFirstName();
 	}
 	
-	public TaskDashboardResponse getDashboard(Integer userId) {
+	public TaskDashboardResponse getDashboard(Integer userId,String isAdmin,Integer selectedClientId) {
 
 	    /*
 	     * =====================================================
@@ -105,7 +126,7 @@ public class DashboardService {
 	     * =====================================================
 	     */
 	    List<TaskEntity> tasks =
-	            taskRepository.findDashboardTasks(userId);
+	            taskRepository.findDashboardTasks(userId,isAdmin,"other",selectedClientId);
 
 	    System.err.println("Dashboard User ID : " + userId);
 	    System.err.println("Dashboard Task Count : "
