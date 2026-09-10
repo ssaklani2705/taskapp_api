@@ -72,6 +72,8 @@ public class TaskServiceImpl implements TaskService {
 		            .map(Short::intValue)
 		            .collect(Collectors.toCollection(LinkedHashSet::new));
 		
+		  
+		  System.err.println(statusIdsParam);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam,loginType);
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webelement.taskapp.dto.ClientDashboardDTO;
 import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.entity.ClientEntity;
@@ -37,16 +38,42 @@ public class DashboardController {
 	@Autowired
 	private ClientRepository clientRepository;
 	
-//	@Autowired
-//	private TaskService taskService;
+	@RestController
+	@RequestMapping("/api/task")
+	public class TaskController {
+
+	    @Autowired
+	    private TaskService taskService;
+	    
+	    @Autowired
+	    private DashboardService dashboardService;
+
+	    @GetMapping("/dashboard-clients")
+	    public ResponseEntity<List<ClientDashboardDTO>> getDashboardClients(
+	            @RequestParam Integer userId,
+	            @RequestParam String isAdmin,
+	            @RequestParam String loginType) {
+
+	        List<ClientDashboardDTO> clients =
+	        		dashboardService.findDashboardClients(
+	                        userId,
+	                        isAdmin,
+	                        loginType
+	                );
+
+	        return ResponseEntity.ok(clients);
+	    }
+	}
+
 	
 	// For Employee dashboard
 	 @GetMapping("/dashboard")
 	    public ResponseEntity<TaskDashboardResponse> getDashboard(
-	            @RequestParam(defaultValue = "0") Integer userId) {
+	            @RequestParam(defaultValue = "0") Integer userId,@RequestParam(required = false) String isAdmin,
+	            @RequestParam(defaultValue = "0") Integer selectedClientId) {
 
 	        TaskDashboardResponse response =
-	        		taskService.getDashboard(userId);
+	        		taskService.getDashboard(userId,isAdmin,selectedClientId);
 
 	        return ResponseEntity.ok(response);
 	    }
