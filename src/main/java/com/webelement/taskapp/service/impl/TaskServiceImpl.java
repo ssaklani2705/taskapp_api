@@ -7,9 +7,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,9 +57,23 @@ public class TaskServiceImpl implements TaskService {
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
-			String isAdmin, Integer userId, Integer taskStatusId,String loginType) {
+			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds,String loginType) {
+		
+		
+//		Set<Short> statusIdsParam;
+//	    if (taskStatusIds == null || taskStatusIds.isEmpty()
+//	            || (taskStatusIds.size() == 1 && taskStatusIds.contains((short) 0))) {
+//	        statusIdsParam = null; 
+//	    } else {
+//	        statusIdsParam = taskStatusIds;
+//	    }
+		
+		  LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream()
+		            .map(Short::intValue)
+		            .collect(Collectors.toCollection(LinkedHashSet::new));
+		
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
-				assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
+				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam,loginType);
 
 	}
 
