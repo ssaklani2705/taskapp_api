@@ -44,20 +44,20 @@ public class DesignationService {
 			if (designationRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 				return new ApiResponse<>(false, "Designation name already exists", null);
 			}	
-			if (designationRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
-				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
-			}
+//			if (designationRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
+//				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
+//			}
 		}
 		// UPDATE
 		else {
 
 			DesignationEntity existing = designationRepository.findByNameIgnoreCase(name);
 
-			if (existing != null && !existing.getDesignationId().equals(dto.getDesigmationId())
-					&& existing.getStatus() != 3) {
-
-				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
-			}
+//			if (existing != null && !existing.getDesignationId().equals(dto.getDesigmationId())
+//					&& existing.getStatus() != 3) {
+//
+//				return new ApiResponse<>(false, "A designation with this sequence already exists", null);
+//			}
 
 			DesignationEntity existingSequence = designationRepository.findBySequence(dto.getSequence());
 

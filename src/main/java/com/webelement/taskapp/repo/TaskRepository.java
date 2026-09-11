@@ -139,7 +139,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     @Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
     String findDueTimeByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
 
-    @EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser" })
+    @EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser","assignedByUser" })
     @Query("SELECT t " + "FROM TaskEntity t "
             + "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) " + "AND ("
 

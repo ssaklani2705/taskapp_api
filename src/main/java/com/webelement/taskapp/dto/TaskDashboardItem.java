@@ -23,6 +23,8 @@ public class TaskDashboardItem {
 	private String taskCategoryName;
 	private String dueDateTime;
 	private String assignedUser;
+	
+	private String assignedByUser;
 
 	private String title;
 

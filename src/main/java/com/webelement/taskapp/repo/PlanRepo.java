@@ -25,13 +25,36 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 
 	boolean existsByNameIgnoreCaseAndStatusNot(String name, short s);
 
-	@Query("SELECT new com.webelement.taskapp.dto.PlanDTO(" + "p.planId, " + "p.name, " + "p.rate, " + "p.description, "
-			+ "p.status) " + "FROM PlanEntity p " + "WHERE p.planId > 0 "
-			+ "AND (:statusIndex = 0 OR p.status = :statusIndex) "
-			+ "AND LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) "
-			+ "ORDER BY p.status, p.name")
-	Page<PlanDTO> findPlanDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
-			@Param("search") String search);
+//	@Query("SELECT new com.webelement.taskapp.dto.PlanDTO(" + "p.planId, " + "p.name, " + "p.rate, " + "p.description, "
+//			+ "p.status) " + "FROM PlanEntity p " + "WHERE p.planId > 0 "
+//			+ "AND (:statusIndex = 0 OR p.status = :statusIndex) "
+//			+ "AND LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) "
+//			+ "ORDER BY p.status, p.name")
+//	Page<PlanDTO> findPlanDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
+//			@Param("search") String search);
+	@Query(
+		    "SELECT new com.webelement.taskapp.dto.PlanDTO(" +
+		    "p.planId, " +
+		    "p.name, " +
+		    "p.rate, " +
+		    "p.description, " +
+		    "p.status) " +
+		    "FROM PlanEntity p " +
+		    "WHERE p.planId > 0 " +
+		    "AND (:statusIndex = 0 OR p.status = :statusIndex) " +
+		    "AND (" +
+		    "    LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+		    "    OR " +
+		    "    LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+		    ") " +
+		    "ORDER BY p.status, p.name"
+		)
+		Page<PlanDTO> findPlanDetails(
+		    Pageable pageable,
+		    @Param("statusIndex") int statusIndex,
+		    @Param("search") String search
+		);
+
 
 	@Modifying
 	@Transactional
