@@ -355,10 +355,7 @@ public class AuthService {
 	        isManger = commonFunction.decipher(isManager);
 	    }
 
-	    System.err.println("isManger " + isManger);
-		System.err.println("decodedEmail " + decodedEmail);
-		System.err.println("encodedPassword " + encodedPassword);
-
+	 
 		// Validate if userId is numeric before parsing
 		int result = 0;
 		try {

@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.Exceptions.FileValidationException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
+import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
@@ -51,18 +52,36 @@ public class TaskServiceImpl implements TaskService {
 	private final TaskRepository taskRepository;
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
-	
+	private final TaskMailService taskMailService;
+
 	@Value("${task.upload-dir}")
 	private String uploadDir;
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
+<<<<<<< HEAD
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds,String loginType) {
 		  LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream()
 		            .map(Short::intValue)
 		            .collect(Collectors.toCollection(LinkedHashSet::new));
+=======
+			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType) {
+
+//		Set<Short> statusIdsParam;
+//	    if (taskStatusIds == null || taskStatusIds.isEmpty()
+//	            || (taskStatusIds.size() == 1 && taskStatusIds.contains((short) 0))) {
+//	        statusIdsParam = null; 
+//	    } else {
+//	        statusIdsParam = taskStatusIds;
+//	    }
+
+		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		System.err.println(statusIdsParam);
+>>>>>>> f6562a7e0e813c30e7f598289ded209afbca1bab
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
-				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam,loginType);
+				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType);
 
 	}
 
@@ -71,9 +90,8 @@ public class TaskServiceImpl implements TaskService {
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
-		
-		
-		System.err.println("date +++"+date);
+
+		System.err.println("date +++" + date);
 
 		// =====================================================
 		// CREATE / UPDATE
@@ -216,19 +234,13 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional
 	@Override
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
-
 		TaskEntity task = taskRepository.findById(dto.getTaskId())
 				.orElseThrow(() -> new RuntimeException("Task not found"));
-
-		System.err.print(dto.getSelectedTaskStatusId());
-
 		Short currentStatus = task.getTaskStatus();
 		Short nextStatus;
-		// Status 2 has two choices
+
 		if (currentStatus == 2 || currentStatus == 4) {
-
 			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
-
 			if (selectedStatus == 3) {
 				Integer reopenCount = task.getReopenCount() == null ? 0 : task.getReopenCount();
 				if (reopenCount >= 3) {
@@ -241,55 +253,37 @@ public class TaskServiceImpl implements TaskService {
 				throw new RuntimeException("Please select a valid task status.");
 			}
 		} else {
-			// Normal flow
 			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
-
 			if (nextStatus == null) {
-
 				if (currentStatus == 5) {
 					throw new RuntimeException("This task is already closed and cannot be updated.");
 				}
-
 				throw new RuntimeException("Invalid task status: " + currentStatus);
 			}
 		}
 		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
-
 		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
-
 		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
 		task.setTaskStatus(nextStatus);
 		task.setCloseRemarks(dto.getDescription());
 		task.setModificationDate(LocalDateTime.now());
-
-
-		
 		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-
 			validatePdf(dto.getFileName3());
-
 			String pdfFileName = saveFile(dto.getFileName3(), "pdf");
-
 			task.setFileName3(pdfFileName);
 		}
-
 		// ZIP Upload
 		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-
 			validateZip(dto.getFileName4());
-
 			String zipFileName = saveFile(dto.getFileName4(), "zip");
-
 			task.setFileName4(zipFileName);
 		}
-
+		
 		TaskEntity savedTask = taskRepository.save(task);
-
-		logger.info("Selected Status Id: {}", savedTask.toString());
-
 		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
-
+		logger.debug("Sending mail over here ", savedTask.toString());
+		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus); // send mail over here 
 		return savedTask;
 	}
 }

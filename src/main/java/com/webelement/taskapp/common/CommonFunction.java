@@ -254,4 +254,50 @@ public class CommonFunction {
 		}
 		return dt;
 	}
+	
+	
+	
+	 public String getTaskStatusMailTemplate(
+	            String name,
+	            String taskTitle,
+	            String oldStatus,
+	            String newStatus,
+	            String websitePath) {
+
+	        StringBuilder sb = new StringBuilder();
+
+	        sb.append("<html>");
+	        sb.append("<body style='font-family:Arial;'>");
+	        sb.append("<p>Dear ").append(name).append(",</p>");
+	        sb.append("<p>Your task status has been updated.</p>");
+	        sb.append("<table>");
+	        sb.append("<tr>");
+	        sb.append("<td><b>Task</b></td>");
+	        sb.append("<td>: ").append(taskTitle).append("</td>");
+	        sb.append("</tr>");
+
+	        sb.append("<tr>");
+	        sb.append("<td><b>Previous Status</b></td>");
+	        sb.append("<td>: ").append(oldStatus).append("</td>");
+	        sb.append("</tr>");
+
+	        sb.append("<tr>");
+	        sb.append("<td><b>Current Status</b></td>");
+	        sb.append("</tr>");
+
+	        sb.append("</table>");
+
+	        sb.append("<br><br>");
+
+	      
+
+	        sb.append("<br><br>");
+	        sb.append("Regards,<br>");
+	        sb.append("Task App Team");
+
+	        sb.append("</body>");
+	        sb.append("</html>");
+
+	        return sb.toString();
+	    }
 }

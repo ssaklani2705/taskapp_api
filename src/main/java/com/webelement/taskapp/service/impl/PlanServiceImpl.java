@@ -1,34 +1,25 @@
 package com.webelement.taskapp.service.impl;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.PlanDTO;
-import com.webelement.taskapp.dto.StateDTO;
 import com.webelement.taskapp.entity.PlanEntity;
-import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.PlanRepo;
-import com.webelement.taskapp.repo.StateRepo;
 import com.webelement.taskapp.service.PlanService;
-
 import lombok.RequiredArgsConstructor;
-
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class PlanServiceImpl implements PlanService {
-
+	
 	private final PlanRepo planRepo;
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
