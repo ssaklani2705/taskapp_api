@@ -4,10 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -110,13 +113,25 @@ public class TaskController {
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
 			@RequestParam(required = false) String isAdmin,
 			@RequestParam(required = false, defaultValue = "0") Integer userId,
-			@RequestParam(required = false, defaultValue = "0") Integer taskStatusId,
+			@RequestParam(required = false, defaultValue = "0") String taskStatusIds,
 			@RequestParam(required = false) String loginType) {
-		
-		
-		System.err.println("Status " +assignedTo );
+
+		  LinkedHashSet<Short> taskStatusSet = new LinkedHashSet<>();
+		  if (taskStatusIds != null && !taskStatusIds.trim().isEmpty()) {
+
+		        taskStatusSet = Arrays.stream(taskStatusIds.split(","))
+		                .map(String::trim)
+		                .filter(s -> !s.isEmpty())
+		                .map(Short::valueOf)
+		                .collect(Collectors.toCollection(LinkedHashSet::new));
+		    }
+		  
+		  
+		  
+		  
+		  
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
-				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusId,loginType);
+				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType);
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", pageData.getContent());
 		response.put("totalElements", pageData.getTotalElements());

@@ -1,0 +1,139 @@
+[1mdiff --cc src/main/java/com/webelement/taskapp/repo/TaskRepository.java[m
+[1mindex b1e24bf,fb61c6f..0000000[m
+[1m--- a/src/main/java/com/webelement/taskapp/repo/TaskRepository.java[m
+[1m+++ b/src/main/java/com/webelement/taskapp/repo/TaskRepository.java[m
+[36m@@@ -32,33 -72,138 +72,168 @@@[m [mpublic interface TaskRepository extend[m
+  			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")[m
+  	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(t.taskId, c.name, t.date,tc.duedatetime, tc.name, COALESCE(u.firstName, '0'), t.priority, t.status, t.title,t.taskStatus,t.assignedTo,t.addedBy) "[m
+[32m +			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "[m
+[32m +			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "[m
+[32m +			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo " + "WHERE t.taskId > 0 "[m
+[32m +			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) "[m
+[32m +			+ "AND (:search IS NULL OR :search = '' OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))) "[m
+[32m +			+ "AND (:clientId = 0 OR t.clientId = :clientId) "[m
+[32m +			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "[m
+[32m +			+ "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) "[m
+[32m +			+ "AND (0 IN :taskStatusIds  OR t.taskStatus IN :taskStatusIds) "[m
+[32m +			+ "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "[m
+[32m +			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " + "AND (" + ":isAdmin = 'Y' " + "OR ("[m
+[32m +			+ "t.assignedTo = :userId " + "OR t.addedBy = :userId" + ")" + ") "[m
+[32m +[m
+[32m +			+ "AND ("[m
+[32m +			+ "    (:loginType = 'manager' AND (t.assignedTo = :userId OR t.addedBy = :userId OR c.managerId = :userId)) "[m
+[32m +			+ "    OR "[m
+[32m +			+ "    (:loginType <> 'manager' AND (:isAdmin = 'Y' OR t.assignedTo = :userId OR t.addedBy = :userId))"[m
+[32m +			+ ") "[m
+[32m +[m
+[32m +			+ "ORDER BY t.status ASC,  c.name ASC")[m
+[32m +	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,[m
+[32m +			@Param("search") String search, @Param("clientId") Integer clientId,[m
+[32m +			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,[m
+[32m +			@Param("priority") Integer priority, @Param("fromDate") String fromDate, @Param("toDate") String toDate,[m
+[32m +			@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,[m
+[32m +			@Param("taskStatusIds") Set<Integer> taskStatusIds, @Param("loginType") String loginType);[m
+[32m++=======[m
+[32m+ [m
+[32m+ //	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(t.taskId, c.name, t.date,tc.duedatetime, tc.name, COALESCE(u.firstName, '0'), t.priority, t.status, t.title,t.taskStatus,t.assignedTo,t.addedBy) "[m
+[32m+ //			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "[m
+[32m+ //			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "[m
+[32m+ //			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo " + "WHERE t.taskId > 0 "[m
+[32m+ //			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) "[m
+[32m+ //			+ "AND (:search IS NULL OR :search = '' OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))) "[m
+[32m+ //			+ "AND (:clientId = 0 OR t.clientId = :clientId) "[m
+[32m+ //			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "[m
+[32m+ //			+ "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) "[m
+[32m+ //			+ "AND (:taskStatusId = 0 OR t.taskStatus = :taskStatusId) "[m
+[32m+ //			+ "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "[m
+[32m+ //			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) " + "AND (" + ":isAdmin = 'Y' " + "OR ("[m
+[32m+ //			+ "t.assignedTo = :userId " + "OR t.addedBy = :userId" + ")" + ") " [m
+[32m+ //			[m
+[32m+ // + "AND ("[m
+[32m+ // + "    (:loginType = 'manager' AND (t.assignedTo = :userId OR t.addedBy = :userId OR c.managerId = :userId)) "[m
+[32m+ // + "    OR "[m
+[32m+ // + "    (:loginType <> 'manager' AND (:isAdmin = 'Y' OR t.assignedTo = :userId OR t.addedBy = :userId))"[m
+[32m+ // + ") "[m
+[32m+ //			[m
+[32m+ //			+ "ORDER BY t.status ASC,  c.name ASC")[m
+[32m+ 	[m
+[32m+ 	[m
+[32m+ 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" [m
+[32m+ 	        + "t.taskId, "[m
+[32m+ 	        + "c.name, "[m
+[32m+ 	        + "t.date, "[m
+[32m+ 	        + "tc.duedatetime, "[m
+[32m+ 	        + "tc.name, "[m
+[32m+ 	        + "COALESCE(u.firstName, '0'), "[m
+[32m+ 	        + "t.priority, "[m
+[32m+ 	        + "t.status, "[m
+[32m+ 	        + "t.title, "[m
+[32m+ 	        + "t.taskStatus, "[m
+[32m+ 	        + "t.assignedTo, "[m
+[32m+ 	        + "t.addedBy"[m
+[32m+ 	        + ") "[m
+[32m+ [m
+[32m+ 	        + "FROM TaskEntity t "[m
+[32m+ [m
+[32m+ 	        + "LEFT JOIN ClientEntity c "[m
+[32m+ 	        + "ON c.clientId = t.clientId "[m
+[32m+ [m
+[32m+ 	        + "LEFT JOIN TaskCategoryEntity tc "[m
+[32m+ 	        + "ON tc.taskcategoryId = t.taskCategoryId "[m
+[32m+ [m
+[32m+ 	        + "LEFT JOIN UserLoginEntity u "[m
+[32m+ 	        + "ON u.userId = t.assignedTo "[m
+[32m+ [m
+[32m+ 	        + "WHERE t.taskId > 0 "[m
+[32m+ [m
+[32m+ 	        + "AND (:statusIndex = 0 OR t.status = :statusIndex) "[m
+[32m+ [m
+[32m+ 	        + "AND ("[m
+[32m+ 	        + "    :search IS NULL "[m
+[32m+ 	        + "    OR :search = '' "[m
+[32m+ 	        + "    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "[m
+[32m+ 	        + "    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "[m
+[32m+ 	        + "    OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "[m
+[32m+ 	        + "    OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))"[m
+[32m+ 	        + ") "[m
+[32m+ [m
+[32m+ 	        + "AND (:clientId = 0 OR t.clientId = :clientId) "[m
+[32m+ [m
+[32m+ 	        + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "[m
+[32m+ [m
+[32m+ 	        + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "[m
+[32m+ [m
+[32m+ 	        + "AND (:priority = 0 OR t.priority = :priority) "[m
+[32m+ [m
+[32m+ 	        + "AND (:taskStatusId = 0 OR t.taskStatus = :taskStatusId) "[m
+[32m+ [m
+[32m+ 	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "[m
+[32m+ [m
+[32m+ 	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "[m
+[32m+ [m
+[32m+ 	        + "AND ("[m
+[32m+ [m
+[32m+ 	        // MANAGER LOGIN[m
+[32m+ 	        + "    ("[m
+[32m+ 	        + "        :loginType = 'manager' "[m
+[32m+ 	        + "        AND ("[m
+[32m+ 	        + "            t.assignedTo = :userId "[m
+[32m+ 	        + "            OR t.addedBy = :userId "[m
+[32m+ 	        + "            OR c.managerId = :userId"[m
+[32m+ 	        + "        )"[m
+[32m+ 	        + "    ) "[m
+[32m+ [m
+[32m+ 	        + "    OR "[m
+[32m+ [m
+[32m+ 	        // NON-MANAGER LOGIN[m
+[32m+ 	        + "    ("[m
+[32m+ 	        + "        :loginType <> 'manager' "[m
+[32m+ 	        + "        AND ("[m
+[32m+ 	        + "            :isAdmin = 'Y' "[m
+[32m+ 	        + "            OR t.assignedTo = :userId "[m
+[32m+ 	        + "            OR t.addedBy = :userId "[m
+[32m+ 	        + "            OR ("[m
+[32m+ 	        + "                :isAdmin <> 'Y' "[m
+[32m+ 	        + "                AND EXISTS ("[m
+[32m+ 	        + "                    SELE
