@@ -58,22 +58,9 @@ public class TaskServiceImpl implements TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds,String loginType) {
-		
-		
-//		Set<Short> statusIdsParam;
-//	    if (taskStatusIds == null || taskStatusIds.isEmpty()
-//	            || (taskStatusIds.size() == 1 && taskStatusIds.contains((short) 0))) {
-//	        statusIdsParam = null; 
-//	    } else {
-//	        statusIdsParam = taskStatusIds;
-//	    }
-		
 		  LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream()
 		            .map(Short::intValue)
 		            .collect(Collectors.toCollection(LinkedHashSet::new));
-		
-		  
-		  System.err.println(statusIdsParam);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam,loginType);
 
