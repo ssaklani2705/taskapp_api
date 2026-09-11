@@ -43,9 +43,9 @@ public class DepartmentService {
 			if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 				return new ApiResponse<>(false, "Department name already exists", null);
 			}
-			if (departmentRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
-				return new ApiResponse<>(false, "A department with this sequence already exists", null);
-			}
+//			if (departmentRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
+//				return new ApiResponse<>(false, "A department with this sequence already exists", null);
+//			}
 		}
 		// UPDATE
 		else {
@@ -56,11 +56,11 @@ public class DepartmentService {
 			}
 			DepartmentEntity existingSequence = departmentRepository.findBySequence(dto.getSequence());
 
-			if (existingSequence != null && !existingSequence.getDepartmentId().equals(dto.getDepartmentId())
-					&& existingSequence.getStatus() != 3) {
-
-				return new ApiResponse<>(false, "A department with this sequence already exists", null);
-			}
+//			if (existingSequence != null && !existingSequence.getDepartmentId().equals(dto.getDepartmentId())
+//					&& existingSequence.getStatus() != 3) {
+//
+//				return new ApiResponse<>(false, "A department with this sequence already exists", null);
+//			}
 		}
 		DepartmentEntity entity;
 		if (dto.getDepartmentId() != null && dto.getDepartmentId() != 0) {

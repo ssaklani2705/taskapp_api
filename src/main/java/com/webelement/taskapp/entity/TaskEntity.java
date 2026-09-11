@@ -104,4 +104,13 @@ public class TaskEntity {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_assignedto", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedUser;
+	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JoinColumn(name = "i_addedby", referencedColumnName = "i_userid", insertable = false, updatable = false)
+	private UserLoginEntity assignedByUser;
+	
+	
 }
