@@ -14,15 +14,14 @@ import org.springframework.stereotype.Service;
 import com.webelement.taskapp.dto.MailLogDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
+
 @Service
 public class MailLogService {
-	
 	@Value("${file_maillog:}")
 	private String file_maillog;
-
 	@Autowired
 	MailLogRepo mailLogRepo;
-
+	
 	public Page<MailLogDTO> getMailLogDetails(int page, int size, String search) {
 		Pageable pageable = PageRequest.of(page, size);
 		return mailLogRepo.findMailLogDetails(pageable, search);
@@ -34,12 +33,11 @@ public class MailLogService {
 			MailLogEntity mailLog = optionalMailLog.get();
 			String filename = mailLog.getFilename(); // only the file name, e.g. "mail123.html"
 			try {
-				// Combine configured base path + filename
+
 				Path path = Paths.get(file_maillog, filename);
 				// Read file (Java 8 compatible)
 				byte[] bytes = Files.readAllBytes(path);
 				return new String(bytes, StandardCharsets.UTF_8);
-
 			} catch (IOException e) {
 				e.printStackTrace();
 				return "<p>Error reading file</p>";
