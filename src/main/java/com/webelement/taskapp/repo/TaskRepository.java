@@ -52,7 +52,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
     @Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, " + "c.name, " + "t.date, "
             + "tc.duedatetime, " + "tc.name, " + "COALESCE(u.firstName, '0'), " + "t.priority, " + "t.status, "
-            + "t.title, " + "t.taskStatus, " + "t.assignedTo, " + "t.addedBy" + ") "
+            + "t.title, " + "t.taskStatus, " + "t.assignedTo, " + "t.addedBy,u1.firstName" + ") "
 
             + "FROM TaskEntity t "
 
@@ -61,6 +61,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             + "LEFT JOIN TaskCategoryEntity tc " + "ON tc.taskcategoryId = t.taskCategoryId "
 
             + "LEFT JOIN UserLoginEntity u " + "ON u.userId = t.assignedTo "
+            
+			+ "LEFT JOIN UserLoginEntity u1 " + "ON u1.userId = t.addedBy "
 
             + "WHERE t.taskId > 0 "
 
