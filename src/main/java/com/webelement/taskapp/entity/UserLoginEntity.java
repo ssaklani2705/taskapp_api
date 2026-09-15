@@ -73,6 +73,13 @@ public class UserLoginEntity {
 
 	@Column(name = "s_pcb")
 	private String pcb;
+	
+	@Column(name = "i_taskcategoryIds")
+	private String taskcategoryIds;
+	
+	@Transient
+    private List<Integer> categoryIds;
+
 
 	@Transient
 	private String pcbName;

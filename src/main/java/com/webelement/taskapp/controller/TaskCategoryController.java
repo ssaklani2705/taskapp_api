@@ -114,4 +114,11 @@ public class TaskCategoryController {
         return taskCategoryService
                 .getActiveTaskCategories();
     }
+    
+    @GetMapping("/department/{departmentId}")
+    public List<TaskCategoryDTO> getCategoriesByDepartmentId(
+            @PathVariable Integer departmentId) {
+
+        return taskCategoryService.getCategoriesByDepartmentId(departmentId);
+    }
 }

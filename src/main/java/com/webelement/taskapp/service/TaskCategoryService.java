@@ -288,4 +288,8 @@ public class TaskCategoryService {
                                 t.getName()))
                 .collect(Collectors.toList());
     }
+
+    public List<TaskCategoryDTO> getCategoriesByDepartmentId(Integer departmentId) {
+        return taskCategoryRepository.findCategoriesByDepartmentId(departmentId);
+    }
 }

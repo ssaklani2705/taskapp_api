@@ -69,5 +69,15 @@ public interface DesignationRepository
 
     DesignationEntity findBySequence(
             Integer sequence);
+    
+    boolean existsBySequenceAndDesignationIdNotAndStatusNot(
+            Integer sequence,
+            Integer designationId,
+            Integer status);
+    
+    boolean existsByNameIgnoreCaseAndDesignationIdNotAndStatusNot(
+            String name,
+            Integer designationId,
+            Integer status);
 }
 

@@ -54,4 +54,11 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 
 	@Query(value = "SELECT EXISTS (SELECT 1 FROM t_task WHERE i_taskcategoryid = :taskCategoryId AND i_status <> 3)", nativeQuery = true)
 	Integer existsByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO(" +
+	           "t.taskcategoryId, t.name) " +
+	           "FROM TaskCategoryEntity t " +
+	           "WHERE t.departmentId = :departmentId")
+	    List<TaskCategoryDTO> findCategoriesByDepartmentId(
+	            @Param("departmentId") Integer departmentId);
 }

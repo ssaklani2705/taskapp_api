@@ -86,4 +86,11 @@ public interface DepartmentRepository
 	            Integer status);
 	DepartmentEntity findBySequence(
             Integer sequence);
+	
+//	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
+
+	boolean existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(
+	        String name,
+	        Integer departmentId,
+	        Integer status);
 }

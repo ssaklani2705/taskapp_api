@@ -35,67 +35,256 @@ public class DepartmentService {
 	// =========================================================
 	// ADD / UPDATE
 	// =========================================================
+	
+	public ApiResponse<DepartmentDTO> addOrUpdate(
+	        DepartmentDTO dto,
+	        HttpServletRequest httpRequest) {
 
-	public ApiResponse<DepartmentDTO> addOrUpdate(DepartmentDTO dto, HttpServletRequest httpRequest) {
-		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
-		String name = dto.getName() == null ? "" : dto.getName().trim();
-		if (dto.getDepartmentId() == null || dto.getDepartmentId() == 0) {
-			if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
-				return new ApiResponse<>(false, "Department name already exists", null);
-			}
-//			if (departmentRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
-//				return new ApiResponse<>(false, "A department with this sequence already exists", null);
-//			}
-		}
-		// UPDATE
-		else {
-			DepartmentEntity existing = departmentRepository.findByNameIgnoreCase(name);
-			if (existing != null && !existing.getDepartmentId().equals(dto.getDepartmentId())
-					&& existing.getStatus() != 3) {
-				return new ApiResponse<>(false, "Department name already exists", null);
-			}
-			DepartmentEntity existingSequence = departmentRepository.findBySequence(dto.getSequence());
+	    Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
 
-//			if (existingSequence != null && !existingSequence.getDepartmentId().equals(dto.getDepartmentId())
-//					&& existingSequence.getStatus() != 3) {
-//
-//				return new ApiResponse<>(false, "A department with this sequence already exists", null);
-//			}
-		}
-		DepartmentEntity entity;
-		if (dto.getDepartmentId() != null && dto.getDepartmentId() != 0) {
-			entity = departmentRepository.findById(dto.getDepartmentId())
-					.orElseThrow(() -> new RuntimeException("Department Record not found"));
-			entity.setName(name);
-			entity.setSequence(dto.getSequence());
-			entity.setUserId(dto.getUserId());
-			if (dto.getStatus() != null) {
-				entity.setStatus(dto.getStatus());
-			}
-			entity.setModdate(timestamp);
-		} else {
-			entity = new DepartmentEntity();
-			entity.setName(name);
-			entity.setSequence(dto.getSequence());
-			entity.setUserId(dto.getUserId());
-			entity.setStatus(1);
-			entity.setRegdate(timestamp);
-		}
-		DepartmentEntity saved = departmentRepository.save(entity);
-		DepartmentDTO d = new DepartmentDTO();
-		d.setDepartmentId(saved.getDepartmentId());
-		d.setName(saved.getName());
-		d.setSequence(saved.getSequence());
-		d.setUserId(saved.getUserId());
-		d.setStatus(saved.getStatus());
-		d.setRegdate(saved.getRegdate());
-		d.setModdate(saved.getModdate());
-		boolean isNew = dto.getDepartmentId() == null || dto.getDepartmentId() == 0;
-		String action = isNew ? "Department Added" : "Department Updated";
-		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 3, saved.getDepartmentId(), -1);
-		return new ApiResponse<>(true, "Department saved successfully", d);
+	    String name = dto.getName() == null
+	            ? ""
+	            : dto.getName().trim();
+
+	    boolean isNew = dto.getDepartmentId() == null
+	            || dto.getDepartmentId() == 0;
+
+	    /*
+	     * ============================================================
+	     * ADD
+	     * ============================================================
+	     */
+	    if (isNew) {
+
+	        // Check duplicate department name
+	        // Ignore deleted departments (status = 3)
+	        if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(
+	                name, 3)) {
+
+	            return new ApiResponse<>(
+	                    false,
+	                    "Department name already exists",
+	                    null);
+	        }
+
+	        /*
+	         * Sequence validation can be enabled if required
+	         *
+	         * if (departmentRepository.existsBySequenceAndStatusNot(
+	         *         dto.getSequence(), 3)) {
+	         *
+	         *     return new ApiResponse<>(
+	         *             false,
+	         *             "A department with this sequence already exists",
+	         *             null);
+	         * }
+	         */
+
+	    }
+
+	    /*
+	     * ============================================================
+	     * UPDATE
+	     * ============================================================
+	     */
+	    else {
+
+	        /*
+	         * Check duplicate name excluding the current department.
+	         *
+	         * This avoids:
+	         *
+	         * DepartmentEntity existing =
+	         *     departmentRepository.findByNameIgnoreCase(name);
+	         *
+	         * which can throw NonUniqueResultException when multiple
+	         * records with the same name already exist.
+	         */
+	        boolean duplicateName =
+	                departmentRepository
+	                        .existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(
+	                                name,
+	                                dto.getDepartmentId(),
+	                                3);
+
+	        if (duplicateName) {
+
+	            return new ApiResponse<>(
+	                    false,
+	                    "Department name already exists",
+	                    null);
+	        }
+
+	        /*
+	         * Sequence validation can be enabled if required
+	         *
+	         * DepartmentEntity existingSequence =
+	         *         departmentRepository.findBySequence(
+	         *                 dto.getSequence());
+	         *
+	         * if (existingSequence != null
+	         *         && !existingSequence.getDepartmentId()
+	         *                 .equals(dto.getDepartmentId())
+	         *         && existingSequence.getStatus() != 3) {
+	         *
+	         *     return new ApiResponse<>(
+	         *             false,
+	         *             "A department with this sequence already exists",
+	         *             null);
+	         * }
+	         */
+	    }
+
+	    /*
+	     * ============================================================
+	     * CREATE / UPDATE ENTITY
+	     * ============================================================
+	     */
+	    DepartmentEntity entity;
+
+	    if (!isNew) {
+
+	        // UPDATE
+	        entity = departmentRepository.findById(dto.getDepartmentId())
+	                .orElseThrow(() ->
+	                        new RuntimeException("Department Record not found"));
+
+	        entity.setName(name);
+	        entity.setSequence(dto.getSequence());
+	        entity.setUserId(dto.getUserId());
+
+	        if (dto.getStatus() != null) {
+	            entity.setStatus(dto.getStatus());
+	        }
+
+	        entity.setModdate(timestamp);
+
+	    } else {
+
+	        // ADD
+	        entity = new DepartmentEntity();
+
+	        entity.setName(name);
+	        entity.setSequence(dto.getSequence());
+	        entity.setUserId(dto.getUserId());
+	        entity.setStatus(1);
+	        entity.setRegdate(timestamp);
+	    }
+
+	    /*
+	     * ============================================================
+	     * SAVE
+	     * ============================================================
+	     */
+	    DepartmentEntity saved = departmentRepository.save(entity);
+
+	    /*
+	     * ============================================================
+	     * CREATE RESPONSE DTO
+	     * ============================================================
+	     */
+	    DepartmentDTO d = new DepartmentDTO();
+
+	    d.setDepartmentId(saved.getDepartmentId());
+	    d.setName(saved.getName());
+	    d.setSequence(saved.getSequence());
+	    d.setUserId(saved.getUserId());
+	    d.setStatus(saved.getStatus());
+	    d.setRegdate(saved.getRegdate());
+	    d.setModdate(saved.getModdate());
+
+	    /*
+	     * ============================================================
+	     * HISTORY
+	     * ============================================================
+	     */
+	    String action = isNew
+	            ? "Department Added"
+	            : "Department Updated";
+
+	    commonFunction.createHistoryAccess(
+	            dto.getUserId(),
+	            commonFunction.resolveClientIp(httpRequest),
+	            commonFunction.getLocalIp(),
+	            action,
+	            3,
+	            saved.getDepartmentId(),
+	            -1);
+
+	    /*
+	     * ============================================================
+	     * RESPONSE
+	     * ============================================================
+	     */
+	    return new ApiResponse<>(
+	            true,
+	            "Department saved successfully",
+	            d);
 	}
+	
+
+	
+	
+//	public ApiResponse<DepartmentDTO> addOrUpdate(DepartmentDTO dto, HttpServletRequest httpRequest) {
+//		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+//		String name = dto.getName() == null ? "" : dto.getName().trim();
+//		if (dto.getDepartmentId() == null || dto.getDepartmentId() == 0) {
+//			if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
+//				return new ApiResponse<>(false, "Department name already exists", null);
+//			}
+////			if (departmentRepository.existsBySequenceAndStatusNot(dto.getSequence(), 3)) {
+////				return new ApiResponse<>(false, "A department with this sequence already exists", null);
+////			}
+//		}
+//		// UPDATE
+//		else {
+//			DepartmentEntity existing = departmentRepository.findByNameIgnoreCase(name);
+//			if (existing != null && !existing.getDepartmentId().equals(dto.getDepartmentId())
+//					&& existing.getStatus() != 3) {
+//				return new ApiResponse<>(false, "Department name already exists", null);
+//			}
+////			DepartmentEntity existingSequence = departmentRepository.findBySequence(dto.getSequence());
+//
+////			if (existingSequence != null && !existingSequence.getDepartmentId().equals(dto.getDepartmentId())
+////					&& existingSequence.getStatus() != 3) {
+////
+////				return new ApiResponse<>(false, "A department with this sequence already exists", null);
+////			}
+//		}
+//		DepartmentEntity entity;
+//		if (dto.getDepartmentId() != null && dto.getDepartmentId() != 0) {
+//			entity = departmentRepository.findById(dto.getDepartmentId())
+//					.orElseThrow(() -> new RuntimeException("Department Record not found"));
+//			entity.setName(name);
+//			entity.setSequence(dto.getSequence());
+//			entity.setUserId(dto.getUserId());
+//			if (dto.getStatus() != null) {
+//				entity.setStatus(dto.getStatus());
+//			}
+//			entity.setModdate(timestamp);
+//		} else {
+//			entity = new DepartmentEntity();
+//			entity.setName(name);
+//			entity.setSequence(dto.getSequence());
+//			entity.setUserId(dto.getUserId());
+//			entity.setStatus(1);
+//			entity.setRegdate(timestamp);
+//		}
+//		DepartmentEntity saved = departmentRepository.save(entity);
+//		DepartmentDTO d = new DepartmentDTO();
+//		d.setDepartmentId(saved.getDepartmentId());
+//		d.setName(saved.getName());
+//		d.setSequence(saved.getSequence());
+//		d.setUserId(saved.getUserId());
+//		d.setStatus(saved.getStatus());
+//		d.setRegdate(saved.getRegdate());
+//		d.setModdate(saved.getModdate());
+//		boolean isNew = dto.getDepartmentId() == null || dto.getDepartmentId() == 0;
+//		String action = isNew ? "Department Added" : "Department Updated";
+//		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+//				commonFunction.getLocalIp(), action, 3, saved.getDepartmentId(), -1);
+//		return new ApiResponse<>(true, "Department saved successfully", d);
+//	}
 
 	// =========================================================
 	// GET BY ID

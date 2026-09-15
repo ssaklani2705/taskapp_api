@@ -350,6 +350,13 @@ public class UserManagementService {
 			user.setPcb(info.getPcb());
 			user.setDepartmentId(info.getDepartmentId());
 			user.setDesignationId(info.getDesignationId());
+//			user.setTaskcategoryIds(info.getTaskcategoryIds());	
+			String categoryIds = info.getCategoryIds()
+			        .stream()
+			        .map(String::valueOf)
+			        .collect(Collectors.joining(","));
+
+			user.setTaskcategoryIds(categoryIds);
 			UserLoginEntity savedUser = loginRepository.save(user);
 			return savedUser.getUserId(); // JPA auto-fills the generated ID
 
@@ -372,6 +379,15 @@ public class UserManagementService {
 		existing.setTelephone(request.getTelephone());
 		existing.setDepartmentId(request.getDepartmentId());
 		existing.setDesignationId(request.getDesignationId());
+//		existing.setTaskcategoryIds(request.getTaskcategoryIds());	
+		existing.setDesignationId(request.getDesignationId());
+
+		String categoryIds = request.getCategoryIds()
+		        .stream()
+		        .map(String::valueOf)
+		        .collect(Collectors.joining(","));
+
+		existing.setTaskcategoryIds(categoryIds);
 		// ✅ Update password only if provided
 		if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
 			String encodedPassword = commonFunction.cipher(request.getPassword());

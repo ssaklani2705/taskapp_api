@@ -15,122 +15,82 @@ import com.webelement.taskapp.service.DesignationService;
 
 @RestController
 @RequestMapping("/admin/designation")
-@CrossOrigin(origins = {
-        "http://localhost:4500",
-        "https://app.webelement.cc",
-        "https://13.202.30.190"
-})
+@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
 public class DesignationController {
 
-    @Autowired
-    private DesignationService desigmationService;
+	@Autowired
+	private DesignationService desigmationService;
 
-    // ----------------------------------------------------
-    // PAGINATION + SEARCH
-    // ----------------------------------------------------
+	// ----------------------------------------------------
+	// PAGINATION + SEARCH
+	// ----------------------------------------------------
 
-    @GetMapping("/getDesignationDetails")
-    public Map<String, Object> findDesigmationDetails(
-            @RequestParam int page,
-            @RequestParam int size,
-            @RequestParam int statusIndex,
-            @RequestParam(required = false) String search) {
+	@GetMapping("/getDesignationDetails")
+	public Map<String, Object> findDesigmationDetails(@RequestParam int page, @RequestParam int size,
+			@RequestParam int statusIndex, @RequestParam(required = false) String search) {
 
-        Page<DesignationDTO> pageData =
-                desigmationService.findDesigmationDetails(
-                        page,
-                        size,
-                        statusIndex,
-                        search);
+		Page<DesignationDTO> pageData = desigmationService.findDesigmationDetails(page, size, statusIndex, search);
 
-        Map<String, Object> response =
-                new HashMap<>();
+		Map<String, Object> response = new HashMap<>();
 
-        response.put(
-                "data",
-                pageData.getContent());
+		response.put("data", pageData.getContent());
 
-        response.put(
-                "totalElements",
-                pageData.getTotalElements());
+		response.put("totalElements", pageData.getTotalElements());
 
-        return response;
-    }
+		return response;
+	}
 
-    // ----------------------------------------------------
-    // ADD / UPDATE
-    // ----------------------------------------------------
+	// ----------------------------------------------------
+	// ADD / UPDATE
+	// ----------------------------------------------------
 
-    @PostMapping("/saveDesignation")
-    public ResponseEntity<ApiResponse<DesignationDTO>> saveDesigmation(
-            @RequestBody DesignationDTO dto,
-            HttpServletRequest httpRequest) {
+	@PostMapping("/saveDesignation")
+	public ResponseEntity<ApiResponse<DesignationDTO>> saveDesigmation(@RequestBody DesignationDTO dto,
+			HttpServletRequest httpRequest) {
 
-        try {
+		try {
 
-            ApiResponse<DesignationDTO> response =
-                    desigmationService.addOrUpdate(
-                            dto,
-                            httpRequest);
+			ApiResponse<DesignationDTO> response = desigmationService.addOrUpdate(dto, httpRequest);
 
-            return ResponseEntity.ok(response);
+			return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
+		} catch (Exception e) {
 
-            return ResponseEntity.ok(
-                    new ApiResponse<>(
-                            false,
-                            e.getMessage(),
-                            null));
-        }
-    }
+			return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+		}
+	}
 
-    // ----------------------------------------------------
-    // GET BY ID
-    // ----------------------------------------------------
+	// ----------------------------------------------------
+	// GET BY ID
+	// ----------------------------------------------------
 
-    @GetMapping("/{designationId}")
-    public ApiResponse<DesignationDTO> getDesigmationById(
-            @PathVariable Integer designationId) {
-    	System.out.println("designationId --------------->: "+designationId);
-        try {
+	@GetMapping("/{designationId}")
+	public ApiResponse<DesignationDTO> getDesigmationById(@PathVariable Integer designationId) {
+		
+		try {
 
-            return desigmationService.getById(
-            		designationId);
+			return desigmationService.getById(designationId);
 
-        } catch (Exception e) {
+		} catch (Exception e) {
 
-            return new ApiResponse<>(
-                    false,
-                    e.getMessage(),
-                    null);
-        }
-    }
+			return new ApiResponse<>(false, e.getMessage(), null);
+		}
+	}
 
-    // ----------------------------------------------------
-    // DELETE
-    // ----------------------------------------------------
+	@PostMapping("/deleteDesignation")
+	public ResponseEntity<ApiResponse<String>> deleteDesigmation(@RequestBody DesignationDTO dto,
+			HttpServletRequest httpRequest) {
 
-    @PostMapping("/deleteDesignation")
-    public ResponseEntity<ApiResponse<String>> deleteDesigmation(
-            @RequestBody DesignationDTO dto,
-            HttpServletRequest httpRequest) {
+		return desigmationService.deleteDesigmation(dto.getDesigmationId(), dto.getUserId(), httpRequest);
+	}
 
-        return desigmationService.deleteDesigmation(
-                dto.getDesigmationId(),
-                dto.getUserId(),
-                httpRequest);
-    }
+	// ----------------------------------------------------
+	// ACTIVE
+	// ----------------------------------------------------
 
-    // ----------------------------------------------------
-    // ACTIVE
-    // ----------------------------------------------------
+	@GetMapping("/active")
+	public List<DesignationDTO> getActiveDesigmations() {
 
-    @GetMapping("/active")
-    public List<DesignationDTO> getActiveDesigmations() {
-
-        return desigmationService
-                .getActiveDesigmations();
-    }
+		return desigmationService.getActiveDesigmations();
+	}
 }
-

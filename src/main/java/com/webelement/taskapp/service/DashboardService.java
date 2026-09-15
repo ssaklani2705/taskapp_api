@@ -29,313 +29,108 @@ public class DashboardService {
 	@Autowired
 	private TaskRepository taskRepository;
 
-	
-	public List<ClientDashboardDTO> findDashboardClients(
-            Integer userId,
-            String isAdmin,
-            String loginType) {
+	public List<ClientDashboardDTO> findDashboardClients(Integer userId, String isAdmin, String loginType) {
 
-        List<Object[]> result = taskRepository.findDashboardClients(
-                userId,
-                isAdmin,
-                loginType
-        );
+		List<Object[]> result = taskRepository.findDashboardClients(userId, isAdmin, loginType);
 
-        return result.stream()
-                .map(row -> new ClientDashboardDTO(
-                        (Integer) row[0],
-                        (String) row[1]
-                ))
-                .collect(Collectors.toList());
-    }
-	
-	// Change these values according to your database
-
-	/*
-	 * ========================================================= TASK STATUS
-	 * =========================================================
-	 */
+		return result.stream().map(row -> new ClientDashboardDTO((Integer) row[0], (String) row[1]))
+				.collect(Collectors.toList());
+	}
 
 	private static final short TODO = 1;
 	private static final short IN_PROGRESS = 2;
 	private static final short DONE = 5;
 
-	/*
-	 * ========================================================= EMPLOYEE DASHBOARD
-	 * =========================================================
-	 */
-	
 	private String getAssignedUserName(TaskEntity task) {
 
-	    if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
-	        return "Unassigned";
-	    }
+		if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
+			return "Unassigned";
+		}
 
-	    if (task.getAssignedUser() == null) {
-	        return "Unassigned";
-	    }
+		if (task.getAssignedUser() == null) {
+			return "Unassigned";
+		}
 
-	    return task.getAssignedUser().getFirstName();
+		return task.getAssignedUser().getFirstName();
 	}
-	
-	public TaskDashboardResponse getDashboard(Integer userId,String isAdmin,Integer selectedClientId) {
 
-	    /*
-	     * =====================================================
-	     * CURRENT DATE
-	     * =====================================================
-	     */
-	    LocalDate today = LocalDate.now();
+	public TaskDashboardResponse getDashboard(Integer userId, String isAdmin, Integer selectedClientId) {
+		LocalDate today = LocalDate.now();
+		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+		LocalDateTime startOfToday = today.atStartOfDay();
+		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+		LocalDateTime now = LocalDateTime.now();
+		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId, isAdmin, "other", selectedClientId);
+		if (tasks == null || tasks.isEmpty()) {
+			return TaskDashboardResponse.builder().myTasksToday(0).dueThisWeek(0).overdue(0)
+					.todo(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+					.inProgress(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+					.done(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+					.build();
+		}
+		
+		List<TaskEntity> tasksToday = tasks.stream().filter(task -> {
+			LocalDateTime taskDate = task.getDate();
+			if (taskDate == null) {
+				return false;
+			}
+			return !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
+		}).collect(Collectors.toList());
 
-	    /*
-	     * =====================================================
-	     * CURRENT WEEK
-	     * =====================================================
-	     */
-	    LocalDateTime startOfWeek =
-	            today.with(DayOfWeek.MONDAY).atStartOfDay();
+		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
+			LocalDateTime taskStartDate = task.getDate();
+			if (taskStartDate == null) {
+				return false;
+			}
+			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
+					&& !taskStartDate.isAfter(endOfWeek);
+		}).collect(Collectors.toList());
 
-	    LocalDateTime endOfWeek =
-	            today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+		List<TaskEntity> overdueTasks = tasks.stream().filter(task -> {
+			LocalDateTime dueDateTime = getDueDateTime(task);
+			return dueDateTime != null && dueDateTime.isBefore(now) && !isDone(task);
+		}).collect(Collectors.toList());
 
-	    /*
-	     * =====================================================
-	     * TODAY RANGE
-	     * =====================================================
-	     */
-	    LocalDateTime startOfToday =
-	            today.atStartOfDay();
+		List<TaskEntity> todoTasks = tasks.stream()
+				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
+				.collect(Collectors.toList());
 
-	    LocalDateTime startOfTomorrow =
-	            today.plusDays(1).atStartOfDay();
+		List<TaskEntity> inProgressTasks = tasks.stream()
+				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
+				.collect(Collectors.toList());
 
-	    /*
-	     * =====================================================
-	     * CURRENT DATE/TIME
-	     * =====================================================
-	     */
-	    LocalDateTime now = LocalDateTime.now();
+		List<TaskEntity> doneTasks = tasks.stream()
+				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)
+				.collect(Collectors.toList());
 
-	    /*
-	     * =====================================================
-	     * GET EMPLOYEE TASKS
-	     *
-	     * Employee sees:
-	     * 1. Tasks assigned to employee
-	     * 2. Tasks added by employee
-	     * =====================================================
-	     */
-	    List<TaskEntity> tasks =
-	            taskRepository.findDashboardTasks(userId,isAdmin,"other",selectedClientId);
+		return TaskDashboardResponse.builder()
 
-	    System.err.println("Dashboard User ID : " + userId);
-	    System.err.println("Dashboard Task Count : "
-	            + (tasks == null ? 0 : tasks.size()));
+				.myTasksToday(tasksToday.size())
 
-	    /*
-	     * =====================================================
-	     * NO TASKS
-	     * =====================================================
-	     */
-	    if (tasks == null || tasks.isEmpty()) {
+				.dueThisWeek(dueThisWeek.size())
 
-	        return TaskDashboardResponse.builder()
-	                .myTasksToday(0)
-	                .dueThisWeek(0)
-	                .overdue(0)
+				.overdue(overdueTasks.size())
 
-	                .todo(
-	                    TaskGroupResponse.builder()
-	                        .count(0)
-	                        .tasks(Collections.emptyList())
-	                        .build()
-	                )
+				.todo(TaskGroupResponse.builder().count(todoTasks.size()).tasks(toDashboardItems(todoTasks)).build())
 
-	                .inProgress(
-	                    TaskGroupResponse.builder()
-	                        .count(0)
-	                        .tasks(Collections.emptyList())
-	                        .build()
-	                )
+				.inProgress(TaskGroupResponse.builder().count(inProgressTasks.size())
+						.tasks(toDashboardItems(inProgressTasks)).build())
 
-	                .done(
-	                    TaskGroupResponse.builder()
-	                        .count(0)
-	                        .tasks(Collections.emptyList())
-	                        .build()
-	                )
+				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
 
-	                .build();
-	    }
-
-	    /*
-	     * =====================================================
-	     * MY TASKS TODAY
-	     * =====================================================
-	     */
-	    List<TaskEntity> tasksToday = tasks.stream()
-	            .filter(task -> {
-
-	                LocalDateTime taskDate = task.getDate();
-
-	                if (taskDate == null) {
-	                    return false;
-	                }
-
-	                return !taskDate.isBefore(startOfToday)
-	                        && taskDate.isBefore(startOfTomorrow);
-	            })
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * DUE THIS WEEK
-	     * =====================================================
-	     */
-	    List<TaskEntity> dueThisWeek = tasks.stream()
-	            .filter(task -> {
-
-	                LocalDateTime taskStartDate = task.getDate();
-
-	                if (taskStartDate == null) {
-	                    return false;
-	                }
-
-	                return task.getTaskStatus() != null
-	                        && task.getTaskStatus() != 5
-	                        && !taskStartDate.isBefore(startOfWeek)
-	                        && !taskStartDate.isAfter(endOfWeek);
-	            })
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * OVERDUE
-	     * =====================================================
-	     */
-	    List<TaskEntity> overdueTasks = tasks.stream()
-	            .filter(task -> {
-
-	                LocalDateTime dueDateTime =
-	                        getDueDateTime(task);
-
-	                return dueDateTime != null
-	                        && dueDateTime.isBefore(now)
-	                        && !isDone(task);
-	            })
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * TODO
-	     * =====================================================
-	     */
-	    List<TaskEntity> todoTasks = tasks.stream()
-	            .filter(task ->
-	                    task.getTaskStatus() != null
-	                    && task.getTaskStatus() == TODO
-	            )
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * IN PROGRESS
-	     * =====================================================
-	     */
-	    List<TaskEntity> inProgressTasks = tasks.stream()
-	            .filter(task ->
-	                    task.getTaskStatus() != null
-	                    && task.getTaskStatus() == IN_PROGRESS
-	            )
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * DONE
-	     * =====================================================
-	     */
-	    List<TaskEntity> doneTasks = tasks.stream()
-	            .filter(task ->
-	                    task.getTaskStatus() != null
-	                    && task.getTaskStatus() == DONE
-	            )
-	            .collect(Collectors.toList());
-
-	    /*
-	     * =====================================================
-	     * BUILD DASHBOARD RESPONSE
-	     * =====================================================
-	     */
-	    return TaskDashboardResponse.builder()
-
-	            .myTasksToday(tasksToday.size())
-
-	            .dueThisWeek(dueThisWeek.size())
-
-	            .overdue(overdueTasks.size())
-
-	            .todo(
-	                TaskGroupResponse.builder()
-	                    .count(todoTasks.size())
-	                    .tasks(toDashboardItems(todoTasks))
-	                    .build()
-	            )
-
-	            .inProgress(
-	                TaskGroupResponse.builder()
-	                    .count(inProgressTasks.size())
-	                    .tasks(toDashboardItems(inProgressTasks))
-	                    .build()
-	            )
-
-	            .done(
-	                TaskGroupResponse.builder()
-	                    .count(doneTasks.size())
-	                    .tasks(toDashboardItems(doneTasks))
-	                    .build()
-	            )
-
-	            .build();
+				.build();
 	}
-	
 
-	/*
-	 * ========================================================= CALCULATE DUE
-	 * DATE/TIME =========================================================
-	 *
-	 * d_date = LocalDateTime task start date
-	 *
-	 * ts_duetime = number of hours from task category
-	 *
-	 * Example:
-	 *
-	 * d_date = 2026-09-01 10:30:00
-	 *
-	 * ts_duetime = 50
-	 *
-	 * Result:
-	 *
-	 * 2026-09-03 12:30:00
-	 */
 	private LocalDateTime getDueDateTime(TaskEntity task) {
 
-		/*
-		 * Validate task
-		 */
 		if (task == null || task.getDate() == null || task.getTaskCategoryId() == null) {
 
 			return null;
 		}
 
-		/*
-		 * ===================================================== GET DUE HOURS FROM TASK
-		 * CATEGORY =====================================================
-		 */
 		String dueTime = taskRepository.findDueTimeByTaskCategoryId(task.getTaskCategoryId());
 
-		/*
-		 * No due time configured
-		 */
 		if (dueTime == null || dueTime.trim().isEmpty()) {
 
 			return null;
@@ -343,63 +138,26 @@ public class DashboardService {
 
 		try {
 
-			/*
-			 * Convert:
-			 *
-			 * "50"
-			 *
-			 * to:
-			 *
-			 * 50
-			 */
 			long dueHours = Long.parseLong(dueTime.trim());
 
-			/*
-			 * IMPORTANT:
-			 *
-			 * task.getDate() is already LocalDateTime.
-			 *
-			 * DO NOT use:
-			 *
-			 * task.getDate().atStartOfDay()
-			 *
-			 * because atStartOfDay() belongs to LocalDate.
-			 *
-			 * Simply add the due hours directly.
-			 */
 			return task.getDate().plusHours(dueHours);
 
 		} catch (NumberFormatException e) {
 
-			/*
-			 * Invalid due time
-			 */
 			return null;
 		}
 	}
 
-	/*
-	 * ========================================================= CHECK DONE
-	 * =========================================================
-	 */
 	private boolean isDone(TaskEntity task) {
 
 		return task != null && task.getTaskStatus() != null && task.getTaskStatus() == DONE;
 	}
 
-	/*
-	 * ========================================================= CONVERT TASK LIST
-	 * =========================================================
-	 */
 	private List<TaskDashboardItem> toDashboardItems(List<TaskEntity> tasks) {
 
 		return tasks.stream().map(this::toDashboardItem).collect(Collectors.toList());
 	}
 
-	/*
-	 * ========================================================= CONVERT TASK ENTITY
-	 * TO DASHBOARD DTO =========================================================
-	 */
 	private TaskDashboardItem toDashboardItem(TaskEntity task) {
 
 		return TaskDashboardItem.builder().taskId(task.getTaskId()).clientId(task.getClientId())
@@ -409,21 +167,13 @@ public class DashboardService {
 				.dueDateTime(task.getTaskCategory() != null
 						? calculateDueDateTime(task.getDate(), task.getTaskCategory().getDuedatetime())
 						: null)
-				 .assignedUser(task.getAssignedUser() != null
-                 ? task.getAssignedUser().getFirstName()
-                 : null)
-				 .assignedByUser(task.getAssignedByUser() != null
-                 ? task.getAssignedByUser().getFirstName()
-                 : null)
+				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
+				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
 				.title(task.getTitle()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
 				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
-				
+
 	}
 
-	/*
-	 * ========================================================= PRIORITY
-	 * =========================================================
-	 */
 	private String getPriorityName(Short priority) {
 
 		if (priority == null) {
@@ -446,10 +196,6 @@ public class DashboardService {
 		}
 	}
 
-	/*
-	 * ========================================================= STATUS
-	 * =========================================================
-	 */
 	private String getStatusName(Short status) {
 
 		if (status == null) {
@@ -472,10 +218,6 @@ public class DashboardService {
 		}
 	}
 
-	/*
-	 * ========================================================= PROGRESS
-	 * =========================================================
-	 */
 	private Integer getProgress(TaskEntity task) {
 
 		if (task.getTaskStatus() == null) {
@@ -498,13 +240,6 @@ public class DashboardService {
 		}
 	}
 
-	/*
-	 * ========================================================= EXISTING METHODS
-	 * =========================================================
-	 */
-
-	
-
 	private static String calculateDueDateTime(LocalDateTime date, String dueDateTimeHours) {
 
 		if (date == null || dueDateTimeHours == null || dueDateTimeHours.isBlank()) {
@@ -519,45 +254,43 @@ public class DashboardService {
 		}
 	}
 
-
-    
 	public Page<TaskEditDTO> getTasksByStatus(int page, int size, Integer clientId, Integer userId, String permission) {
 
-        Pageable pageable = PageRequest.of(page, size);
+		Pageable pageable = PageRequest.of(page, size);
 
-        Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId, permission);
+		Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId, permission);
 
-        return taskList;
+		return taskList;
 
-    }
-  
-    //NEW
-    public int countOfActiveTask() {
-        return taskRepository.countOfActiveTask();
-    }
+	}
 
-    public int countOfCompletedTask() {
-        return taskRepository.countOfCompletedTask();
-    }
+	// NEW
+	public int countOfActiveTask() {
+		return taskRepository.countOfActiveTask();
+	}
 
-    public int countOfPendingTask() {
-        return taskRepository.countOfPendingTask();
-    }
+	public int countOfCompletedTask() {
+		return taskRepository.countOfCompletedTask();
+	}
 
-    public int countOfAssignedTask() {
-        return taskRepository.countOfAssignedTask();
-    }
+	public int countOfPendingTask() {
+		return taskRepository.countOfPendingTask();
+	}
 
-    public int countOfAssigneeClosureTask() {
-        return taskRepository.countOfAssigneeClosureTask();
-    }
+	public int countOfAssignedTask() {
+		return taskRepository.countOfAssignedTask();
+	}
 
-    public int countOfReOpenTask() {
-        return taskRepository.countOfReOpenTask();
-    }
+	public int countOfAssigneeClosureTask() {
+		return taskRepository.countOfAssigneeClosureTask();
+	}
 
-    public int countOfAssigneeReClosureTask() {
-        return taskRepository.countOfAssigneeReClosureTask();
-    }
+	public int countOfReOpenTask() {
+		return taskRepository.countOfReOpenTask();
+	}
+
+	public int countOfAssigneeReClosureTask() {
+		return taskRepository.countOfAssigneeReClosureTask();
+	}
 
 }
