@@ -26,224 +26,153 @@ import com.webelement.taskapp.repo.TaskCategoryRepository;
 @Service
 public class TaskCategoryService {
 
-    @Autowired
-    private TaskCategoryRepository taskCategoryRepository;
-    
-    @Autowired
-    private DepartmentRepository departmentRepository;
+	@Autowired
+	private TaskCategoryRepository taskCategoryRepository;
 
-    @Autowired
-    private CommonFunction commonFunction;
+	@Autowired
+	private DepartmentRepository departmentRepository;
 
-    public ApiResponse<TaskCategoryDTO> addOrUpdate(
-            TaskCategoryDTO dto,
-            HttpServletRequest httpRequest) {
+	@Autowired
+	private CommonFunction commonFunction;
 
-        Timestamp timestamp =
-                Timestamp.valueOf(LocalDateTime.now());
+	public ApiResponse<TaskCategoryDTO> addOrUpdate(TaskCategoryDTO dto, HttpServletRequest httpRequest) {
 
-        String name =
-                dto.getName() == null
-                        ? ""
-                        : dto.getName().trim();
+		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        if (name.isEmpty()) {
-            return new ApiResponse<>(
-                    false,
-                    "Task Category name is required",
-                    null);
-        }
+		String name = dto.getName() == null ? "" : dto.getName().trim();
 
-        // ADD
-        if (dto.getTaskcategoryId() == null
-                || dto.getTaskcategoryId() == 0) {
+		if (name.isEmpty()) {
+			return new ApiResponse<>(false, "Task Category name is required", null);
+		}
 
-            if (taskCategoryRepository
-                    .existsByNameIgnoreCaseAndStatusNot(name, 3)) {
+		// ADD
+		if (dto.getTaskcategoryId() == null || dto.getTaskcategoryId() == 0) {
 
-                return new ApiResponse<>(
-                        false,
-                        "Task Category name already exists",
-                        null);
-            }
-        }
+			if (taskCategoryRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 
-        // UPDATE
-        else {
+				return new ApiResponse<>(false, "Task Category name already exists", null);
+			}
+		}
 
-            TaskCategoryEntity existing =
-                    taskCategoryRepository
-                            .findByNameIgnoreCase(name);
+		// UPDATE
+		else {
 
-            if (existing != null
-                    && !existing.getTaskcategoryId()
-                            .equals(dto.getTaskcategoryId())
-                    && existing.getStatus() != 3) {
+			TaskCategoryEntity existing = taskCategoryRepository.findByNameIgnoreCase(name);
 
-                return new ApiResponse<>(
-                        false,
-                        "Task Category name already exists",
-                        null);
-            }
-        }
+			if (existing != null && !existing.getTaskcategoryId().equals(dto.getTaskcategoryId())
+					&& existing.getStatus() != 3) {
 
-        TaskCategoryEntity entity;
+				return new ApiResponse<>(false, "Task Category name already exists", null);
+			}
+		}
 
-        // UPDATE
-        if (dto.getTaskcategoryId() != null
-                && dto.getTaskcategoryId() > 0) {
+		TaskCategoryEntity entity;
 
-            entity =
-                    taskCategoryRepository
-                            .findById(dto.getTaskcategoryId())
-                            .orElseThrow(() ->
-                                    new RuntimeException(
-                                            "Task Category Record not found"));
+		// UPDATE
+		if (dto.getTaskcategoryId() != null && dto.getTaskcategoryId() > 0) {
 
-            entity.setDepartmentId(dto.getDepartmentId());
-            entity.setName(name);
-            entity.setUserId(dto.getUserId());
-            
-            entity.setDuedatetime(dto.getDueDateTime());
+			entity = taskCategoryRepository.findById(dto.getTaskcategoryId())
+					.orElseThrow(() -> new RuntimeException("Task Category Record not found"));
 
-            if (dto.getStatus() != null) {
-                entity.setStatus(dto.getStatus());
-            }
+			entity.setDepartmentId(dto.getDepartmentId());
+			entity.setName(name);
+			entity.setUserId(dto.getUserId());
 
-            entity.setModdate(timestamp);
-        }
+			entity.setDuedatetime(dto.getDueDateTime());
 
-        // ADD
-        else {
+			if (dto.getStatus() != null) {
+				entity.setStatus(dto.getStatus());
+			}
 
-            entity = new TaskCategoryEntity();
+			entity.setModdate(timestamp);
+		}
 
-            entity.setDepartmentId(dto.getDepartmentId());
-            entity.setName(name);
-            entity.setUserId(dto.getUserId());
-            entity.setStatus(1);
-            entity.setRegdate(timestamp);
-            entity.setDuedatetime(dto.getDueDateTime());
-        }
+		// ADD
+		else {
 
-        TaskCategoryEntity saved =
-                taskCategoryRepository.save(entity);
+			entity = new TaskCategoryEntity();
 
-        TaskCategoryDTO responseDto =
-                new TaskCategoryDTO();
+			entity.setDepartmentId(dto.getDepartmentId());
+			entity.setName(name);
+			entity.setUserId(dto.getUserId());
+			entity.setStatus(1);
+			entity.setRegdate(timestamp);
+			entity.setDuedatetime(dto.getDueDateTime());
+		}
 
-        responseDto.setTaskcategoryId(
-                saved.getTaskcategoryId());
+		TaskCategoryEntity saved = taskCategoryRepository.save(entity);
 
-        responseDto.setDepartmentId(
-                saved.getDepartmentId());
+		TaskCategoryDTO responseDto = new TaskCategoryDTO();
 
-        responseDto.setName(
-                saved.getName());
+		responseDto.setTaskcategoryId(saved.getTaskcategoryId());
 
-        responseDto.setStatus(
-                saved.getStatus());
+		responseDto.setDepartmentId(saved.getDepartmentId());
 
-        responseDto.setUserId(
-                saved.getUserId());
+		responseDto.setName(saved.getName());
 
-        responseDto.setRegdate(
-                saved.getRegdate());
+		responseDto.setStatus(saved.getStatus());
 
-        responseDto.setModdate(
-                saved.getModdate());
+		responseDto.setUserId(saved.getUserId());
 
-        boolean isNew =
-                dto.getTaskcategoryId() == null
-                || dto.getTaskcategoryId() == 0;
+		responseDto.setRegdate(saved.getRegdate());
 
-        String action =
-                isNew
-                    ? "Task Category Added"
-                    : "Task Category Updated";
+		responseDto.setModdate(saved.getModdate());
 
-        commonFunction.createHistoryAccess(
-                dto.getUserId(),
-                commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(),
-                action,
-                5,
-                saved.getTaskcategoryId(),
-                -1);
+		boolean isNew = dto.getTaskcategoryId() == null || dto.getTaskcategoryId() == 0;
 
-        return new ApiResponse<>(
-                true,
-                "Task Category saved successfully",
-                responseDto);
-    }
+		String action = isNew ? "Task Category Added" : "Task Category Updated";
 
-    public ApiResponse<TaskCategoryDTO> getById(Integer taskcategoryId) {
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 5, saved.getTaskcategoryId(), -1);
 
-        TaskCategoryEntity entity = taskCategoryRepository
-                .findById(taskcategoryId)
-                .orElseThrow(() ->
-                        new RuntimeException("Task Category Record not found"));
+		return new ApiResponse<>(true, "Task Category saved successfully", responseDto);
+	}
 
-        TaskCategoryDTO dto = new TaskCategoryDTO();
+	public ApiResponse<TaskCategoryDTO> getById(Integer taskcategoryId) {
 
-        dto.setTaskcategoryId(entity.getTaskcategoryId());
-        dto.setDepartmentId(entity.getDepartmentId());
-        dto.setName(entity.getName());
-        dto.setStatus(entity.getStatus());
-        dto.setUserId(entity.getUserId());
-        dto.setRegdate(entity.getRegdate());
-        dto.setModdate(entity.getModdate());
-        dto.setDueDateTime(entity.getDuedatetime());
-        /*
-         * Get Department Name
-         */
-        if (entity.getDepartmentId() != null
-                && entity.getDepartmentId() > 0) {
+		TaskCategoryEntity entity = taskCategoryRepository.findById(taskcategoryId)
+				.orElseThrow(() -> new RuntimeException("Task Category Record not found"));
 
-            departmentRepository
-                    .findById(entity.getDepartmentId())
-                    .ifPresent(department -> {
+		TaskCategoryDTO dto = new TaskCategoryDTO();
 
-                        dto.setDepartmentName(
-                                department.getName()
-                        );
+		dto.setTaskcategoryId(entity.getTaskcategoryId());
+		dto.setDepartmentId(entity.getDepartmentId());
+		dto.setName(entity.getName());
+		dto.setStatus(entity.getStatus());
+		dto.setUserId(entity.getUserId());
+		dto.setRegdate(entity.getRegdate());
+		dto.setModdate(entity.getModdate());
+		dto.setDueDateTime(entity.getDuedatetime());
+		/*
+		 * Get Department Name
+		 */
+		if (entity.getDepartmentId() != null && entity.getDepartmentId() > 0) {
 
-                    });
-        }
+			departmentRepository.findById(entity.getDepartmentId()).ifPresent(department -> {
 
-        /*
-         * Transaction History
-         */
-        List<TransactionEntity> history =
-                commonFunction.getTransactionLogs(
-                        5,
-                        taskcategoryId
-                );
+				dto.setDepartmentName(department.getName());
 
-        if (history != null && !history.isEmpty()) {
-            dto.setTransactionHistory(history);
-        }
+			});
+		}
 
-        return new ApiResponse<>(
-                true,
-                "Task Category fetched successfully",
-                dto
-        );
-    }
+		/*
+		 * Transaction History
+		 */
+		List<TransactionEntity> history = commonFunction.getTransactionLogs(5, taskcategoryId);
 
+		if (history != null && !history.isEmpty()) {
+			dto.setTransactionHistory(history);
+		}
 
-    public Page<TaskCategoryDTO> findTaskCategoryDetails(
-            int page,
-            int size,
-            int statusIndex,
-            String search, int departmentId) {
+		return new ApiResponse<>(true, "Task Category fetched successfully", dto);
+	}
 
-        return taskCategoryRepository
-                .findTaskCategoryDetails(
-                        PageRequest.of(page, size),
-                        statusIndex,
-                        search,departmentId);
-    }
+	public Page<TaskCategoryDTO> findTaskCategoryDetails(int page, int size, int statusIndex, String search,
+			int departmentId) {
+
+		return taskCategoryRepository.findTaskCategoryDetails(PageRequest.of(page, size), statusIndex, search,
+				departmentId);
+	}
 
 	public ResponseEntity<ApiResponse<String>> deleteTaskCategory(Integer taskcategoryId, Integer userId,
 			HttpServletRequest httpRequest) {
@@ -276,20 +205,15 @@ public class TaskCategoryService {
 				.body(new ApiResponse<>(false, "Failed to delete Task Category", null));
 	}
 
-    public List<TaskCategoryDTO> getActiveTaskCategories() {
+	public List<TaskCategoryDTO> getActiveTaskCategories() {
 
-        List<TaskCategoryEntity> list =
-                taskCategoryRepository.findByStatus(1);
+		List<TaskCategoryEntity> list = taskCategoryRepository.findByStatus(1);
 
-        return list.stream()
-                .map(t ->
-                        new TaskCategoryDTO(
-                                t.getTaskcategoryId(),
-                                t.getName()))
-                .collect(Collectors.toList());
-    }
+		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName()))
+				.collect(Collectors.toList());
+	}
 
-    public List<TaskCategoryDTO> getCategoriesByDepartmentId(Integer departmentId) {
-        return taskCategoryRepository.findCategoriesByDepartmentId(departmentId);
-    }
+	public List<TaskCategoryDTO> getCategoriesByDepartmentId(Integer departmentId) {
+		return taskCategoryRepository.findCategoriesByDepartmentId(departmentId);
+	}
 }
