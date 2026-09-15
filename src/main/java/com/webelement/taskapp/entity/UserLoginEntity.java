@@ -79,6 +79,9 @@ public class UserLoginEntity {
 	
 	@Transient
     private List<Integer> categoryIds;
+	
+	@Transient
+    private List<String> TaskCategories;
 
 
 	@Transient

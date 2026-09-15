@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,31 +29,31 @@ import com.webelement.taskapp.dto.UserInfo;
 import com.webelement.taskapp.entity.DepartmentEntity;
 import com.webelement.taskapp.entity.DesignationEntity;
 import com.webelement.taskapp.entity.PermissionEntity;
+import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.PermissionRepo;
+import com.webelement.taskapp.repo.SmtpRepo;
+import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserManagementService {
 
-	@Autowired
-	private UserLoginRepository loginRepository;
-
-	@Autowired
-	private CommonFunction commonFunction;
-
-	@Autowired
-	private PermissionRepo permissionRepo;
 	
-	@Autowired
-	private DepartmentRepository departmentRepository;
-
-	@Autowired
-	private DesignationRepository designationRepository;
-
+	private final UserLoginRepository loginRepository;
+	private final CommonFunction commonFunction;
+	private final PermissionRepo permissionRepo;
+	private final DepartmentRepository departmentRepository;
+	private final DesignationRepository designationRepository;
+	private final TaskCategoryRepository taskCategoryRepository;
+	private final Executor taskExecutor;
+	
 	@Value("${paths:}")
 	private String paths;
 
@@ -86,110 +88,9 @@ public class UserManagementService {
 		}
 	}
 	
-	public UserLoginEntity getUserById(int userId) {
+	
 
-	    UserLoginEntity user = loginRepository.getUserById(userId);
-
-	    if (user != null) {
-
-	        int newUserId = 0;
-
-	        if ("N".equalsIgnoreCase(user.getPermission())) {
-	            newUserId = userId;
-	        } else {
-	            newUserId = -1;
-	        }
-
-	        // Module permissions
-	        List<ModulePermissionDTO> permissions =
-	                getPermissionsByUserId(newUserId);
-
-	        user.setModule(permissions);
-
-	        // Transaction history
-	        List<TransactionEntity> history =
-	                getTransactionLogs(1, userId);
-
-	        user.setTransactionhistory(history);
-
-	        // Department Name
-	        if (user.getDepartmentId() != null) {
-
-	            DepartmentEntity department =
-	                    departmentRepository.findById(
-	                            user.getDepartmentId()
-	                    ).orElse(null);
-
-	            if (department != null) {
-	                user.setDepartmentName(
-	                        department.getName()
-	                );
-	            }
-	        }
-
-	        // Designation Name
-	        if (user.getDesignationId() != null) {
-
-	            DesignationEntity designation =
-	                    designationRepository.findById(
-	                            user.getDesignationId()
-	                    ).orElse(null);
-
-	            if (designation != null) {
-	                user.setDesignationName(
-	                        designation.getName()
-	                );
-	            }
-	        }
-
-	    } else {
-
-	        int newUserId =
-	                (userId == 0) ? -1 : userId;
-
-	        List<ModulePermissionDTO> permissions =
-	                getPermissionsByUserId(newUserId);
-
-	        user = new UserLoginEntity();
-
-	        user.setModule(permissions);
-	    }
-
-	    return user;
-	}
-
-//	public UserLoginEntity getUserById(int userId) {
-//		UserLoginEntity user = loginRepository.getUserById(userId);
-//		
-//
-//		if (user != null) {
-//
-//			int newUserId = 0;
-//
-//			if ("N".equalsIgnoreCase(user.getPermission())) {
-//				newUserId = userId;
-//			} else {
-//				newUserId = -1;
-//			}
-//			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
-//			user.setModule(permissions);
-//
-//			// Append transaction history
-//			List<TransactionEntity> history = getTransactionLogs(1, userId);
-//			user.setTransactionhistory(history);
-//		} else {
-//			int newUserId = (userId == 0) ? -1 : userId;
-//			
-//			List<ModulePermissionDTO> permissions = getPermissionsByUserId(newUserId);
-//
-//			user = new UserLoginEntity(); // create new object
-//			user.setModule(permissions);
-//		}
-//
-//		return user;
-//	}
-
-	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
+		public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = loginRepository.getTransactionLogs(moduleId, recordId);
 		return results.stream().map(obj -> {
 			TransactionEntity dto = new TransactionEntity();
@@ -405,6 +306,78 @@ public class UserManagementService {
 		return loginRepository.updateForgotPasswordLink(username, commonFunction.cipher(password), linkDateTs);
 	}
 
+	
+	public UserLoginEntity getUserById(int userId) {
+
+	    UserLoginEntity user = loginRepository.getUserById(userId);
+
+	    if (user == null) {
+	        UserLoginEntity emptyUser = new UserLoginEntity();
+	        emptyUser.setModule(getPermissionsByUserId(userId == 0 ? -1 : userId));
+	        return emptyUser;
+	    }
+
+	    int effectiveUserId = "N".equalsIgnoreCase(user.getPermission()) ? userId : -1;
+
+	    CompletableFuture<List<ModulePermissionDTO>> moduleFuture =
+	            CompletableFuture.supplyAsync(() -> getPermissionsByUserId(effectiveUserId), taskExecutor);
+
+	    CompletableFuture<List<TransactionEntity>> historyFuture =
+	            CompletableFuture.supplyAsync(() -> getTransactionLogs(1, userId), taskExecutor);
+
+	    CompletableFuture<String> departmentFuture =
+	            CompletableFuture.supplyAsync(() -> resolveDepartmentName(user), taskExecutor);
+
+	    CompletableFuture<String> designationFuture =
+	            CompletableFuture.supplyAsync(() -> resolveDesignationName(user), taskExecutor);
+
+	    CompletableFuture<List<String>> categoriesFuture =
+	            CompletableFuture.supplyAsync(() -> resolveTaskCategories(user), taskExecutor);
+
+	    CompletableFuture.allOf(moduleFuture, historyFuture, departmentFuture, designationFuture, categoriesFuture)
+	            .join();
+
+	    user.setModule(moduleFuture.join());
+	    user.setTransactionhistory(historyFuture.join());
+	    if (departmentFuture.join() != null) user.setDepartmentName(departmentFuture.join());
+	    if (designationFuture.join() != null) user.setDesignationName(designationFuture.join());
+	    user.setTaskCategories(categoriesFuture.join());
+
+	    return user;
+	}
+
+	private String resolveDepartmentName(UserLoginEntity user) {
+	    if (user.getDepartmentId() == null) return null;
+	    return departmentRepository.findById(user.getDepartmentId())
+	            .map(DepartmentEntity::getName)
+	            .orElse(null);
+	}
+
+	private String resolveDesignationName(UserLoginEntity user) {
+	    if (user.getDesignationId() == null) return null;
+	    return designationRepository.findById(user.getDesignationId())
+	            .map(DesignationEntity::getName)
+	            .orElse(null);
+	}
+
+	private List<String> resolveTaskCategories(UserLoginEntity user) {
+	    String rawIds = user.getTaskcategoryIds();
+	    if (rawIds == null || rawIds.isBlank()) return List.of();
+
+	    List<Integer> categoryIds = Arrays.stream(rawIds.split(","))
+	            .map(String::trim)
+	            .filter(s -> !s.isEmpty())
+	            .map(Integer::parseInt)
+	            .distinct()
+	            .collect(Collectors.toList());
+
+	    if (categoryIds.isEmpty()) return List.of();
+
+	    return taskCategoryRepository.findAllById(categoryIds)
+	            .stream()
+	            .map(TaskCategoryEntity::getName)
+	            .collect(Collectors.toList());
+	}
 	
 
 }
