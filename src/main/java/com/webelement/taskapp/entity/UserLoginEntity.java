@@ -74,7 +74,7 @@ public class UserLoginEntity {
 	@Column(name = "s_pcb")
 	private String pcb;
 	
-	@Column(name = "i_taskcategoryIds")
+	@Column(name = "s_taskcategoryIds")
 	private String taskcategoryIds;
 	
 	@Transient
