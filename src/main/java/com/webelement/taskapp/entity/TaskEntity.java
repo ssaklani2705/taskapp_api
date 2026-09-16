@@ -112,5 +112,8 @@ public class TaskEntity {
 	@JoinColumn(name = "i_addedby", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedByUser;
 	
+
+	@Transient
+	private Integer ManagerId;
 	
 }

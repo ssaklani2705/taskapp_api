@@ -13,6 +13,7 @@ public class TaskDetailsDTO {
 	            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	    private Integer taskId;
+		private Integer managerId;
 	    private String clientName;
 	    private LocalDateTime date;
 	    private String dueDateTime;
@@ -31,7 +32,7 @@ public class TaskDetailsDTO {
 	    private Integer taskCategoryId;
 	    
 
-		public TaskDetailsDTO(int taskId, String clientName, LocalDateTime date, String dueDateTimeHours, // e.g. "50"
+		public TaskDetailsDTO(int taskId,Integer managerId, String clientName, LocalDateTime date, String dueDateTimeHours, // e.g. "50"
 																											// -> hours
 																											// to add on
 																											// top of
@@ -40,6 +41,7 @@ public class TaskDetailsDTO {
 				short taskStatus, int assignedTo, int addedBy,String assignedbyName,String description,int clientId,int taskCategoryId) {
 
 			this.taskId = taskId;
+				this.managerId =managerId;
 			this.clientName = clientName;
 			this.date = date;
 

@@ -336,15 +336,20 @@ public class TaskServiceImpl implements TaskService {
 	@Transactional
 	@Override
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
-		TaskEntity task = taskRepository.findById(dto.getTaskId())
+		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
 				.orElseThrow(() -> new RuntimeException("Task not found"));
+
+//		boolean disabled = canDisableChangeManager(task, dto.getUserId());
+//		if (disabled) {
+//			throw new RuntimeException("You are not allowed to change this task's status.");
+//		}
 		Short currentStatus = task.getTaskStatus();
 		Short nextStatus;
 
 		if (currentStatus == 2 || currentStatus == 4) {
 			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
 			if (selectedStatus == 3) {
-				Integer reopenCount = task.getReopenCount() == null ? 0 : task.getReopenCount();
+				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
 				if (reopenCount >= 3) {
 					throw new RuntimeException("Task can only be reopened 3 times.");
 				}
@@ -380,12 +385,37 @@ public class TaskServiceImpl implements TaskService {
 			String zipFileName = saveFile(dto.getFileName4(), "zip");
 			task.setFileName4(zipFileName);
 		}
-		
+
 		TaskEntity savedTask = taskRepository.save(task);
 		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
 		logger.debug("Sending mail over here ", savedTask.toString());
-		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus); // send mail over here 
+		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus); // send mail over here
 		return savedTask;
+	}
+
+	@Override
+	public boolean canDisableChangeManager(TaskEntity task, Integer userId) {
+		boolean isManager = task.getManagerId() != null && task.getManagerId().equals(userId);
+
+		// Status 5 => closed, locked for everyone, no exceptions
+		if (task.getTaskStatus() == 5) {
+			return true;
+		}
+
+		boolean selfAssigned = task.getAddedBy() != null && task.getAddedBy().equals(task.getAssignedTo());
+
+		if (selfAssigned) {
+			// Any other status => self-assigned user can always change manager
+			return false;
+		}
+
+		boolean addedByMatch = task.getAddedBy() != null && task.getAddedBy().equals(userId)
+				&& (task.getTaskStatus() == 1 || task.getTaskStatus() == 3);
+
+		boolean assignedToMatch = task.getAssignedTo() != null && task.getAssignedTo().equals(userId)
+				&& (task.getTaskStatus() == 2 || task.getTaskStatus() == 4);
+
+		return addedByMatch || assignedToMatch;
 	}
 }

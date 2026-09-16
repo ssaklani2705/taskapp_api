@@ -22,4 +22,7 @@ public interface TaskService {
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception;
 
+
+			public boolean canDisableChangeManager(TaskEntity task, Integer userId);
+
 }
