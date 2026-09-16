@@ -47,7 +47,7 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 		    "    OR " +
 		    "    LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
 		    ") " +
-		    "ORDER BY p.status, p.name"
+		    "ORDER BY p.status ASC, p.registrationDate ASC,p.name ASC "
 		)
 		Page<PlanDTO> findPlanDetails(
 		    Pageable pageable,

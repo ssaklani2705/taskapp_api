@@ -26,6 +26,10 @@ public class TaskDetailsDTO {
 	    private Integer addedBy;
 	    private String assignedbyName;
 	    private String description;
+	    
+	    private Integer clientId;
+	    private Integer taskCategoryId;
+	    
 
 		public TaskDetailsDTO(int taskId, String clientName, LocalDateTime date, String dueDateTimeHours, // e.g. "50"
 																											// -> hours
@@ -33,7 +37,7 @@ public class TaskDetailsDTO {
 																											// top of
 																											// `date`
 				String taskCategoryName, String assignedToName, short priority, short status, String title,
-				short taskStatus, int assignedTo, int addedBy,String assignedbyName,String description) {
+				short taskStatus, int assignedTo, int addedBy,String assignedbyName,String description,int clientId,int taskCategoryId) {
 
 			this.taskId = taskId;
 			this.clientName = clientName;
@@ -60,5 +64,8 @@ public class TaskDetailsDTO {
 			this.addedBy = addedBy;
 			this.assignedbyName = assignedbyName;
 			this.description = description;
+			
+			this.clientId = clientId;
+			this.taskCategoryId = taskCategoryId;
 		}
 }

@@ -3,12 +3,18 @@ package com.webelement.taskapp.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 
 public interface TaskService {
+	
+	ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
+	        Integer taskId,
+	        Integer assignedTo);
 
 	TaskEntity updateTaskStatus(UpdateTaskStatusDTO request) throws Exception;
 

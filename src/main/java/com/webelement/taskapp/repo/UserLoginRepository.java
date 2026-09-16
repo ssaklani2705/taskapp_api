@@ -30,7 +30,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	boolean existsByDepartmentId(Integer departmentId);
 	
-	boolean existsByDesignationId(Integer designationId);
+//	boolean existsByDesignationId(Integer designationId);
+	boolean existsByDesignationIdAndStatusNot(Integer designationId, Integer status);
 	
 //	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
 //	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
@@ -66,7 +67,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-		       "ORDER BY u.status, u.firstName")
+		       "ORDER BY u.status,u.regDate, u.firstName")
 		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
 				int departmentId,int designationId);
 
@@ -123,34 +124,38 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers(int clientId);
 	
-//	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
-//			+ "FROM UserLoginEntity u WHERE u.status = 1  "
-//			+"AND  (u.userId in (select userId from UserLoginEntity where departmentId = (select departmentId from TaskCategoryEntity where taskcategoryId = :categoryId )) )"
-//			+ "AND (u.userId = (SELECT c.managerId FROM ClientEntity c WHERE c.clientId = :clientId )  OR (u.designationId <> 1))"
-//			+ "order by u.firstName asc")
-//	List<UserActiveDTO> findActiveUsers(int clientId,int categoryId);
-	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
-		       "FROM UserLoginEntity u " +
-		       "WHERE u.status = 1 " +
-		       "AND ( " +
-		       "    u.userId IN ( " +
-		       "        SELECT ul.userId " +
-		       "        FROM UserLoginEntity ul " +
-		       "        WHERE ul.departmentId = ( " +
-		       "            SELECT tc.departmentId " +
-		       "            FROM TaskCategoryEntity tc " +
-		       "            WHERE tc.taskcategoryId = :categoryId " +
-		       "        ) " +
-		       "    ) " +
-		       "    OR " +
-		       "    u.userId = ( " +
-		       "        SELECT c.managerId " +
-		       "        FROM ClientEntity c " +
-		       "        WHERE c.clientId = :clientId " +
-		       "    ) " +
-		       ") " +
-		       "ORDER BY u.firstName ASC")
-		List<UserActiveDTO> findActiveUsers(int clientId, int categoryId);
+
+//	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
+//		       "FROM UserLoginEntity u " +
+//		       "WHERE u.status = 1 " +
+//		       "AND ( " +
+//		       "    u.userId IN ( " +
+//		       "        SELECT ul.userId " +
+//		       "        FROM UserLoginEntity ul " +
+//		       "        WHERE ul.departmentId = ( " +
+//		       "            SELECT tc.departmentId " +
+//		       "            FROM TaskCategoryEntity tc " +
+//		       "            WHERE tc.taskcategoryId = :categoryId " +
+//		       "        ) " +
+//		       "    ) " +
+//		       "    OR " +
+//		       "    u.userId = ( " +
+//		       "        SELECT c.managerId " +
+//		       "        FROM ClientEntity c " +
+//		       "        WHERE c.clientId = :clientId " +
+//		       "    ) " +
+//		       ") " +
+//		       "ORDER BY u.firstName ASC")
+//		List<UserActiveDTO> findActiveUsers(int clientId, int categoryId);
+	
+	@Query( "SELECT new com.webelement.taskapp.dto.UserActiveDTO(" + " u.userId, " + " u.firstName" + ") " + "FROM UserLoginEntity u " + "WHERE u.status = 1 " + "AND ( " + 
+	" u.userId IN ( " + " SELECT ul.userId " + " FROM UserLoginEntity ul " + 
+	" WHERE ul.departmentId = ( " + " SELECT tc.departmentId " + 
+	" FROM TaskCategoryEntity tc " + " WHERE tc.taskcategoryId = :categoryId " + " ) " + 
+	" AND FUNCTION('FIND_IN_SET', " + " :categoryId, " + " ul.taskcategoryIds" + " ) > 0 " + 
+	" ) " + " OR " + 
+	" u.userId = ( " + " SELECT c.managerId " + " FROM ClientEntity c " + " WHERE c.clientId = :clientId " + " ) " + ") " + "ORDER BY u.firstName ASC" ) List<UserActiveDTO> findActiveUsers( int clientId, int categoryId );
+
 	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
@@ -168,5 +173,11 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.email) = LOWER(:email)")
     Optional<Integer> findIdByEmail(@Param("email") String email);
+	
+	@Query(value = "SELECT COUNT(*) FROM t_userlogin " +
+            "WHERE i_status = 1 " +
+            "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')",
+    nativeQuery = true)
+Integer countActiveUsersUsingTaskCategory(@Param("taskcategoryId") Integer taskcategoryId);
 
 }

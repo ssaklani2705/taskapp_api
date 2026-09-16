@@ -33,6 +33,7 @@ import com.webelement.taskapp.Exceptions.FileValidationException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.controller.TaskMailService;
+import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
@@ -57,6 +58,46 @@ public class TaskServiceImpl implements TaskService {
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
+	
+	
+
+	    @Override
+	    public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
+	            Integer taskId,
+	            Integer assignedTo) {
+
+	        Optional<TaskEntity> optionalTask =
+	                taskRepository.findById(taskId);
+
+	        if (optionalTask.isEmpty()) {
+
+	            return ResponseEntity
+	                    .status(HttpStatus.NOT_FOUND)
+	                    .body(new ApiResponse<>(
+	                            false,
+	                            "Task not found",
+	                            null
+	                    ));
+	        }
+
+	        TaskEntity task = optionalTask.get();
+
+	        // Update only assigned user
+	        task.setAssignedTo(assignedTo);
+
+	        // Update modification date
+	        task.setModificationDate(LocalDateTime.now());
+
+	        taskRepository.save(task);
+
+	        return ResponseEntity.ok(
+	                new ApiResponse<>(
+	                        true,
+	                        "User assigned successfully",
+	                        null
+	                )
+	        );
+	    }
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,

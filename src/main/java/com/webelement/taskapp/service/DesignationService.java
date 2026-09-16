@@ -458,7 +458,9 @@ public class DesignationService {
         // -----------------------------------------------------
         // CHECK IF DESIGNATION IS IN USE (any status - active/inactive)
         // -----------------------------------------------------
-        boolean isDesignationInUse = userLoginRepository.existsByDesignationId(desigmationId);
+//        boolean isDesignationInUse = userLoginRepository.existsByDesignationId(desigmationId);
+        boolean isDesignationInUse =
+                userLoginRepository.existsByDesignationIdAndStatusNot(desigmationId, 3);
         if (isDesignationInUse) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)

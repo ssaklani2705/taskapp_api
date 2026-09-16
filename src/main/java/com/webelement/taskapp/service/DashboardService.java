@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,9 +97,15 @@ public class DashboardService {
 				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
 				.collect(Collectors.toList());
 
+//		List<TaskEntity> inProgressTasks = tasks.stream()
+//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
+//				.collect(Collectors.toList());
 		List<TaskEntity> inProgressTasks = tasks.stream()
-				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
-				.collect(Collectors.toList());
+		        .filter(task -> task.getTaskStatus() != null
+		                && Arrays.asList((short) 2, (short) 3, (short) 4)
+		                          .contains(task.getTaskStatus()))
+		        .collect(Collectors.toList());
+
 
 		List<TaskEntity> doneTasks = tasks.stream()
 				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)

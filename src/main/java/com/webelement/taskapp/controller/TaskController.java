@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -33,9 +35,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webelement.taskapp.common.ResponseApi;
+import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRequestDTO;
+import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.entity.TaskEntity;
@@ -61,6 +65,17 @@ public class TaskController {
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
 	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
+	
+	
+	@PutMapping("/updateAssignedUser")
+	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
+	        @RequestBody UpdateTaskAssignedUserDTO request) {
+
+	    return taskService.updateTaskAssignedUser(
+	            request.getTaskId(),
+	            request.getAssignedTo()
+	    );
+	}
 
 	@PostMapping("/deleteTask")
 	public ResponseEntity<ResponseApi<String>> deleteTask(@RequestParam int taskId, @RequestParam int createdBy,

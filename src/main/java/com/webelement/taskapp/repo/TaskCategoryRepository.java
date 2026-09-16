@@ -42,7 +42,7 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 			+ "FROM TaskCategoryEntity t " + "LEFT JOIN DepartmentEntity d " + "ON d.departmentId = t.departmentId "
 			+ "WHERE t.taskcategoryId > 0 " + "AND ( :statusIndex IS NULL OR :statusIndex = 0 OR t.status = :statusIndex) "
 			+ "AND (:departmentId = 0 OR t.departmentId = :departmentId) " + "AND (:search IS NULL OR :search = '' "
-			+ "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))) " + "ORDER BY t.status, t.name")
+			+ "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))) " + "ORDER BY t.status, t.regdate,t.name")
 	Page<TaskCategoryDTO> findTaskCategoryDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("departmentId") int departmentId);
 
@@ -58,7 +58,7 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO(" +
 	           "t.taskcategoryId, t.name) " +
 	           "FROM TaskCategoryEntity t " +
-	           "WHERE t.departmentId = :departmentId")
+	           "WHERE t.departmentId = :departmentId AND status =1 order by t.name ASC ")
 	    List<TaskCategoryDTO> findCategoriesByDepartmentId(
 	            @Param("departmentId") Integer departmentId);
 }

@@ -43,7 +43,10 @@ public interface StateRepo extends JpaRepository<StateEntity, Integer>{
     	    "FROM StateEntity s " +
     	    "WHERE s.stateId > 0 " +
     	    "AND (:statusIndex = 0 OR s.status = :statusIndex) " +
-    	    "AND LOWER(COALESCE(s.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    	    "AND (" +
+    	    "  LOWER(COALESCE(s.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    	    "  OR LOWER(COALESCE(s.code, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    	    ") " +
     	    "ORDER BY s.status, s.name"
     	)
     	Page<StateDTO> findStateDetails(

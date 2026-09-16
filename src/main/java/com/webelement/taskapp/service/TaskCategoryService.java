@@ -22,6 +22,7 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
+import com.webelement.taskapp.repo.UserLoginRepository;
 
 @Service
 public class TaskCategoryService {
@@ -34,6 +35,9 @@ public class TaskCategoryService {
 
 	@Autowired
 	private CommonFunction commonFunction;
+	
+	@Autowired
+	private UserLoginRepository userLoginRepository;
 
 	public ApiResponse<TaskCategoryDTO> addOrUpdate(TaskCategoryDTO dto, HttpServletRequest httpRequest) {
 
@@ -181,6 +185,12 @@ public class TaskCategoryService {
 		if (taskCategoryExist != null && taskCategoryExist > 0) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
 					"Task Category is assigned to one or more task and cannot be deleted", null));
+		}
+		
+		Integer userUsageCount = userLoginRepository.countActiveUsersUsingTaskCategory(taskcategoryId);
+		if (userUsageCount != null && userUsageCount > 0) {
+		    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
+		            "Task Category is assigned to one or more active users and cannot be deleted", null));
 		}
 
 		Optional<TaskCategoryEntity> existing = taskCategoryRepository.findById(taskcategoryId);
