@@ -272,32 +272,32 @@ public class DashboardService {
 	}
 
 	// NEW
-	public int countOfActiveTask() {
-		return taskRepository.countOfActiveTask();
+	public int countOfActiveTask(Integer clientId) {
+		return taskRepository.countOfActiveTask(clientId);
 	}
 
-	public int countOfCompletedTask() {
-		return taskRepository.countOfCompletedTask();
+	public int countOfCompletedTask(Integer clientId) {
+		return taskRepository.countOfCompletedTask(clientId);
 	}
 
-	public int countOfPendingTask() {
-		return taskRepository.countOfPendingTask();
+	public int countOfPendingTask(Integer clientId) {
+		return taskRepository.countOfPendingTask(clientId);
 	}
 
-	public int countOfAssignedTask() {
-		return taskRepository.countOfAssignedTask();
+	public int countOfAssignedTask(Integer clientId) {
+		return taskRepository.countOfAssignedTask(clientId);
 	}
 
-	public int countOfAssigneeClosureTask() {
-		return taskRepository.countOfAssigneeClosureTask();
+	public int countOfAssigneeClosureTask(Integer clientId) {
+		return taskRepository.countOfAssigneeClosureTask(clientId);
 	}
 
-	public int countOfReOpenTask() {
-		return taskRepository.countOfReOpenTask();
+	public int countOfReOpenTask(Integer clientId) {
+		return taskRepository.countOfReOpenTask(clientId);
 	}
 
-	public int countOfAssigneeReClosureTask() {
-		return taskRepository.countOfAssigneeReClosureTask();
+	public int countOfAssigneeReClosureTask(Integer clientId) {
+		return taskRepository.countOfAssigneeReClosureTask(clientId);
 	}
 
 }

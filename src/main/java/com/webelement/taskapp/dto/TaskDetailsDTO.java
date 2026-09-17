@@ -71,3 +71,4 @@ public class TaskDetailsDTO {
 			this.taskCategoryId = taskCategoryId;
 		}
 }
+

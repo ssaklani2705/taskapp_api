@@ -67,7 +67,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-		       "ORDER BY u.status,u.regDate, u.firstName")
+		       "ORDER BY u.status,u.regDate DESC, u.firstName")
 		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
 				int departmentId,int designationId);
 

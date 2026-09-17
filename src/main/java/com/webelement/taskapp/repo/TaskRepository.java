@@ -128,116 +128,106 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	// String loginType);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO("
-			+ "t.taskId,c.managerId, "
-			+ "c.name, "
-			+ "t.date, "
-			+ "tc.duedatetime, "
-			+ "tc.name, "
-			+ "COALESCE(u.firstName, '0'), "
-			+ "t.priority, "
-			+ "t.status, "
-			+ "t.title, "
-			+ "t.taskStatus, "
-			+ "t.assignedTo, "
-			+ "t.addedBy, "
-			+ "u1.firstName, "
-			+ "t.description, "
-			+ "t.clientId, "
-			+ "t.taskCategoryId"
-			+ ") "
+	        + "t.taskId, c.managerId, "
+	        + "c.name, "
+	        + "t.date, "
+	        + "tc.duedatetime, "
+	        + "tc.name, "
+	        + "COALESCE(u.firstName, '0'), "
+	        + "COALESCE(t.priority, 0), "
+	        + "t.status, "
+	        + "t.title, "
+	        + "t.taskStatus, "
+	        + "COALESCE(t.assignedTo, 0), "
+	        + "COALESCE(t.addedBy, 0), "
+	        + "u1.firstName, "
+	        + "t.description, "
+	        + "t.clientId, "
+	        + "t.taskCategoryId"
+	        + ") "
 
-			+ "FROM TaskEntity t "
+	        + "FROM TaskEntity t "
 
-			+ "LEFT JOIN ClientEntity c "
-			+ "ON c.clientId = t.clientId "
+	        + "LEFT JOIN ClientEntity c "
+	        + "ON c.clientId = t.clientId "
 
-			+ "LEFT JOIN TaskCategoryEntity tc "
-			+ "ON tc.taskcategoryId = t.taskCategoryId "
+	        + "LEFT JOIN TaskCategoryEntity tc "
+	        + "ON tc.taskcategoryId = t.taskCategoryId "
 
-			+ "LEFT JOIN UserLoginEntity u "
-			+ "ON u.userId = t.assignedTo "
+	        + "LEFT JOIN UserLoginEntity u "
+	        + "ON u.userId = t.assignedTo "
 
-			+ "LEFT JOIN UserLoginEntity u1 "
-			+ "ON u1.userId = t.addedBy "
+	        + "LEFT JOIN UserLoginEntity u1 "
+	        + "ON u1.userId = t.addedBy "
 
-			+ "WHERE t.taskId > 0 "
+	        + "WHERE t.taskId > 0 "
 
-			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) "
+	        + "AND (:statusIndex = 0 OR t.status = :statusIndex) "
 
-			+ "AND ("
-			+ "    :search IS NULL "
-			+ "    OR :search = '' "
-			+ "    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "    OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "    OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))"
-			+ ") "
+	        + "AND ("
+	        + "    :search IS NULL "
+	        + "    OR :search = '' "
+	        + "    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "    OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "    OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))"
+	        + ") "
 
-			+ "AND (:clientId = 0 OR t.clientId = :clientId) "
+	        + "AND (:clientId = 0 OR t.clientId = :clientId) "
 
-			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
+	        + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
 
-			+ "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
+	        + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
 
-			+ "AND (:priority = 0 OR t.priority = :priority) "
+	        + "AND (:priority = 0 OR t.priority = :priority) "
 
-			+ "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
+	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
 
-			+ "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
+	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
 
-			+ "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
+	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
 
-			+ "AND ("
+	        + "AND ("
 
-			// =====================================================
-			// MANAGER LOGIN
-			// =====================================================
-			+ "    ("
-			+ "        :loginType = 'manager' "
-			+ "        AND ("
-			+ "            t.assignedTo = :userId "
-			+ "            OR t.addedBy = :userId "
-			+ "            OR c.managerId = :userId"
-			+ "        )"
-			+ "    ) "
+	        + "    ("
+	        + "        :loginType = 'manager' "
+	        + "        AND ("
+	        + "            t.assignedTo = :userId "
+	        + "            OR t.addedBy = :userId "
+	        + "            OR c.managerId = :userId"
+	        + "        )"
+	        + "    ) "
 
-			+ "    OR "
+	        + "    OR "
 
-			// =====================================================
-			// NON-MANAGER LOGIN
-			// =====================================================
-			+ "    ("
-			+ "        :loginType <> 'manager' "
-			+ "        AND ("
+	        + "    ("
+	        + "        :loginType <> 'manager' "
+	        + "        AND ("
 
-			// ADMIN
-			+ "            :isAdmin = 'Y' "
+	        + "            :isAdmin = 'Y' "
 
-			// Assigned to logged-in user
-			+ "            OR t.assignedTo = :userId "
+	        + "            OR t.assignedTo = :userId "
 
-			// Added by logged-in user
-			+ "            OR t.addedBy = :userId "
+	        + "            OR t.addedBy = :userId "
 
-			// Category-wise unassigned tasks
-			+ "            OR ("
-			+ "                :isAdmin <> 'Y' "
-			+ "                AND t.assignedTo = 0 "
-			+ "                AND EXISTS ("
-			+ "                    SELECT 1 "
-			+ "                    FROM UserLoginEntity ul "
-			+ "                    WHERE ul.userId = :userId "
-			+ "                    AND CONCAT(',', ul.taskcategoryIds, ',') "
-			+ "                        LIKE CONCAT('%,', t.taskCategoryId, ',%')"
-			+ "                )"
-			+ "            )"
+	        + "            OR ("
+	        + "                :isAdmin <> 'Y' "
+	        + "                AND t.assignedTo = 0 "
+	        + "                AND EXISTS ("
+	        + "                    SELECT 1 "
+	        + "                    FROM UserLoginEntity ul "
+	        + "                    WHERE ul.userId = :userId "
+	        + "                    AND CONCAT(',', ul.taskcategoryIds, ',') "
+	        + "                        LIKE CONCAT('%,', t.taskCategoryId, ',%')"
+	        + "                )"
+	        + "            )"
 
-			+ "        )"
-			+ "    )"
+	        + "        )"
+	        + "    )"
 
-			+ ") "
+	        + ") "
 
-			+ "ORDER BY t.status ASC, tc.duedatetime ASC, t.title ASC ")
+	        + "ORDER BY t.status ASC, tc.duedatetime ASC, t.title ASC ")
 	Page<TaskDetailsDTO> findTaskDetails(
 			PageRequest pageable,
 			@Param("statusIndex") int statusIndex,
@@ -298,26 +288,26 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			@Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
 
 	// NEW
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1")
-	int countOfActiveTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfActiveTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1")
-	int countOfCompletedTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfCompletedTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1")
-	int countOfPendingTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfPendingTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1")
-	int countOfAssignedTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfAssignedTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1")
-	int countOfAssigneeClosureTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfAssigneeClosureTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1")
-	int countOfReOpenTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfReOpenTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1")
-	int countOfAssigneeReClosureTask();
+	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+	int countOfAssigneeReClosureTask(@Param("clientId") Integer clientId);
 
 	// For CREATE: any task with same title for this client
 	boolean existsByTitleIgnoreCaseAndClientId(String title, Integer clientId);

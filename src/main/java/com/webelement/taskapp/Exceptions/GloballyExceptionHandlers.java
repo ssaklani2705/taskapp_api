@@ -26,6 +26,6 @@ public class GloballyExceptionHandlers {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResponseApi<String>> handleException(Exception ex) {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(new ResponseApi<>(false, "Something went wrong", null));
+				.body(new ResponseApi<>(false, "Something went wrong", ex.getMessage()));
 	}
 }

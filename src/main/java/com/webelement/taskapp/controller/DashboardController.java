@@ -115,11 +115,11 @@ public class DashboardController {
 	    }
 
     @GetMapping("/countOfActiveTask")
-    public ResponseEntity<Map<String, Object>> countOfActiveTask() {
+    public ResponseEntity<Map<String, Object>> countOfActiveTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfActiveTask();
+        int count = taskService.countOfActiveTask(clientId);
 
         map.put("count", count);
 
@@ -127,11 +127,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfCompletedTask")
-    public ResponseEntity<Map<String, Object>> countOfCompletedTask() {
+    public ResponseEntity<Map<String, Object>> countOfCompletedTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfCompletedTask();
+        int count = taskService.countOfCompletedTask(clientId);
 
         map.put("count", count);
 
@@ -139,11 +139,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfPendingTask")
-    public ResponseEntity<Map<String, Object>> countOfPendingTask() {
+    public ResponseEntity<Map<String, Object>> countOfPendingTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfPendingTask();
+        int count = taskService.countOfPendingTask(clientId);
 
         map.put("count", count);
 
@@ -151,11 +151,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssignedTask")
-    public ResponseEntity<Map<String, Object>> countOfAssignedTask() {
+    public ResponseEntity<Map<String, Object>> countOfAssignedTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssignedTask();
+        int count = taskService.countOfAssignedTask(clientId);
 
         map.put("count", count);
 
@@ -163,11 +163,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssigneeClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask() {
+    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssigneeClosureTask();
+        int count = taskService.countOfAssigneeClosureTask(clientId);
 
         map.put("count", count);
 
@@ -175,11 +175,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfReOpenTask")
-    public ResponseEntity<Map<String, Object>> countOfReOpenTask() {
+    public ResponseEntity<Map<String, Object>> countOfReOpenTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfReOpenTask();
+        int count = taskService.countOfReOpenTask(clientId);
 
         map.put("count", count);
 
@@ -187,11 +187,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssigneeReClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask() {
+    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssigneeReClosureTask();
+        int count = taskService.countOfAssigneeReClosureTask(clientId);
 
         map.put("count", count);
 
