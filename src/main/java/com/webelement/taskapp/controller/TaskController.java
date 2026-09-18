@@ -73,7 +73,8 @@ public class TaskController {
 
 	    return taskService.updateTaskAssignedUser(
 	            request.getTaskId(),
-	            request.getAssignedTo()
+	            request.getAssignedTo(),
+	            request.getUserId()
 	    );
 	}
 
@@ -140,10 +141,6 @@ public class TaskController {
 		                .map(Short::valueOf)
 		                .collect(Collectors.toCollection(LinkedHashSet::new));
 		    }
-		  
-		  
-		  
-		  
 		  
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
 				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType);

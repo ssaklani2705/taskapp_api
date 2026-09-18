@@ -137,7 +137,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "COALESCE(t.priority, 0), "
 	        + "t.status, "
 	        + "t.title, "
-	        + "t.taskStatus, "
+	        + "COALESCE(t.taskStatus, 0), "
 	        + "COALESCE(t.assignedTo, 0), "
 	        + "COALESCE(t.addedBy, 0), "
 	        + "u1.firstName, "
@@ -182,6 +182,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "AND (:priority = 0 OR t.priority = :priority) "
 
 	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
+//	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds OR t.taskStatus IS NULL)"
 
 	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
 
@@ -212,7 +213,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 	        + "            OR ("
 	        + "                :isAdmin <> 'Y' "
-	        + "                AND t.assignedTo = 0 "
+	        + "                AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+//	        + "                AND t.assignedTo = 0 "
 	        + "                AND EXISTS ("
 	        + "                    SELECT 1 "
 	        + "                    FROM UserLoginEntity ul "

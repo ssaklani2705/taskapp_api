@@ -10,4 +10,6 @@ public class UpdateTaskAssignedUserDTO {
     private Integer taskId;
 
     private Integer assignedTo;
+    
+    private Integer userId;
 }

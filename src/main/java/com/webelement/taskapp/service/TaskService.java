@@ -14,7 +14,7 @@ public interface TaskService {
 	
 	ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
 	        Integer taskId,
-	        Integer assignedTo);
+	        Integer assignedTo,Integer userId);
 
 	TaskEntity updateTaskStatus(UpdateTaskStatusDTO request) throws Exception;
 

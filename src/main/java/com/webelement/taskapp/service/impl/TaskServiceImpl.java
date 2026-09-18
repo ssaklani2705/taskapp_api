@@ -64,7 +64,7 @@ public class TaskServiceImpl implements TaskService {
 	    @Override
 	    public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
 	            Integer taskId,
-	            Integer assignedTo) {
+	            Integer assignedTo,Integer userId) {
 
 	        Optional<TaskEntity> optionalTask =
 	                taskRepository.findById(taskId);
@@ -84,6 +84,7 @@ public class TaskServiceImpl implements TaskService {
 
 	        // Update only assigned user
 	        task.setAssignedTo(assignedTo);
+	        task.setAddedBy(userId);
 
 	        // Update modification date
 	        task.setModificationDate(LocalDateTime.now());
