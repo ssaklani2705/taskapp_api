@@ -96,7 +96,7 @@ public class AuthService {
 					UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(),
 							httpRequest);
 					LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-							accessLogEntity.getLogId(), permission, modules);
+							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules);
 					session.removeAttribute("captcha");
 					return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
 				} else {
@@ -182,8 +182,9 @@ public class AuthService {
 			String mobileNo = (String) row.get("s_mobileno");
 			Integer i_status = ((Number) row.get("d_expirydate")).intValue();
 			String s_permission = (String) row.get("s_permission");
+			String designationName  = (String) row.get("designationName");
 
-			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission);
+			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission,designationName);
 		}
 		return info;
 	}

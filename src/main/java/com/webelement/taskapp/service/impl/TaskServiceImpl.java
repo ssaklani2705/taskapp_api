@@ -85,6 +85,7 @@ public class TaskServiceImpl implements TaskService {
 	        // Update only assigned user
 	        task.setAssignedTo(assignedTo);
 	        task.setAddedBy(userId);
+	        task.setTaskStatus((short) 1);
 
 	        // Update modification date
 	        task.setModificationDate(LocalDateTime.now());
@@ -278,6 +279,51 @@ public class TaskServiceImpl implements TaskService {
 	// SAVE FILE
 	// =========================================================
 
+	private String saveFileNew(MultipartFile file, String type, String statusPrefix) throws IOException {
+
+	    Path directory = Paths.get(uploadDir, type);
+
+	    Files.createDirectories(directory);
+
+	    String originalName = file.getOriginalFilename();
+
+	    String extension = "";
+	    String fileNameWithoutExtension = "file";
+
+	    if (originalName != null && !originalName.trim().isEmpty()) {
+
+	        int index = originalName.lastIndexOf(".");
+
+	        if (index >= 0) {
+	            extension = originalName.substring(index);
+	            fileNameWithoutExtension = originalName.substring(0, index);
+	        } else {
+	            fileNameWithoutExtension = originalName;
+	        }
+	    }
+
+	    // Clean original file name
+	    fileNameWithoutExtension = fileNameWithoutExtension
+	            .replaceAll("[^a-zA-Z0-9_-]", "_");
+
+	    String newFileName = statusPrefix
+	            + "_"
+	            + System.currentTimeMillis()
+	            + "_"
+	            + fileNameWithoutExtension
+	            + extension;
+
+	    Path target = directory.resolve(newFileName);
+
+	    Files.copy(
+	            file.getInputStream(),
+	            target,
+	            StandardCopyOption.REPLACE_EXISTING
+	    );
+
+	    return newFileName;
+	}
+	
 	private String saveFile(MultipartFile file, String type) throws IOException {
 
 		Path directory = Paths.get(uploadDir, type);
@@ -333,67 +379,207 @@ public class TaskServiceImpl implements TaskService {
 					.body(new ResponseApi<>(false, "Failed to delete task", null));
 		}
 	}
-
+	
 	@Transactional
 	@Override
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
-		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
-				.orElseThrow(() -> new RuntimeException("Task not found"));
 
-//		boolean disabled = canDisableChangeManager(task, dto.getUserId());
-//		if (disabled) {
-//			throw new RuntimeException("You are not allowed to change this task's status.");
-//		}
-		Short currentStatus = task.getTaskStatus();
-		Short nextStatus;
+	    TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
 
-		if (currentStatus == 2 || currentStatus == 4) {
-			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
-			if (selectedStatus == 3) {
-				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
-				if (reopenCount >= 3) {
-					throw new RuntimeException("Task can only be reopened 3 times.");
-				}
-				task.setReopenCount(reopenCount + 1);
-			}
-			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
-			if (nextStatus == null) {
-				throw new RuntimeException("Please select a valid task status.");
-			}
-		} else {
-			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
-			if (nextStatus == null) {
-				if (currentStatus == 5) {
-					throw new RuntimeException("This task is already closed and cannot be updated.");
-				}
-				throw new RuntimeException("Invalid task status: " + currentStatus);
-			}
-		}
-		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
-		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
-		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
-		task.setTaskStatus(nextStatus);
-		task.setCloseRemarks(dto.getDescription());
-		task.setModificationDate(LocalDateTime.now());
-		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-			validatePdf(dto.getFileName3());
-			String pdfFileName = saveFile(dto.getFileName3(), "pdf");
-			task.setFileName3(pdfFileName);
-		}
-		// ZIP Upload
-		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-			validateZip(dto.getFileName4());
-			String zipFileName = saveFile(dto.getFileName4(), "zip");
-			task.setFileName4(zipFileName);
-		}
+	//  boolean disabled = canDisableChangeManager(task, dto.getUserId());
+	//  if (disabled) {
+//	      throw new RuntimeException("You are not allowed to change this task's status.");
+	//  }
 
-		TaskEntity savedTask = taskRepository.save(task);
-		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
-		logger.debug("Sending mail over here ", savedTask.toString());
-		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus); // send mail over here
-		return savedTask;
+	    Short currentStatus = task.getTaskStatus();
+	    Short nextStatus;
+
+	    if (currentStatus == 2 || currentStatus == 4) {
+
+	        Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+
+	        if (selectedStatus == 3) {
+
+	            Integer reopenCount =
+	                    task.getReopenCount() == null ? 1 : task.getReopenCount();
+
+	            if (reopenCount >= 3) {
+	                throw new RuntimeException("Task can only be reopened 3 times.");
+	            }
+
+	            task.setReopenCount(reopenCount + 1);
+	        }
+
+	        nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
+
+	        if (nextStatus == null) {
+	            throw new RuntimeException("Please select a valid task status.");
+	        }
+
+	    } else {
+
+	        nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
+
+	        if (nextStatus == null) {
+
+	            if (currentStatus == 5) {
+	                throw new RuntimeException(
+	                        "This task is already closed and cannot be updated.");
+	            }
+
+	            throw new RuntimeException(
+	                    "Invalid task status: " + currentStatus);
+	        }
+	    }
+
+
+	    String oldStatus = TaskConstants.STATUS_LABELS
+	            .getOrDefault(currentStatus, "Unknown");
+
+	    String newStatus = TaskConstants.STATUS_LABELS
+	            .getOrDefault(nextStatus, "Unknown");
+
+
+	    // Convert status name into filename format
+	    // Example: Assignor Closure -> ASSIGNOR_CLOSURE
+	    String statusPrefix = newStatus.trim()
+	            .replaceAll("\\s+", "_")
+	            .replaceAll("[^a-zA-Z0-9_]", "")
+	            .toUpperCase();
+
+
+	    String actionMessage =
+	            "Task status updated from "
+	            + oldStatus
+	            + " to "
+	            + newStatus
+	            + ".";
+
+
+	    task.setTaskStatus(nextStatus);
+	    task.setCloseRemarks(dto.getDescription());
+	    task.setModificationDate(LocalDateTime.now());
+
+
+	    // PDF Upload
+	    if (dto.getFileName3() != null
+	            && !dto.getFileName3().isEmpty()) {
+
+	        validatePdf(dto.getFileName3());
+
+	        String pdfFileName = saveFileNew(
+	                dto.getFileName3(),
+	                "pdf",
+	                statusPrefix
+	        );
+
+	        task.setFileName3(pdfFileName);
+	    }
+
+
+	    // ZIP Upload
+	    if (dto.getFileName4() != null
+	            && !dto.getFileName4().isEmpty()) {
+
+	        validateZip(dto.getFileName4());
+
+	        String zipFileName = saveFileNew(
+	                dto.getFileName4(),
+	                "zip",
+	                statusPrefix
+	        );
+
+	        task.setFileName4(zipFileName);
+	    }
+
+
+	    TaskEntity savedTask = taskRepository.save(task);
+
+
+	    commonFunction.createHistoryAccess(
+	            dto.getUserId(),
+	            commonFunction.resolveClientIp(httpRequest),
+	            commonFunction.getLocalIp(),
+	            actionMessage,
+	            10,
+	            savedTask.getTaskId(),
+	            -1
+	    );
+
+
+	    logger.debug("Sending mail over here {}", savedTask.toString());
+
+	    taskMailService.sendTaskStatusMail(
+	            savedTask,
+	            oldStatus,
+	            newStatus
+	    );
+
+
+	    return savedTask;
 	}
+
+//	@Transactional
+//	@Override
+//	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
+//		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
+//				.orElseThrow(() -> new RuntimeException("Task not found"));
+//
+////		boolean disabled = canDisableChangeManager(task, dto.getUserId());
+////		if (disabled) {
+////			throw new RuntimeException("You are not allowed to change this task's status.");
+////		}
+//		Short currentStatus = task.getTaskStatus();
+//		Short nextStatus;
+//
+//		if (currentStatus == 2 || currentStatus == 4) {
+//			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+//			if (selectedStatus == 3) {
+//				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
+//				if (reopenCount >= 3) {
+//					throw new RuntimeException("Task can only be reopened 3 times.");
+//				}
+//				task.setReopenCount(reopenCount + 1);
+//			}
+//			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
+//			if (nextStatus == null) {
+//				throw new RuntimeException("Please select a valid task status.");
+//			}
+//		} else {
+//			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
+//			if (nextStatus == null) {
+//				if (currentStatus == 5) {
+//					throw new RuntimeException("This task is already closed and cannot be updated.");
+//				}
+//				throw new RuntimeException("Invalid task status: " + currentStatus);
+//			}
+//		}
+//		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+//		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
+//		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
+//		task.setTaskStatus(nextStatus);
+//		task.setCloseRemarks(dto.getDescription());
+//		task.setModificationDate(LocalDateTime.now());
+//		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
+//			validatePdf(dto.getFileName3());
+//			String pdfFileName = saveFileNew(dto.getFileName3(), "pdf",statusPrefix);
+//			task.setFileName3(pdfFileName);
+//		}
+//		// ZIP Upload
+//		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
+//			validateZip(dto.getFileName4());
+//			String zipFileName = saveFileNew(dto.getFileName4(), "zip");
+//			task.setFileName4(zipFileName);
+//		}
+//
+//		TaskEntity savedTask = taskRepository.save(task);
+//		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+//				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
+//		logger.debug("Sending mail over here ", savedTask.toString());
+//		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus); // send mail over here
+//		return savedTask;
+//	}
 
 	@Override
 	public boolean canDisableChangeManager(TaskEntity task, Integer userId) {
