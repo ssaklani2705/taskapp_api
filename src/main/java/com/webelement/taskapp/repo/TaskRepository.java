@@ -1,6 +1,8 @@
 package com.webelement.taskapp.repo;
 
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -145,105 +147,97 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "t.clientId, "
 	        + "t.taskCategoryId"
 	        + ") "
-
 	        + "FROM TaskEntity t "
-
-	        + "LEFT JOIN ClientEntity c "
-	        + "ON c.clientId = t.clientId "
-
-	        + "LEFT JOIN TaskCategoryEntity tc "
-	        + "ON tc.taskcategoryId = t.taskCategoryId "
-
-	        + "LEFT JOIN UserLoginEntity u "
-	        + "ON u.userId = t.assignedTo "
-
-	        + "LEFT JOIN UserLoginEntity u1 "
-	        + "ON u1.userId = t.addedBy "
-
+	        + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+	        + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+	        + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+	        + "LEFT JOIN UserLoginEntity u1 ON u1.userId = t.addedBy "
 	        + "WHERE t.taskId > 0 "
-
 	        + "AND (:statusIndex = 0 OR t.status = :statusIndex) "
-
 	        + "AND ("
-	        + "    :search IS NULL "
-	        + "    OR :search = '' "
-	        + "    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "    OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "    OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "    OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))"
+	        + "     :search IS NULL "
+	        + "     OR :search = '' "
+	        + "     OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "     OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "     OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "     OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))"
 	        + ") "
-
 	        + "AND (:clientId = 0 OR t.clientId = :clientId) "
-
 	        + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
-
 	        + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
-
 	        + "AND (:priority = 0 OR t.priority = :priority) "
-
 	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
-//	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds OR t.taskStatus IS NULL)"
-
 	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
-
 	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
 
-	        + "AND ("
+	        // Dashboard Filter
+	        + "AND ( "
+	        + "     :dashboardFilter IS NULL "
+	        + "     OR :dashboardFilter = '' "
 
-	        + "    ("
-	        + "        :loginType = 'manager' "
-	        + "        AND ("
-	        + "            t.assignedTo = :userId "
-	        + "            OR t.addedBy = :userId "
-	        + "            OR c.managerId = :userId"
-	        + "        )"
-	        + "    ) "
+	        + "     OR ( "
+	        + "          :dashboardFilter = 'today' "
+	        + "          AND t.date >= :startOfToday "
+	        + "          AND t.date < :startOfTomorrow "
+	        + "        ) "
 
-	        + "    OR "
+	        + "     OR ( "
+	        + "          :dashboardFilter = 'week' "
+	        + "          AND (t.taskStatus IS NULL OR t.taskStatus <> 5) "
+	        + "          AND t.date >= :startOfWeek "
+	        + "          AND t.date <= :endOfWeek "
+	        + "        ) "
 
-	        + "    ("
-	        + "        :loginType <> 'manager' "
-	        + "        AND ("
-
-	        + "            :isAdmin = 'Y' "
-
-	        + "            OR t.assignedTo = :userId "
-
-	        + "            OR t.addedBy = :userId "
-
-	        + "            OR ("
-	        + "                :isAdmin <> 'Y' "
-	        + "                AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
-//	        + "                AND t.assignedTo = 0 "
-	        + "                AND EXISTS ("
-	        + "                    SELECT 1 "
-	        + "                    FROM UserLoginEntity ul "
-	        + "                    WHERE ul.userId = :userId "
-	        + "                    AND CONCAT(',', ul.taskcategoryIds, ',') "
-	        + "                        LIKE CONCAT('%,', t.taskCategoryId, ',%')"
-	        + "                )"
-	        + "            )"
-
-	        + "        )"
-	        + "    )"
-
+	        + "     OR ( "
+	        + "          :dashboardFilter = 'overdue' "
+	        + "          AND (t.taskStatus IS NULL OR t.taskStatus <> 5) "
+	        + "			AND tc.duedatetime IS NOT NULL "
+	        + "        AND FUNCTION('TIMESTAMPADD', HOUR, "
+	        		+ "           CAST(tc.duedatetime AS integer), t.date) < :currentTime "
+	        + "        ) "
 	        + ") "
 
-	        + "ORDER BY t.status ASC, tc.duedatetime ASC, t.title ASC ")
-	Page<TaskDetailsDTO> findTaskDetails(
-			PageRequest pageable,
-			@Param("statusIndex") int statusIndex,
-			@Param("search") String search,
-			@Param("clientId") Integer clientId,
-			@Param("taskCategoryId") Integer taskCategoryId,
-			@Param("assignedTo") Integer assignedTo,
-			@Param("priority") Integer priority,
-			@Param("fromDate") String fromDate,
-			@Param("toDate") String toDate,
-			@Param("isAdmin") String isAdmin,
-			@Param("userId") Integer userId,
-			@Param("taskStatusIds") Set<Integer> taskStatusIds,
-			@Param("loginType") String loginType);
+	        + "AND ( "
+	        + "     ( "
+	        + "          :loginType = 'manager' "
+	        + "          AND ( "
+	        + "               t.assignedTo = :userId "
+	        + "               OR t.addedBy = :userId "
+	        + "               OR c.managerId = :userId "
+	        + "          ) "
+	        + "     ) "
+	        + "     OR "
+	        + "     ( "
+	        + "          :loginType <> 'manager' "
+	        + "          AND ( "
+	        + "               :isAdmin = 'Y' "
+	        + "               OR t.assignedTo = :userId "
+	        + "               OR t.addedBy = :userId "
+	        + "               OR ( "
+	        + "                    :isAdmin <> 'Y' "
+	        + "                    AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+	        + "                    AND EXISTS ( "
+	        + "                         SELECT 1 "
+	        + "                         FROM UserLoginEntity ul "
+	        + "                         WHERE ul.userId = :userId "
+	        + "                         AND CONCAT(',', ul.taskcategoryIds, ',') "
+	        + "                             LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+	        + "                    ) "
+	        + "               ) "
+	        + "          ) "
+	        + "     ) "
+	        + ") "
+	        + "ORDER BY t.status ASC, tc.duedatetime ASC, t.title ASC")
+	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search, @Param("clientId") Integer clientId,
+			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,
+			@Param("priority") Integer priority, @Param("fromDate") String fromDate, @Param("toDate") String toDate,
+			@Param("isAdmin") String isAdmin, @Param("userId") Integer userId,
+			@Param("taskStatusIds") Set<Integer> taskStatusIds, @Param("loginType") String loginType,
+			@Param("dashboardFilter") String dashboardFilter,@Param("startOfToday") LocalDateTime startOfToday,
+			@Param("startOfTomorrow") LocalDateTime startOfTomorrow,
+			@Param("startOfWeek") LocalDateTime startOfWeek,
+			@Param("endOfWeek") LocalDateTime endOfWeek,  @Param("currentTime") LocalDateTime currentTime);
 
 	@Modifying
 	@Transactional

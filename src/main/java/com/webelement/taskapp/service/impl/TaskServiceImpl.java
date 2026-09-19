@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -58,56 +60,52 @@ public class TaskServiceImpl implements TaskService {
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
-	
-	
 
-	    @Override
-	    public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
-	            Integer taskId,
-	            Integer assignedTo,Integer userId) {
+	@Override
+	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId) {
 
-	        Optional<TaskEntity> optionalTask =
-	                taskRepository.findById(taskId);
+		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 
-	        if (optionalTask.isEmpty()) {
+		if (optionalTask.isEmpty()) {
 
-	            return ResponseEntity
-	                    .status(HttpStatus.NOT_FOUND)
-	                    .body(new ApiResponse<>(
-	                            false,
-	                            "Task not found",
-	                            null
-	                    ));
-	        }
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
+		}
 
-	        TaskEntity task = optionalTask.get();
+		TaskEntity task = optionalTask.get();
 
-	        // Update only assigned user
-	        task.setAssignedTo(assignedTo);
-	        task.setAddedBy(userId);
+		// Update only assigned user
+		task.setAssignedTo(assignedTo);
+		task.setAddedBy(userId);
 
-	        // Update modification date
-	        task.setModificationDate(LocalDateTime.now());
+		// Update modification date
+		task.setModificationDate(LocalDateTime.now());
 
-	        taskRepository.save(task);
+		taskRepository.save(task);
 
-	        return ResponseEntity.ok(
-	                new ApiResponse<>(
-	                        true,
-	                        "User assigned successfully",
-	                        null
-	                )
-	        );
-	    }
+		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
+	}
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
-			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds,String loginType) {
-		  LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream()
-		            .map(Short::intValue)
-		            .collect(Collectors.toCollection(LinkedHashSet::new));		
+			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
+			String dashboardFilter) {
+		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		LocalDate today = LocalDate.now();
+		LocalDateTime currentTime = LocalDateTime.now();
+		LocalDateTime startOfToday = today.atStartOfDay();
+		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+
+		System.err.println("startOfWeek = " + startOfWeek);
+		System.err.println("endOfWeek   = " + endOfWeek);
+		System.err.println("dashboardFilter = " + dashboardFilter);
+
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
-				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType);
+				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
+				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime);
 
 	}
 
@@ -170,82 +168,82 @@ public class TaskServiceImpl implements TaskService {
 //				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 //		return savedTask;
 //	}
-	
+
 	@Transactional
 	@Override
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
-	        String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-	        MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
+			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
+			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
 
-	    System.err.println("date +++" + date);
+		System.err.println("date +++" + date);
 
-	    // =====================================================
-	    // CREATE / UPDATE
-	    // =====================================================
+		// =====================================================
+		// CREATE / UPDATE
+		// =====================================================
 
-	    boolean isUpdate = taskId != null;
+		boolean isUpdate = taskId != null;
 
-	    // =====================================================
-	    // DUPLICATE TITLE CHECK
-	    // =====================================================
+		// =====================================================
+		// DUPLICATE TITLE CHECK
+		// =====================================================
 
-	    if (title != null) {
-	        String trimmedTitle = title.trim();
+		if (title != null) {
+			String trimmedTitle = title.trim();
 
-	        boolean isDuplicate = isUpdate
-	                ? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
-	                : taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
+			boolean isDuplicate = isUpdate
+					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
+					: taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
 
-	        if (isDuplicate) {
-	            throw new DuplicateTaskTitleException(
-	                    "A task with the title '" + trimmedTitle + "' already exists for this client");
-	        }
-	    }
+			if (isDuplicate) {
+				throw new DuplicateTaskTitleException(
+						"A task with the title '" + trimmedTitle + "' already exists for this client");
+			}
+		}
 
-	    TaskEntity task;
+		TaskEntity task;
 
-	    if (isUpdate) {
+		if (isUpdate) {
 
-	        task = taskRepository.findById(taskId)
-	                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+			task = taskRepository.findById(taskId)
+					.orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
 
-	    } else {
-	        task = new TaskEntity();
-	        // ID will be generated by database if AUTO_INCREMENT
-	        task.setRegistrationDate(LocalDateTime.now());
-	        // Default status for CREATE
-	        task.setStatus((short) 1);
-	        task.setAddedBy(addedBy);
-	        task.setTaskStatus((short) 1);
-	    }
-	    task.setTitle(title);
-	    task.setClientId(clientId);
-	    task.setDate(date);
-	    task.setTaskCategoryId(taskCategoryId);
-	    task.setDescription(description);
-	    task.setAssignedTo(assignedTo);
-	    task.setPriority(priority);
-	    if (isUpdate) {
-	        if (status != null) {
-	            task.setStatus(status);
-	        }
-	        task.setModificationDate(LocalDateTime.now());
-	    }
-	    if (pdfFile != null && !pdfFile.isEmpty()) {
-	        validatePdf(pdfFile);
-	        String fileName = saveFile(pdfFile, "pdf");
-	        task.setFileName1(fileName);
-	    }
-	    if (zipFile != null && !zipFile.isEmpty()) {
-	        validateZip(zipFile);
-	        String fileName = saveFile(zipFile, "zip");
-	        task.setFileName2(fileName);
-	    }
-	    TaskEntity savedTask = taskRepository.save(task);
-	    String action = isUpdate ? "Task Updated" : "Task Added";
-	    commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-	            commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
-	    return savedTask;
+		} else {
+			task = new TaskEntity();
+			// ID will be generated by database if AUTO_INCREMENT
+			task.setRegistrationDate(LocalDateTime.now());
+			// Default status for CREATE
+			task.setStatus((short) 1);
+			task.setAddedBy(addedBy);
+			task.setTaskStatus((short) 1);
+		}
+		task.setTitle(title);
+		task.setClientId(clientId);
+		task.setDate(date);
+		task.setTaskCategoryId(taskCategoryId);
+		task.setDescription(description);
+		task.setAssignedTo(assignedTo);
+		task.setPriority(priority);
+		if (isUpdate) {
+			if (status != null) {
+				task.setStatus(status);
+			}
+			task.setModificationDate(LocalDateTime.now());
+		}
+		if (pdfFile != null && !pdfFile.isEmpty()) {
+			validatePdf(pdfFile);
+			String fileName = saveFile(pdfFile, "pdf");
+			task.setFileName1(fileName);
+		}
+		if (zipFile != null && !zipFile.isEmpty()) {
+			validateZip(zipFile);
+			String fileName = saveFile(zipFile, "zip");
+			task.setFileName2(fileName);
+		}
+		TaskEntity savedTask = taskRepository.save(task);
+		String action = isUpdate ? "Task Updated" : "Task Added";
+		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		return savedTask;
 	}
 
 	private void validatePdf(MultipartFile file) throws IOException {

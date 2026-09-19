@@ -43,7 +43,6 @@ public class DashboardService {
 	private static final short DONE = 5;
 
 	private String getAssignedUserName(TaskEntity task) {
-
 		if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
 			return "Unassigned";
 		}
@@ -87,6 +86,9 @@ public class DashboardService {
 			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
 					&& !taskStartDate.isAfter(endOfWeek);
 		}).collect(Collectors.toList());
+		
+		
+		
 
 		List<TaskEntity> overdueTasks = tasks.stream().filter(task -> {
 			LocalDateTime dueDateTime = getDueDateTime(task);
