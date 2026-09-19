@@ -23,15 +23,17 @@ public class LoginResponse {
 	private String refreshToken;
 	private int sessionId;
 	private String isAdmin;
+	private String designationName;
 	private List<ModulePermissionDTO> modules;
 
 	public LoginResponse(String token, int userId, String username, int sessionId, String isAdmin,
-			List<ModulePermissionDTO> modules) {
+			String designationName,List<ModulePermissionDTO> modules) {
 		this.token = token;
 		this.userId = userId;
 		this.username = username;
 		this.sessionId = sessionId;
 		this.isAdmin = isAdmin;
+		this.designationName = designationName;
 		this.modules = modules;
 	}
 

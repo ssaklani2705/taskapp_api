@@ -61,4 +61,13 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	           "WHERE t.departmentId = :departmentId AND status =1 order by t.name ASC ")
 	    List<TaskCategoryDTO> findCategoriesByDepartmentId(
 	            @Param("departmentId") Integer departmentId);
+	
+	
+	@Query("SELECT tc.name " +
+		       "FROM TaskCategoryEntity tc " +
+		       "WHERE tc.taskcategoryId IN :categoryIds " +
+		       "AND tc.status = 1 " +
+		       "ORDER BY tc.name")
+		List<String> findNamesByIds(
+		        @Param("categoryIds") List<Integer> categoryIds);
 }

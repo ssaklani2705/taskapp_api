@@ -36,15 +36,64 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 //	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
 //	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
 
-	//@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager' AND i_departmentid <> 1 AND i_designationid <> 1) ) ", nativeQuery = true)
-	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager'AND NOT (i_departmentid = 1 AND i_designationid = 1)) ) ", nativeQuery = true)
-	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password, @Param("logintype") String logintype);
+//	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager'AND NOT (i_departmentid = 1 AND i_designationid = 1)) ) ", nativeQuery = true)
+//	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password, @Param("logintype") String logintype);
+	
+	@Query(value = "SELECT " +
+	        "u.i_userid, " +
+	        "u.s_firstname, " +
+	        "u.s_email, " +
+	        "u.s_mobileno, " +
+	        "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " +
+	        "u.s_permission, " +
+	        "d.s_name AS designationName " +
+	        "FROM t_userlogin u " +
+	        "LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid " +
+	        "WHERE u.i_status = 1 " +
+	        "AND u.s_email = :email " +
+	        "AND u.s_password = :password " +
+	        "AND ( " +
+	        "    (:logintype = 'manager' AND u.i_departmentid = 1 AND u.i_designationid = 1) " +
+	        "    OR " +
+	        "    (:logintype <> 'manager' AND NOT (u.i_departmentid = 1 AND u.i_designationid = 1)) " +
+	        ")",
+	        nativeQuery = true)
+	List<Map<String, Object>> findActiveLogin(
+	        @Param("email") String email,
+	        @Param("password") String password,
+	        @Param("logintype") String logintype);
 	
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
+
+//	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
+//		       "u.userId, " +
+//		       "u.firstName, " +
+//		       "u.email, " +
+//		       "u.mobileNo, " +
+//		       "u.status, " +
+//		       "u.permission, " +
+//		       "d.name,de.name) " +
+//		       "FROM UserLoginEntity u " +
+//		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
+//		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
+//		       "WHERE u.userId > 0  " +
+////		       AND d.departmentId != 1
+//		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
+//		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
+//		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
+//		       "AND (:search IS NULL OR :search = '' " +
+//		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+//		       "ORDER BY u.status,u.regDate DESC, u.firstName")
+//		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
+//				int departmentId,int designationId);
+	
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
 		       "u.userId, " +
@@ -53,12 +102,12 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "u.mobileNo, " +
 		       "u.status, " +
 		       "u.permission, " +
-		       "d.name,de.name) " +
+		       "d.name, " +
+		       "de.name) " +
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
-		       "WHERE u.userId > 0  " +
-//		       AND d.departmentId != 1
+		       "WHERE u.userId > 0 " +
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
 		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
@@ -67,9 +116,13 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-		       "ORDER BY u.status,u.regDate DESC, u.firstName")
-		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
-				int departmentId,int designationId);
+		       "ORDER BY u.status, u.regDate DESC, u.firstName")
+		Page<UserInfo> findBasicUserInfo(
+		        Pageable pageable,
+		        @Param("statusIndex") int statusIndex,
+		        @Param("search") String search,
+		        @Param("departmentId") int departmentId,
+		        @Param("designationId") int designationId);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId

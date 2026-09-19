@@ -64,9 +64,56 @@ public class UserManagementService {
 		return loginRepository.findActiveManager();
 	}
 
-	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search,
-			int departmentId,int designationId) {
-		return loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,departmentId, designationId);
+//	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search,
+//			int departmentId,int designationId) {
+//		return loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,departmentId, designationId);
+//	}
+	
+	public Page<UserInfo> findBasicUserInfo(
+	        int page,
+	        int size,
+	        int statusIndex,
+	        String search,
+	        int departmentId,
+	        int designationId) {
+
+	    Page<UserInfo> pageData = loginRepository.findBasicUserInfo(
+	            PageRequest.of(page, size),
+	            statusIndex,
+	            search,
+	            departmentId,
+	            designationId
+	    );
+
+	    pageData.getContent().forEach(user -> {
+
+	        UserLoginEntity userEntity =
+	                loginRepository.findById(user.getUserId()).orElse(null);
+
+	        if (userEntity != null
+	                && userEntity.getTaskcategoryIds() != null
+	                && !userEntity.getTaskcategoryIds().trim().isEmpty()) {
+
+	            List<Integer> categoryIds = Arrays.stream(
+	                            userEntity.getTaskcategoryIds().split(","))
+	                    .map(String::trim)
+	                    .filter(id -> !id.isEmpty())
+	                    .map(Integer::valueOf)
+	                    .collect(Collectors.toList());
+
+	            List<String> categoryNames =
+	                    taskCategoryRepository.findNamesByIds(categoryIds);
+
+	            user.setTaskCategoryNames(
+	                    String.join(", ", categoryNames)
+	            );
+
+	        } else {
+	            user.setTaskCategoryNames("");
+	        }
+	    });
+
+	    return pageData;
 	}
 
 	public ResponseEntity<ResponseApi<String>> deleteUser(int userId, int createdBy, HttpServletRequest httpRequest) {
