@@ -24,6 +24,9 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 @Repository
 public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Integer> {
 	
+	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
+    String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
+	
 //	@Query("SELECT u FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
 //	List<UserLoginEntity> findAllActiveUsers();
 

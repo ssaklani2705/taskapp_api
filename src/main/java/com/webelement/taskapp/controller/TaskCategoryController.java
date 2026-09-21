@@ -115,6 +115,14 @@ public class TaskCategoryController {
                 .getActiveTaskCategories();
     }
     
+    @GetMapping("recurring/active")
+    public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(	@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType,@RequestParam("userId") Integer userId) {
+
+        return taskCategoryService
+                .getActiveTaskCategoriesForRecurring(userId,isAdmin,loginType);
+    }
+    
     @GetMapping("/department/{departmentId}")
     public List<TaskCategoryDTO> getCategoriesByDepartmentId(
             @PathVariable Integer departmentId) {

@@ -267,7 +267,7 @@ public class DashboardService {
 
 		Pageable pageable = PageRequest.of(page, size);
 
-		Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId, permission);
+		Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId);
 
 		return taskList;
 

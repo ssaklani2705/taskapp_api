@@ -88,6 +88,11 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	Set<String> findAllGstsNormalized();
 
 	List<ClientEntity> findByManagerIdAndStatus(Integer managerId, Short status);
+	List<ClientEntity> findByStatus(Short status);
+	List<ClientEntity> findByUserIdAndStatus(
+	        Integer userId,
+	        Short status);
+	
 
 	Optional<ClientEntity> findByClientIdAndManagerIdAndStatus(Integer clientId, Integer managerId, Short status);
 

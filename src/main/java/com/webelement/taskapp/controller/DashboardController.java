@@ -79,19 +79,6 @@ public class DashboardController {
 	    }
 	
 	// For manager dashboard
-//    @GetMapping("/getTasksByStatus")
-//    public ResponseEntity<Map<String, Object>> getTasksByStatus() {
-//
-//        Map<String, Object> map = new HashMap<>();
-//
-//        List<TaskEditDTO> taskList = taskService.getTasksByStatus();
-//
-//        map.put("taskList", taskList);
-//
-//        return ResponseEntity.ok(map);
-//    }
-
-
     //NEW
 
 	 @GetMapping("/getTasksByStatus")
