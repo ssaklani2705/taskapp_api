@@ -1,5 +1,4 @@
 package com.webelement.taskapp.service;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +24,11 @@ import com.webelement.taskapp.repo.TaskRepository;
 
 @Service
 public class DashboardService {
+	
+	private static final short TODO = 1;
+	private static final short IN_PROGRESS = 2;
+	private static final short DONE = 5;
+	
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	@Autowired
 	private TaskRepository taskRepository;
@@ -38,9 +41,7 @@ public class DashboardService {
 				.collect(Collectors.toList());
 	}
 
-	private static final short TODO = 1;
-	private static final short IN_PROGRESS = 2;
-	private static final short DONE = 5;
+
 
 	private String getAssignedUserName(TaskEntity task) {
 		if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {

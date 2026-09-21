@@ -5,6 +5,8 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.webelement.taskapp.common.CommonFunction;
@@ -84,6 +86,13 @@ public class PlanServiceImpl implements PlanService {
 
 	@Override
 	public ApiResponse<PlanDTO> delete(PlanDTO request) {
+		
+		Integer planId = request.getPlanId();
+		
+		Integer PlainExitsInClient = planRepo.existsByPlanId(planId);
+		if (PlainExitsInClient != null && PlainExitsInClient > 0) {
+			return new ApiResponse<>(false,"Plan is assigned to one or more client and cannot be deleted", null);
+		}
 		Optional<PlanEntity> existing = planRepo.findById(request.getPlanId());
 		if (!existing.isPresent()) {
 			return new ApiResponse<>(false, "Plan not found", null);

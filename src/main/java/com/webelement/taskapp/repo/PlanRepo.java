@@ -65,6 +65,10 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 	
 	@Query("SELECT u.planId FROM PlanEntity u WHERE LOWER(u.name) = LOWER(:name)")
     Integer findIdByName(@Param("name") String name);
+	
+	
+	@Query(value = "SELECT EXISTS (SELECT 1 FROM t_client WHERE i_planid = :planId AND i_status <> 3)", nativeQuery = true)
+	Integer existsByPlanId(@Param("planId") Integer planId);
 
 
 }
