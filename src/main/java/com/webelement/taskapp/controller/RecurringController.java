@@ -84,41 +84,15 @@ public class RecurringController {
 			"regDate", "r.regDate");
 
 	// For index
-//	@GetMapping("/getRecurringDetails")
-//	public Map<String, Object> getRecurringDetails(@RequestParam(defaultValue = "0") int page,
-//			@RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "0") Short status,
-//			@RequestParam(required = false) String title, @RequestParam(defaultValue = "title") String sortColumn,
-//			@RequestParam(defaultValue = "asc") String sortDirection, @RequestParam("userId") Integer userId) {
-//
-//		String sortBy = RECURRING_SORT_MAP.getOrDefault(sortColumn, "r.title");
-//
-//		Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
-//				: Sort.Direction.ASC;
-//
-//		sortBy = sortBy.replace("r.", "").replace("c.", "").replace("tc.", "");
-//
-//		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-//
-//		Page<RecurringDTO> recurringPage = recurringService.findRecurringDetails(pageable, status, title, userId);
-//
-//		Map<String, Object> response = new HashMap<>();
-//
-//		response.put("data", recurringPage.getContent());
-//		response.put("totalElements", recurringPage.getTotalElements());
-//		response.put("totalPages", recurringPage.getTotalPages());
-//		response.put("currentPage", recurringPage.getNumber());
-//		response.put("pageSize", recurringPage.getSize());
-//
-//		return response;
-//	}
-
 	@GetMapping("/getRecurringDetails")
 	public Map<String, Object> getRecurringDetails(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "0") Short status,
 			@RequestParam(required = false) String search, @RequestParam(defaultValue = "0") Integer clientId,
 			@RequestParam(defaultValue = "0") Short type, @RequestParam(defaultValue = "0") Integer taskCatId,
 			@RequestParam(defaultValue = "title") String sortColumn,
-			@RequestParam(defaultValue = "asc") String sortDirection, @RequestParam Integer userId) {
+			@RequestParam(defaultValue = "asc") String sortDirection, @RequestParam Integer userId,
+			@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType) {
 
 		String sortBy = RECURRING_SORT_MAP.getOrDefault(sortColumn, "r.title");
 
@@ -130,7 +104,7 @@ public class RecurringController {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<RecurringDTO> recurringPage = recurringService.findRecurringDetails(pageable, status, search, clientId,
-				type, taskCatId, userId);
+				type, taskCatId, userId,isAdmin,loginType);
 
 		Map<String, Object> response = new HashMap<>();
 

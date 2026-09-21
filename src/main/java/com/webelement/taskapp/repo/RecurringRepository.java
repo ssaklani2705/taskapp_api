@@ -19,19 +19,142 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	Optional<RecurringEntity> findById(Integer recurringId);
 
 
-	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
-			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
-			+ "tc.name, " + "r.status) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
-			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
-			+ "WHERE r.recurringId > 0 " + "AND (:status IS NULL OR r.status = :status) "
-			+ "AND (:managerId IS NULL OR c.managerId = :managerId) "
-			+ "AND (:clientId IS NULL OR r.clientId = :clientId) " + "AND (:type IS NULL OR r.type = :type) "
-			+ "AND (:taskCatId IS NULL OR r.taskCatId = :taskCatId) " + "AND (" + ":search IS NULL OR :search = '' "
-			+ "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "
-			+ "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%'))" + ")")
-	Page<RecurringDTO> findRecurringDetails(Pageable pageable, @Param("status") Short status,
-			@Param("managerId") Integer managerId, @Param("search") String search, @Param("clientId") Integer clientId,
-			@Param("type") Short type, @Param("taskCatId") Integer taskCatId);
+//	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
+//			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
+//			+ "tc.name, " + "r.status) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
+//			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
+//			+ "WHERE r.recurringId > 0 " + "AND (:status IS NULL OR r.status = :status) "
+//			+ "AND (:managerId IS NULL OR c.managerId = :managerId) "
+//			+ "AND (:clientId IS NULL OR r.clientId = :clientId) " + "AND (:type IS NULL OR r.type = :type) "
+//			+ "AND (:taskCatId IS NULL OR r.taskCatId = :taskCatId) " + "AND (" + ":search IS NULL OR :search = '' "
+//			+ "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "
+//			+ "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%'))" + ")")
+//	Page<RecurringDTO> findRecurringDetails(Pageable pageable, @Param("status") Short status,
+//			@Param("managerId") Integer managerId, @Param("search") String search, @Param("clientId") Integer clientId,
+//			@Param("type") Short type, @Param("taskCatId") Integer taskCatId);
+	
+//	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO("
+//	        + "r.recurringId, "
+//	        + "r.clientId, "
+//	        + "c.name, "
+//	        + "r.title, "
+//	        + "r.description, "
+//	        + "r.type, "
+//	        + "r.date, "
+//	        + "r.day, "
+//	        + "r.month, "
+//	        + "r.taskCatId, "
+//	        + "tc.name, "
+//	        + "r.status) "
+//
+//	        + "FROM RecurringEntity r "
+//
+//	        + "LEFT JOIN ClientEntity c "
+//	        + "ON r.clientId = c.clientId "
+//
+//	        + "LEFT JOIN TaskCategoryEntity tc "
+//	        + "ON r.taskCatId = tc.taskcategoryId "
+//
+//	        + "WHERE r.recurringId > 0 "
+//
+//	        + "AND (:status IS NULL OR r.status = :status) "
+//
+//	        + "AND ("
+//	        + ":isAdmin = 'Y' "
+//	        + "OR (:loginType = 'manager' AND :managerId IS NULL) "
+//	        + "OR (:loginType <> 'manager' AND :managerId IS NULL) "
+//	        + "OR c.managerId = :managerId"
+//	        + ") "
+//
+//	        + "AND (:clientId IS NULL OR r.clientId = :clientId) "
+//
+//	        + "AND (:type IS NULL OR r.type = :type) "
+//
+//	        + "AND (:taskCatId IS NULL OR r.taskCatId = :taskCatId) "
+//
+//	        + "AND ("
+//	        + ":search IS NULL "
+//	        + "OR :search = '' "
+//	        + "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "
+//	        + "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%'))"
+//	        + ")")
+//	Page<RecurringDTO> findRecurringDetails(
+//	        Pageable pageable,
+//	        @Param("status") Short status,
+//	        @Param("managerId") Integer managerId,
+//	        @Param("search") String search,
+//	        @Param("clientId") Integer clientId,
+//	        @Param("type") Short type,
+//	        @Param("taskCatId") Integer taskCatId,
+//	        @Param("isAdmin") String isAdmin,
+//	        @Param("loginType") String loginType
+//	);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO("
+	        + "r.recurringId, "
+	        + "r.clientId, "
+	        + "c.name, "
+	        + "r.title, "
+	        + "r.description, "
+	        + "r.type, "
+	        + "r.date, "
+	        + "r.day, "
+	        + "r.month, "
+	        + "r.taskCatId, "
+	        + "tc.name, "
+	        + "r.status) "
+
+	        + "FROM RecurringEntity r "
+
+	        + "LEFT JOIN ClientEntity c "
+	        + "ON r.clientId = c.clientId "
+
+	        + "LEFT JOIN TaskCategoryEntity tc "
+	        + "ON r.taskCatId = tc.taskcategoryId "
+
+	        + "WHERE r.recurringId > 0 "
+
+	        + "AND (:status IS NULL OR r.status = :status) "
+
+	        + "AND ("
+	        + ":isAdmin = 'Y' "
+	        + "OR ("
+	        + ":loginType = 'manager' "
+	        + "AND c.managerId = :managerId"
+	        + ") "
+	        + "OR ("
+	        + ":loginType <> 'manager' "
+	        + "AND FUNCTION('FIND_IN_SET', "
+	        + "CAST(r.taskCatId AS string), "
+	        + "(SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId)"
+	        + ") > 0"
+	        + ")"
+	        + ") "
+
+	        + "AND (:clientId IS NULL OR r.clientId = :clientId) "
+
+	        + "AND (:type IS NULL OR r.type = :type) "
+
+	        + "AND (:taskCatId IS NULL OR r.taskCatId = :taskCatId) "
+
+	        + "AND ("
+	        + ":search IS NULL "
+	        + "OR :search = '' "
+	        + "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "
+	        + "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%'))"
+	        + ")")
+	Page<RecurringDTO> findRecurringDetails(
+	        Pageable pageable,
+	        @Param("status") Short status,
+	        @Param("managerId") Integer managerId,
+	        @Param("search") String search,
+	        @Param("clientId") Integer clientId,
+	        @Param("type") Short type,
+	        @Param("taskCatId") Integer taskCatId,
+	        @Param("isAdmin") String isAdmin,
+	        @Param("loginType") String loginType,
+	        @Param("userId") Integer userId
+	);
 
 	// For Delete
 	@Modifying

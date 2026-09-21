@@ -54,13 +54,13 @@ public class RecurringService {
 			throw new RuntimeException("Please select a client.");
 		}
 
-		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerIdAndStatus(dto.getClientId(),
-				userId, (short) 1);
-
-		if (clientOptional.isEmpty()) {
-
-			throw new RuntimeException("You are not authorized to add recurring for this client.");
-		}
+//		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerIdAndStatus(dto.getClientId(),
+//				userId, (short) 1);
+//
+//		if (clientOptional.isEmpty()) {
+//
+//			throw new RuntimeException("You are not authorized to add recurring for this client.");
+//		}
 
 		if (dto.getType() == null || dto.getType() < 1 || dto.getType() > 4) {
 
@@ -199,17 +199,59 @@ public class RecurringService {
 //		return recurringRepository.findRecurringDetails(pageable, statusFilter, userId, titleFilter);
 //	}
 
-	public Page<RecurringDTO> findRecurringDetails(Pageable pageable, Short status, String search, Integer clientId,
-			Short type, Integer taskCatId, Integer userId) {
+//	public Page<RecurringDTO> findRecurringDetails(Pageable pageable, Short status, String search, Integer clientId,
+//			Short type, Integer taskCatId,Integer userId,String isAdmin,String loginType) {
+//
+//		Short statusFilter = (status != null && status == 0) ? null : status;
+//		String searchFilter = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+//		Integer clientFilter = (clientId != null && clientId == 0) ? null : clientId;
+//		Short typeFilter = (type != null && type == 0) ? null : type;
+//		Integer taskCatFilter = (taskCatId != null && taskCatId == 0) ? null : taskCatId;
+//
+//		return recurringRepository.findRecurringDetails(pageable, statusFilter, userId, searchFilter, clientFilter,
+//				typeFilter, taskCatFilter,isAdmin,loginType);
+//	}
+	
+	public Page<RecurringDTO> findRecurringDetails(
+	        Pageable pageable,
+	        Short status,
+	        String search,
+	        Integer clientId,
+	        Short type,
+	        Integer taskCatId,
+	        Integer userId,
+	        String isAdmin,
+	        String loginType) {
 
-		Short statusFilter = (status != null && status == 0) ? null : status;
-		String searchFilter = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
-		Integer clientFilter = (clientId != null && clientId == 0) ? null : clientId;
-		Short typeFilter = (type != null && type == 0) ? null : type;
-		Integer taskCatFilter = (taskCatId != null && taskCatId == 0) ? null : taskCatId;
+	    Short statusFilter =
+	            (status != null && status == 0) ? null : status;
 
-		return recurringRepository.findRecurringDetails(pageable, statusFilter, userId, searchFilter, clientFilter,
-				typeFilter, taskCatFilter);
+	    String searchFilter =
+	            (search != null && !search.trim().isEmpty())
+	                    ? search.trim()
+	                    : null;
+
+	    Integer clientFilter =
+	            (clientId != null && clientId == 0) ? null : clientId;
+
+	    Short typeFilter =
+	            (type != null && type == 0) ? null : type;
+
+	    Integer taskCatFilter =
+	            (taskCatId != null && taskCatId == 0) ? null : taskCatId;
+
+	    return recurringRepository.findRecurringDetails(
+	            pageable,
+	            statusFilter,
+	            userId,
+	            searchFilter,
+	            clientFilter,
+	            typeFilter,
+	            taskCatFilter,
+	            isAdmin,
+	            loginType,
+	            userId
+	    );
 	}
 
 	// For View

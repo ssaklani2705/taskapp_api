@@ -77,6 +77,9 @@ public class TaskServiceImpl implements TaskService {
 		task.setAssignedTo(assignedTo);
 		task.setAddedBy(userId);
 		task.setTaskStatus((short) 1);
+		
+		// Set current date and time in d_date
+	    task.setDate(LocalDateTime.now());
 
 		// Update modification date
 		task.setModificationDate(LocalDateTime.now());
