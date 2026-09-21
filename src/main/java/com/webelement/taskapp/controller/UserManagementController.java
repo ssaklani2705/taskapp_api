@@ -47,7 +47,6 @@ public class UserManagementController {
 	
 	@GetMapping("/getUserManagementDetails/{userId}")
 	public ResponseEntity<?> getUserById(@PathVariable int userId) {
-		System.out.println("userId---------------------->"+userId);
 		UserLoginEntity user = userService.getUserById(userId);
 		if (user != null) {
 			return ResponseEntity.ok(user);
