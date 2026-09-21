@@ -227,7 +227,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "          ) "
 	        + "     ) "
 	        + ") "
-	        + "ORDER BY t.status ASC, tc.duedatetime ASC, t.title ASC")
+	        + "ORDER BY t.status ASC, t.date DESC, t.title ASC")
 	Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("clientId") Integer clientId,
 			@Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer assignedTo,
@@ -244,18 +244,61 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
+//	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO("
+//			+ "t.taskId, t.assignedTo, COALESCE(NULLIF(u.firstName,''),'-') ," + "COALESCE(NULLIF(t.title,''),'-'), "
+//			+ "t.taskStatus, t.addedBy, COALESCE(NULLIF(a.firstName,''),'-'), t.date as startDate ,tc.duedatetime, t.priority,COALESCE(NULLIF(c.name, ''), '-')) "
+//			+ "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+//			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+//			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+//			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1"
+//			+ "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + ":permission = 'Y' "
+//			+ "OR t.assignedTo = :userId " + "OR t.addedBy = :userId " + "OR c.managerId = :userId" + ") "
+//			+ "ORDER BY t.status ASC")
+//	Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
+//			@Param("userId") Integer userId, @Param("permission") String permission);
+	
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO("
-			+ "t.taskId, t.assignedTo, COALESCE(NULLIF(u.firstName,''),'-') ," + "COALESCE(NULLIF(t.title,''),'-'), "
-			+ "t.taskStatus, t.addedBy, COALESCE(NULLIF(a.firstName,''),'-'), t.date as startDate ,tc.duedatetime, t.priority,COALESCE(NULLIF(c.name, ''), '-')) "
-			+ "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1"
-			+ "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + ":permission = 'Y' "
-			+ "OR t.assignedTo = :userId " + "OR t.addedBy = :userId " + "OR c.managerId = :userId" + ") "
-			+ "ORDER BY t.status ASC")
-	Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
-			@Param("userId") Integer userId, @Param("permission") String permission);
+	        + "t.taskId, "
+	        + "t.assignedTo, "
+	        + "COALESCE(NULLIF(u.firstName,''),'-'), "
+	        + "COALESCE(NULLIF(t.title,''),'-'), "
+	        + "t.taskStatus, "
+	        + "t.addedBy, "
+	        + "COALESCE(NULLIF(a.firstName,''),'-'), "
+	        + "t.date, "
+	        + "tc.duedatetime, "
+	        + "t.priority, "
+	        + "COALESCE(NULLIF(c.name, ''), '-')"
+	        + ") "
+	        + "FROM TaskEntity t "
+	        + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+	        + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+	        + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+	        + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy "
+	        + "WHERE t.status = 1 "
+	        + "AND (:clientId = 0 OR t.clientId = :clientId) "
+	        + "AND ("
+	        + "    t.assignedTo = :userId "
+	        + "    OR t.addedBy = :userId "
+	        + "    OR c.managerId = :userId "
+	        + "    OR c.userId = :userId"
+	        + ") "
+	        
+//	        + "AND ("
+//	        + "    :permission = 'Y' "
+//	        + "    OR t.assignedTo = :userId "
+//	        + "    OR t.addedBy = :userId "
+//	        + "    OR c.managerId = :userId "
+//	        + "    OR c.userId = :userId"
+//	        + ") "
+	        + "ORDER BY t.status ASC")
+	Page<TaskEditDTO> findTasksByStatus(
+	        Pageable pageable,
+	        @Param("clientId") Integer clientId,
+	        @Param("userId") Integer userId
+	        );
+	
+//	@Param("permission") String permission
 
 	List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
@@ -274,7 +317,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			// NON-MANAGER LOGIN
 			+ "    (" + "        :loginType <> 'manager' " + "        AND " + "("
 			+ "            t.assignedTo = :userId " + "            OR t.addedBy = :userId " + "            OR ("
-			+ "                :isAdmin <> 'Y' " + "                AND EXISTS (" + "                    SELECT 1 "
+			+ "                :isAdmin <> 'Y' AND (t.assignedTo = 0 OR t.assignedTo IS NULL)  " + "                AND EXISTS (" + "                    SELECT 1 "
 			+ "                    FROM TaskCategoryEntity tc2 "
 			+ "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
 			+ "                    AND tc2.departmentId IN (" + "                        SELECT ul.departmentId "

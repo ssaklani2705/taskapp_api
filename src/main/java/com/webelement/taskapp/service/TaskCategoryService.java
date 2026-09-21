@@ -2,8 +2,12 @@ package com.webelement.taskapp.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -221,6 +225,84 @@ public class TaskCategoryService {
 
 		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName()))
 				.collect(Collectors.toList());
+	}
+	
+//	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId,String isAdmin,String loginType) {
+//		List<TaskCategoryEntity> list = taskCategoryRepository.findByStatus(1);
+//		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName()))
+//		.collect(Collectors.toList());
+//	}
+	
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(
+	        Integer userId,
+	        String isAdmin,
+	        String loginType) {
+
+	    // Get all active categories
+	    List<TaskCategoryEntity> list =
+	            taskCategoryRepository.findByStatus(1);
+
+	    /*
+	     * ADMIN
+	     * -----
+	     * Admin can see all active task categories.
+	     */
+	    if ("Y".equalsIgnoreCase(isAdmin)) {
+
+	        return list.stream()
+	                .map(t -> new TaskCategoryDTO(
+	                        t.getTaskcategoryId(),
+	                        t.getName()))
+	                .collect(Collectors.toList());
+	    }
+
+	    /*
+	     * MANAGER / EMPLOYEE
+	     * ------------------
+	     * Get category IDs assigned to this user
+	     * from t_userlogin.s_taskcategoryIds
+	     */
+	    String taskcategoryIds =
+	            userLoginRepository.findTaskcategoryIdsByUserId(userId);
+
+	    if (taskcategoryIds == null || taskcategoryIds.trim().isEmpty()) {
+	        return Collections.emptyList();
+	    }
+
+	    /*
+	     * Convert:
+	     *
+	     * "1,3,5,8"
+	     *
+	     * into:
+	     *
+	     * Set<Integer> = [1,3,5,8]
+	     */
+	    Set<Integer> allowedCategoryIds = Arrays.stream(
+	                    taskcategoryIds.split(","))
+	            .map(String::trim)
+	            .filter(value -> !value.isEmpty())
+	            .map(value -> {
+	                try {
+	                    return Integer.valueOf(value);
+	                } catch (NumberFormatException e) {
+	                    return null;
+	                }
+	            })
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
+
+	    /*
+	     * Return only active categories assigned
+	     * to this manager/employee.
+	     */
+	    return list.stream()
+	            .filter(t -> allowedCategoryIds.contains(
+	                    t.getTaskcategoryId()))
+	            .map(t -> new TaskCategoryDTO(
+	                    t.getTaskcategoryId(),
+	                    t.getName()))
+	            .collect(Collectors.toList());
 	}
 
 	public List<TaskCategoryDTO> getCategoriesByDepartmentId(Integer departmentId) {
