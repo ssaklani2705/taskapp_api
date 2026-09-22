@@ -116,4 +116,7 @@ public class TaskEntity {
 	@Transient
 	private Integer ManagerId;
 	
+//	@Column(name = "s_assignremark", columnDefinition = "LONGTEXT")
+//	private String assignremark;
+	
 }

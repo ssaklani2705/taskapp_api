@@ -304,7 +304,8 @@ public class ClientService {
 				client.setStateNameForExcel(stateName);
 
 				if (!stateName.isEmpty()) {
-					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCaseAndStatus(stateName,(short)1);
+					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCaseAndStatus(stateName,
+							(short) 1);
 
 					if (stateOptional.isPresent()) {
 						client.setStateId(stateOptional.get().getStateId());
@@ -735,19 +736,18 @@ public class ClientService {
 		map.put("Pincode", client.getPincode() != null ? client.getPincode() : "");
 		map.put("Contact Name", client.getContactName() != null ? client.getContactName() : "");
 		map.put("Contact Email", client.getContactEmail() != null ? client.getContactEmail() : "");
-		map.put("Emails", client.getEmails() != null ? client.getEmails() : "");
+		map.put("CC Email", client.getEmails() != null ? client.getEmails() : "");
 		map.put("Start Date",
 				client.getStartDate() != null ? client.getStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
 						: "");
 		map.put("Monthly Charge", client.getMonthlyCharge() != null ? client.getMonthlyCharge().toString() : "");
 		map.put("Outstanding", client.getOutstanding() != null ? client.getOutstanding().toString() : "");
-		map.put("Name 1", client.getName1() != null ? client.getName1() : "");
-		map.put("Email ID 1", client.getEmailId1() != null ? client.getEmailId1() : "");
-		map.put("Name 2", client.getName2() != null ? client.getName2() : "");
-		map.put("Email ID 2", client.getEmailId2() != null ? client.getEmailId2() : "");
-		map.put("Name 3", client.getName3() != null ? client.getName3() : "");
-		map.put("Email ID 3", client.getEmailId3() != null ? client.getEmailId3() : "");
-//		map.put("Society Manager", client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
+		map.put("Chairman’s Name", client.getName1() != null ? client.getName1() : "");
+		map.put("Chairman’s Email ID", client.getEmailId1() != null ? client.getEmailId1() : "");
+		map.put("Secretary’s Name", client.getName2() != null ? client.getName2() : "");
+		map.put("Secretary’s Email ID", client.getEmailId2() != null ? client.getEmailId2() : "");
+		map.put("Treasurer’s Name", client.getName3() != null ? client.getName3() : "");
+		map.put("Treasurer’s Email ID", client.getEmailId3() != null ? client.getEmailId3() : "");
 		map.put("Society Manager Email",
 				client.getManagerNameForExcel() != null ? client.getManagerNameForExcel() : "");
 		map.put("Tax Flag", client.getTaxFlag() != null ? client.getTaxFlag().toString() : "");
@@ -970,11 +970,11 @@ public class ClientService {
 			throw new IllegalArgumentException("Excel header row is missing");
 		}
 
-		String[] expectedHeaders = { "Sr No", "Society Manager Email", "Client Name", "Client Code", "PAN", "GST Applicable",
-				"GST Number", "Tax Payable", "Address Line 1", "Address Line 2", "City", "State", "Location", "Pincode",
-				"Contact Name", "Contact Email", "Contact Person 1 Name", "Contact Person 1 Email",
-				"Contact Person 2 Name", "Contact Person 2 Email", "Contact Person 3 Name", "Contact Person 3 Email",
-				"Other Emails", "Start Date", "Plan", "Outstanding", "Status" };
+		String[] expectedHeaders = { "Sr No", "Society Manager Email", "Client Name", "Client Code", "PAN",
+				"GST Applicable", "GST Number", "Tax Payable", "Address Line 1", "Address Line 2", "City", "State",
+				"Location", "Pincode", "Contact Name", "Contact Email", "Chairman’s Name", "Chairman’s Email ID",
+				"Secretary’s Name", "Secretary’s Email ID", "Treasurer’s Name", "Treasurer’s Email ID", "CC Email",
+				"Start Date", "Plan", "Outstanding", "Status" };
 
 		for (int i = 0; i < expectedHeaders.length; i++) {
 
@@ -1074,59 +1074,45 @@ public class ClientService {
 	}
 
 	// For Recurring
-//	public List<ClientDTO> getClientsForRecurring(
-//	        Integer userId,
-//	        String isAdmin,
-//	        String loginType) {
-//
-//	    Short activeStatus = 1;
-//	    List<ClientEntity> clients;
-//
-//	    // MANAGER
-//	    if ("manager".equalsIgnoreCase(loginType)) {
-//
-//	        clients = clientRepository.findByManagerIdAndStatus(
-//	                userId,
-//	                activeStatus
-//	        );
-//
-//	    }
-//	    // NON-MANAGER + ADMIN
-//	    else if ("Y".equalsIgnoreCase(isAdmin)) {
-//
-//	        clients = clientRepository.findByStatus(
-//	                activeStatus
-//	        );
-//
-//	    }
-//	    // NON-MANAGER + NON-ADMIN
-//	    else {
-//
-//	        clients = clientRepository.findByUserIdAndStatus(
-//	                userId,
-//	                activeStatus
-//	        );
-//	    }
-//
-//	    return clients.stream()
-//	            .map(client -> new ClientDTO(
-//	                    client.getClientId(),
-//	                    client.getName()
-//	            ))
-//	            .collect(Collectors.toList());
-//	}
-	public List<ClientDTO> getClientsForRecurring(Integer userId,String isAdmin,String loginType) {
+	public List<ClientDTO> getClientsForRecurring(Integer userId, String isAdmin, String loginType) {
+
 		Short activeStatus = 1;
-//		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
-		List<ClientEntity> clients = clientRepository.findByStatus(activeStatus);
+		List<ClientEntity> clients;
+
+		// MANAGER
+		if ("manager".equalsIgnoreCase(loginType)) {
+
+			clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
+//			clients = clientRepository.findByStatus(activeStatus);
+
+		}
+		// NON-MANAGER + ADMIN
+		else if ("Y".equalsIgnoreCase(isAdmin)) {
+
+			clients = clientRepository.findByStatus(activeStatus);
+
+		}
+		// NON-MANAGER + NON-ADMIN
+		else {
+
+			clients = clientRepository.findByUserIdAndStatus(userId, activeStatus);
+		}
 
 		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
 				.collect(Collectors.toList());
 	}
+//	public List<ClientDTO> getClientsForRecurring(Integer userId,String isAdmin,String loginType) {
+//		Short activeStatus = 1;
+//		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
+//
+//		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
+//				.collect(Collectors.toList());
+//	}
 
 	// Manager Change
 	@Transactional
-	public void changeClientManager(Integer clientId, Integer managerId,Integer userId,HttpServletRequest httpRequest) {
+	public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
+			HttpServletRequest httpRequest) {
 
 		if (managerId == null) {
 			throw new RuntimeException("Society Manager is required");

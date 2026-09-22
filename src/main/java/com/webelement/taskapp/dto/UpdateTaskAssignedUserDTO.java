@@ -12,4 +12,6 @@ public class UpdateTaskAssignedUserDTO {
     private Integer assignedTo;
     
     private Integer userId;
+    
+    private String remarks;
 }

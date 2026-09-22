@@ -63,7 +63,9 @@ public class TaskController {
 	    return taskService.updateTaskAssignedUser(
 	            request.getTaskId(),
 	            request.getAssignedTo(),
-	            request.getUserId()
+	            request.getUserId(),
+	            request.getRemarks()
+	            
 	    );
 	}
 

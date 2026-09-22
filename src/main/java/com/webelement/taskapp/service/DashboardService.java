@@ -20,6 +20,7 @@ import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskGroupResponse;
 import com.webelement.taskapp.entity.TaskEntity;
+import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskRepository;
 
 @Service
@@ -32,6 +33,9 @@ public class DashboardService {
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	@Autowired
 	private TaskRepository taskRepository;
+	
+	@Autowired
+	private ClientRepository clientRepository;
 
 	public List<ClientDashboardDTO> findDashboardClients(Integer userId, String isAdmin, String loginType) {
 
@@ -79,16 +83,23 @@ public class DashboardService {
 			return !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
 		}).collect(Collectors.toList());
 
+//		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
+//			LocalDateTime taskStartDate = task.getDate();
+//			if (taskStartDate == null) {
+//				return false;
+//			}
+//			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
+//					&& !taskStartDate.isAfter(endOfWeek);
+//		}).collect(Collectors.toList());
+		
 		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
-			LocalDateTime taskStartDate = task.getDate();
-			if (taskStartDate == null) {
-				return false;
-			}
-			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
-					&& !taskStartDate.isAfter(endOfWeek);
+		    LocalDateTime taskStartDate = task.getDate();
+		    if (taskStartDate == null) {
+		        return false;
+		    }
+		    boolean notClosed = task.getTaskStatus() == null || task.getTaskStatus() != 5;
+		    return notClosed && !taskStartDate.isBefore(startOfWeek) && !taskStartDate.isAfter(endOfWeek);
 		}).collect(Collectors.toList());
-		
-		
 		
 
 		List<TaskEntity> overdueTasks = tasks.stream().filter(task -> {
@@ -96,9 +107,13 @@ public class DashboardService {
 			return dueDateTime != null && dueDateTime.isBefore(now) && !isDone(task);
 		}).collect(Collectors.toList());
 
+//		List<TaskEntity> todoTasks = tasks.stream()
+//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
+//				.collect(Collectors.toList());
+		
 		List<TaskEntity> todoTasks = tasks.stream()
-				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
-				.collect(Collectors.toList());
+		        .filter(task -> task.getTaskStatus() == null || task.getTaskStatus() == TODO)
+		        .collect(Collectors.toList());
 
 //		List<TaskEntity> inProgressTasks = tasks.stream()
 //				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
@@ -273,6 +288,10 @@ public class DashboardService {
 		return taskList;
 
 	}
+	
+	public Double getTotalOutstanding(Integer clientId, Integer userId) {
+        return clientRepository.getTotalOutstanding(clientId, userId);
+    }
 
 	// NEW
 	public int countOfActiveTask(Integer clientId,Integer userId) {
