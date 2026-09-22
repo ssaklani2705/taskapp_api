@@ -17,12 +17,9 @@ public interface TaskService {
 	        Integer assignedTo,Integer userId,String remark);
 
 	TaskEntity updateTaskStatus(UpdateTaskStatusDTO request) throws Exception;
-
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception;
-
-
 			public boolean canDisableChangeManager(TaskEntity task, Integer userId);
 
 }

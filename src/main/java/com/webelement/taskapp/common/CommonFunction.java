@@ -276,11 +276,12 @@ public class CommonFunction {
 		sb.append("<td>: ").append(taskTitle).append("</td>");
 		sb.append("</tr>");
 		sb.append("<tr>");
-		sb.append("<td><b>Previous Status</b></td>");
+		sb.append("<td><b>Current Status</b></td>");
 		sb.append("<td>: ").append(oldStatus).append("</td>");
 		sb.append("</tr>");
 		sb.append("<tr>");
 		sb.append("<td><b>Current Status</b></td>");
+		sb.append("<td>: ").append(newStatus).append("</td>");
 		sb.append("</tr>");
 		sb.append("</table>");
 		sb.append("<br><br>");
