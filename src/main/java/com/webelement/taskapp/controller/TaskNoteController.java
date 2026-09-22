@@ -22,34 +22,20 @@ public class TaskNoteController {
 
     @Autowired
     private TaskNoteService taskNoteService;
-
-
     // =====================================================
     // ADD NOTE
     // =====================================================
-
     @PostMapping("/add")
-    public ResponseEntity<TaskNoteDTO> addTaskNote(
-            @RequestBody TaskNoteRequestDTO request) {
-
-        TaskNoteDTO response =
-                taskNoteService.addTaskNote(request);
-
+    public ResponseEntity<TaskNoteDTO> addTaskNote(@RequestBody TaskNoteRequestDTO request) throws Exception {
+        TaskNoteDTO response =taskNoteService.addTaskNote(request);
         return ResponseEntity.ok(response);
     }
-
-
     // =====================================================
     // GET NOTES BY TASK ID
     // =====================================================
-
     @GetMapping("/getByTaskId/{taskId}")
-    public ResponseEntity<List<TaskNoteDTO>> getTaskNotes(
-            @PathVariable Integer taskId) {
-
-        List<TaskNoteDTO> response =
-                taskNoteService.getTaskNotes(taskId);
-
+    public ResponseEntity<List<TaskNoteDTO>> getTaskNotes(@PathVariable Integer taskId) {
+        List<TaskNoteDTO> response =taskNoteService.getTaskNotes(taskId);
         return ResponseEntity.ok(response);
     }
 }

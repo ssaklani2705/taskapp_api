@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -27,12 +28,16 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
+import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.TransactionRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
 @Component
 public class CommonFunction {
+	@Autowired
+	private MailLogRepo logRepo;
 	
 	@Autowired
 	private ResourceLoader resourceLoader;
@@ -257,47 +262,105 @@ public class CommonFunction {
 	
 	
 	
-	 public String getTaskStatusMailTemplate(
-	            String name,
-	            String taskTitle,
-	            String oldStatus,
-	            String newStatus,
-	            String websitePath) {
+	public String getTaskStatusMailTemplate(String name, String taskTitle, String oldStatus, String newStatus,
+			String websitePath) {
 
-	        StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
+		sb.append("<html>");
+		sb.append("<body style='font-family:Arial;'>");
+		sb.append("<p>Dear ").append(name).append(",</p>");
+		sb.append("<p>Your task status has been updated.</p>");
+		sb.append("<table>");
+		sb.append("<tr>");
+		sb.append("<td><b>Task</b></td>");
+		sb.append("<td>: ").append(taskTitle).append("</td>");
+		sb.append("</tr>");
+		sb.append("<tr>");
+		sb.append("<td><b>Previous Status</b></td>");
+		sb.append("<td>: ").append(oldStatus).append("</td>");
+		sb.append("</tr>");
+		sb.append("<tr>");
+		sb.append("<td><b>Current Status</b></td>");
+		sb.append("</tr>");
+		sb.append("</table>");
+		sb.append("<br><br>");
+		sb.append("<br><br>");
+		sb.append("Regards,<br>");
+		sb.append("Task App Team");
+		sb.append("</body>");
+		sb.append("</html>");
 
-	        sb.append("<html>");
-	        sb.append("<body style='font-family:Arial;'>");
-	        sb.append("<p>Dear ").append(name).append(",</p>");
-	        sb.append("<p>Your task status has been updated.</p>");
-	        sb.append("<table>");
-	        sb.append("<tr>");
-	        sb.append("<td><b>Task</b></td>");
-	        sb.append("<td>: ").append(taskTitle).append("</td>");
-	        sb.append("</tr>");
+		return sb.toString();
+	}
+	 
+	 
+	 
+	 
+	 
+	 public String getTaskNotesMailTemplate(
+		        String name,
+		        String taskTitle,
+		        String note,
+		        String createdBy,
+		        String websitePath) {
 
-	        sb.append("<tr>");
-	        sb.append("<td><b>Previous Status</b></td>");
-	        sb.append("<td>: ").append(oldStatus).append("</td>");
-	        sb.append("</tr>");
+		    StringBuilder sb = new StringBuilder();
 
-	        sb.append("<tr>");
-	        sb.append("<td><b>Current Status</b></td>");
-	        sb.append("</tr>");
+		    sb.append("<html>");
+		    sb.append("<body style='font-family:Arial,sans-serif;'>");
 
-	        sb.append("</table>");
+		    sb.append("<p>Dear ").append(name).append(",</p>");
 
-	        sb.append("<br><br>");
+		    sb.append("<p>A new note has been added to the task.</p>");
 
-	      
+		    sb.append("<table style='border-collapse:collapse;'>");
 
-	        sb.append("<br><br>");
-	        sb.append("Regards,<br>");
-	        sb.append("Task App Team");
+		    sb.append("<tr>");
+		    sb.append("<td><b>Task</b></td>");
+		    sb.append("<td>: ").append(taskTitle).append("</td>");
+		    sb.append("</tr>");
 
-	        sb.append("</body>");
-	        sb.append("</html>");
+		    sb.append("<tr>");
+		    sb.append("<td><b>Added By</b></td>");
+		    sb.append("<td>: ").append(createdBy).append("</td>");
+		    sb.append("</tr>");
 
-	        return sb.toString();
-	    }
+		    sb.append("<tr>");
+		    sb.append("<td valign='top'><b>Note</b></td>");
+		    sb.append("<td>: ").append(note).append("</td>");
+		    sb.append("</tr>");
+
+		    sb.append("</table>");
+
+		    sb.append("<br/><br/>");
+
+		    sb.append("Regards,<br>");
+		    sb.append("Task App Team");
+
+		    sb.append("</body>");
+		    sb.append("</html>");
+
+		    return sb.toString();
+		}
+	 
+	 
+	 
+	 public void createMailLog(int type, String name, String to, String cc, String bcc, String from, String subject,
+				String filename, String ip, String iplocal, int status) {
+			MailLogEntity log = new MailLogEntity();
+			log.setType(type);
+			log.setName(name);
+			log.setTo(to);
+			log.setCc(cc);
+			log.setBcc(bcc);
+			log.setFrom(from);
+			log.setSubject(subject);
+			log.setStatus(status);
+			log.setFilename(filename);
+			log.setRegDate(LocalDateTime.now());
+			log.setModDate(LocalDateTime.now());
+			log.setIpAddress(ip);
+			log.setLocalIp(iplocal);
+			logRepo.save(log);
+		}
 }

@@ -22,7 +22,6 @@ import com.webelement.taskapp.entity.PlanEntity;
 import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.service.impl.PlanServiceImpl;
 import com.webelement.taskapp.service.impl.StateServiceImpl;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController

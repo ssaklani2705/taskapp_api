@@ -37,20 +37,17 @@ public class TaskMailServiceImpl implements TaskMailService {
 	private final SmtpRepo smtpRepo;
 	static final Logger logger = LoggerFactory.getLogger(TaskMailServiceImpl.class);
 	
+	private final HttpServletRequest request;
 	@Override
 	public void sendTaskStatusMail(TaskEntity task, String oldStatus, String newStatus) throws Exception {
 		List<Integer> userIds = Arrays.asList(task.getAssignedTo(), task.getAddedBy());
-
-		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
-				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
-
+		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream().collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
 		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
 		if (assignedUser == null || assignedUser.getEmail() == null || assignedUser.getEmail().trim().isEmpty()) {
 			return;
 		}
-		String mailBody = commonFunction.getTaskStatusMailTemplate(assignedUser.getFirstName(), task.getTitle(),
-				oldStatus, newStatus, "");
+		String mailBody = commonFunction.getTaskStatusMailTemplate(assignedUser.getFirstName(), task.getTitle(),oldStatus, newStatus, "");
 		String[] to = { assignedUser.getEmail() };
 		String[] cc = { addedByUser.getEmail() };
 		String[] bcc = new String[0];
@@ -58,5 +55,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
 		Integer result = mailService.postMailAttach(to, cc, bcc, mailBody, subject, "", "", -1, "", smtp);
 		logger.info("Mail service response = {}", result);
+		String ip = commonFunction.resolveClientIp(request);
+		
+		commonFunction.createMailLog(2, assignedUser.getFirstName(), assignedUser.getEmail(), "", "", "", subject, "", ip,"", 2);
 	}
 }

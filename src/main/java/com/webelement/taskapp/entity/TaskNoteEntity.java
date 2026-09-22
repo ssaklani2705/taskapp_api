@@ -1,5 +1,6 @@
 package com.webelement.taskapp.entity;
 
+
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -8,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,4 +46,10 @@ public class TaskNoteEntity {
 
     @Column(name = "i_status")
     private Short status;
+    
+    @Transient
+    private Integer userId;
+    
+    @Transient
+    private String isAdmin;
 }
