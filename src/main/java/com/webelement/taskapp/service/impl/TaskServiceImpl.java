@@ -9,6 +9,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +69,7 @@ public class TaskServiceImpl implements TaskService {
 	private String uploadDir;
 
 	@Override
-	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId) {
+	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,String remark) {
 
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 
@@ -78,6 +79,27 @@ public class TaskServiceImpl implements TaskService {
 		}
 
 		TaskEntity task = optionalTask.get();
+		
+		// Resolve assigner's name for the remark trail
+	    String actorName = resolveUserName(userId);
+
+	    // Build the new remark entry with a timestamp + actor
+//	    String timestamp = LocalDateTime.now()
+//	            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+//
+//	    String newEntry = "[" + timestamp + " - " + actorName + "] " + (remark == null ? "" : remark.trim());
+//
+//		 // Append to existing remarks (preserve history), skip if new remark is blank
+//	    if (remark != null && !remark.trim().isEmpty()) {
+//
+//	        String existingRemarks = task.getAssignremark();
+//
+//	        String updatedRemarks = (existingRemarks == null || existingRemarks.trim().isEmpty())
+//	                ? newEntry
+//	                : existingRemarks + System.lineSeparator() + newEntry;
+//
+//	        task.setAssignremark(updatedRemarks);
+//	    }
 
 		// Update only assigned user
 		task.setAssignedTo(assignedTo);
@@ -104,7 +126,10 @@ public class TaskServiceImpl implements TaskService {
 		    }
 
 		    // History
-		    String action = "Task reassigned to " + assignedUserName;
+//		    String action = "Task reassigned to " + assignedUserName;
+		    String action = "Task reassigned to " + assignedUserName
+		            + (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+
 
 		    commonFunction.createHistoryAccess(
 		            userId,

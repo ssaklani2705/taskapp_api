@@ -91,9 +91,11 @@ public class DashboardController {
 	        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
 
 	        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
-
+	        Double totalOutstanding = taskService.getTotalOutstanding(clientId, userId);
+	        
 	        map.put("taskList", taskList.getContent());
 	        map.put("totalTasks", taskList.getTotalElements());
+	        map.put("totalOutstanding", totalOutstanding);
 
 	        return ResponseEntity.ok(map);
 	    }

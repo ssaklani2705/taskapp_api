@@ -247,7 +247,7 @@ public class TaskCategoryService {
 	     * -----
 	     * Admin can see all active task categories.
 	     */
-	    if ("Y".equalsIgnoreCase(isAdmin)) {
+	    if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
 
 	        return list.stream()
 	                .map(t -> new TaskCategoryDTO(

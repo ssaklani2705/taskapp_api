@@ -166,7 +166,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
 	        + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
 	        + "AND (:priority = 0 OR t.priority = :priority) "
-	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
+	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds)"
+	        + " OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) "
 	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
 	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
 
