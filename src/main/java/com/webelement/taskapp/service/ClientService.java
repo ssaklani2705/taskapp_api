@@ -304,7 +304,7 @@ public class ClientService {
 				client.setStateNameForExcel(stateName);
 
 				if (!stateName.isEmpty()) {
-					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCase(stateName);
+					Optional<StateEntity> stateOptional = stateRepository.findByNameIgnoreCaseAndStatus(stateName,(short)1);
 
 					if (stateOptional.isPresent()) {
 						client.setStateId(stateOptional.get().getStateId());
@@ -1074,54 +1074,55 @@ public class ClientService {
 	}
 
 	// For Recurring
-	public List<ClientDTO> getClientsForRecurring(
-	        Integer userId,
-	        String isAdmin,
-	        String loginType) {
-
-	    Short activeStatus = 1;
-	    List<ClientEntity> clients;
-
-	    // MANAGER
-	    if ("manager".equalsIgnoreCase(loginType)) {
-
-	        clients = clientRepository.findByManagerIdAndStatus(
-	                userId,
-	                activeStatus
-	        );
-
-	    }
-	    // NON-MANAGER + ADMIN
-	    else if ("Y".equalsIgnoreCase(isAdmin)) {
-
-	        clients = clientRepository.findByStatus(
-	                activeStatus
-	        );
-
-	    }
-	    // NON-MANAGER + NON-ADMIN
-	    else {
-
-	        clients = clientRepository.findByUserIdAndStatus(
-	                userId,
-	                activeStatus
-	        );
-	    }
-
-	    return clients.stream()
-	            .map(client -> new ClientDTO(
-	                    client.getClientId(),
-	                    client.getName()
-	            ))
-	            .collect(Collectors.toList());
-	}
-//	public List<ClientDTO> getClientsForRecurring(Integer userId,String isAdmin,String loginType) {
-//		Short activeStatus = 1;
-//		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
+//	public List<ClientDTO> getClientsForRecurring(
+//	        Integer userId,
+//	        String isAdmin,
+//	        String loginType) {
 //
-//		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
-//				.collect(Collectors.toList());
+//	    Short activeStatus = 1;
+//	    List<ClientEntity> clients;
+//
+//	    // MANAGER
+//	    if ("manager".equalsIgnoreCase(loginType)) {
+//
+//	        clients = clientRepository.findByManagerIdAndStatus(
+//	                userId,
+//	                activeStatus
+//	        );
+//
+//	    }
+//	    // NON-MANAGER + ADMIN
+//	    else if ("Y".equalsIgnoreCase(isAdmin)) {
+//
+//	        clients = clientRepository.findByStatus(
+//	                activeStatus
+//	        );
+//
+//	    }
+//	    // NON-MANAGER + NON-ADMIN
+//	    else {
+//
+//	        clients = clientRepository.findByUserIdAndStatus(
+//	                userId,
+//	                activeStatus
+//	        );
+//	    }
+//
+//	    return clients.stream()
+//	            .map(client -> new ClientDTO(
+//	                    client.getClientId(),
+//	                    client.getName()
+//	            ))
+//	            .collect(Collectors.toList());
 //	}
+	public List<ClientDTO> getClientsForRecurring(Integer userId,String isAdmin,String loginType) {
+		Short activeStatus = 1;
+//		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
+		List<ClientEntity> clients = clientRepository.findByStatus(activeStatus);
+
+		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
+				.collect(Collectors.toList());
+	}
 
 	// Manager Change
 	@Transactional

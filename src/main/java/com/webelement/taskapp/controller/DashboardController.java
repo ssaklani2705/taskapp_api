@@ -99,11 +99,11 @@ public class DashboardController {
 	    }
 
     @GetMapping("/countOfActiveTask")
-    public ResponseEntity<Map<String, Object>> countOfActiveTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfActiveTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfActiveTask(clientId);
+        int count = taskService.countOfActiveTask(clientId,userId);
 
         map.put("count", count);
 
@@ -111,11 +111,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfCompletedTask")
-    public ResponseEntity<Map<String, Object>> countOfCompletedTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfCompletedTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfCompletedTask(clientId);
+        int count = taskService.countOfCompletedTask(clientId,userId);
 
         map.put("count", count);
 
@@ -123,11 +123,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfPendingTask")
-    public ResponseEntity<Map<String, Object>> countOfPendingTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfPendingTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfPendingTask(clientId);
+        int count = taskService.countOfPendingTask(clientId,userId);
 
         map.put("count", count);
 
@@ -135,11 +135,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssignedTask")
-    public ResponseEntity<Map<String, Object>> countOfAssignedTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfAssignedTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssignedTask(clientId);
+        int count = taskService.countOfAssignedTask(clientId,userId);
 
         map.put("count", count);
 
@@ -147,11 +147,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssigneeClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssigneeClosureTask(clientId);
+        int count = taskService.countOfAssigneeClosureTask(clientId,userId);
 
         map.put("count", count);
 
@@ -159,11 +159,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfReOpenTask")
-    public ResponseEntity<Map<String, Object>> countOfReOpenTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfReOpenTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfReOpenTask(clientId);
+        int count = taskService.countOfReOpenTask(clientId,userId);
 
         map.put("count", count);
 
@@ -171,11 +171,11 @@ public class DashboardController {
     }
 
     @GetMapping("/countOfAssigneeReClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId) {
+    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
 
         Map<String, Object> map = new HashMap<>();
 
-        int count = taskService.countOfAssigneeReClosureTask(clientId);
+        int count = taskService.countOfAssigneeReClosureTask(clientId,userId);
 
         map.put("count", count);
 

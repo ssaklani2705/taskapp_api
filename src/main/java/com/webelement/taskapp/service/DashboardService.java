@@ -275,32 +275,32 @@ public class DashboardService {
 	}
 
 	// NEW
-	public int countOfActiveTask(Integer clientId) {
-		return taskRepository.countOfActiveTask(clientId);
+	public int countOfActiveTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfActiveTask(clientId,userId);
 	}
 
-	public int countOfCompletedTask(Integer clientId) {
-		return taskRepository.countOfCompletedTask(clientId);
+	public int countOfCompletedTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfCompletedTask(clientId,userId);
 	}
 
-	public int countOfPendingTask(Integer clientId) {
-		return taskRepository.countOfPendingTask(clientId);
+	public int countOfPendingTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfPendingTask(clientId,userId);
 	}
 
-	public int countOfAssignedTask(Integer clientId) {
-		return taskRepository.countOfAssignedTask(clientId);
+	public int countOfAssignedTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfAssignedTask(clientId,userId);
 	}
 
-	public int countOfAssigneeClosureTask(Integer clientId) {
-		return taskRepository.countOfAssigneeClosureTask(clientId);
+	public int countOfAssigneeClosureTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfAssigneeClosureTask(clientId,userId);
 	}
 
-	public int countOfReOpenTask(Integer clientId) {
-		return taskRepository.countOfReOpenTask(clientId);
+	public int countOfReOpenTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfReOpenTask(clientId,userId);
 	}
 
-	public int countOfAssigneeReClosureTask(Integer clientId) {
-		return taskRepository.countOfAssigneeReClosureTask(clientId);
+	public int countOfAssigneeReClosureTask(Integer clientId,Integer userId) {
+		return taskRepository.countOfAssigneeReClosureTask(clientId,userId);
 	}
 
 }

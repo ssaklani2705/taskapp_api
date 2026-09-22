@@ -1,6 +1,5 @@
 package com.webelement.taskapp.controller;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -11,12 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,16 +25,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
-import com.webelement.taskapp.dto.TaskRequestDTO;
 import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
@@ -46,9 +38,7 @@ import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
-import com.webelement.taskapp.service.TaskService;
 import com.webelement.taskapp.service.impl.TaskServiceImpl;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 public class TaskController {
 
 	private final TaskServiceImpl taskService;
-	private final ObjectMapper objectMapper;
 	private final ClientRepository clientRepository;
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;

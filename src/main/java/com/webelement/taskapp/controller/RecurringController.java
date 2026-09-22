@@ -80,7 +80,7 @@ public class RecurringController {
 	}
 
 	private static final Map<String, String> RECURRING_SORT_MAP = Map.of("title", "r.title", "clientName", "c.name",
-			"description", "r.description", "type", "r.type", "taskCategory", "tc.name", "status", "r.status",
+			"description", "r.description", "type", "r.type", "taskCategory", "tc.name", "status", "r.status","priority", "r.priority",
 			"regDate", "r.regDate");
 
 	// For index
@@ -92,7 +92,7 @@ public class RecurringController {
 			@RequestParam(defaultValue = "title") String sortColumn,
 			@RequestParam(defaultValue = "asc") String sortDirection, @RequestParam Integer userId,
 			@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType) {
+			@RequestParam("loginType") String loginType,@RequestParam(defaultValue = "0") Integer priority) {
 
 		String sortBy = RECURRING_SORT_MAP.getOrDefault(sortColumn, "r.title");
 
@@ -104,7 +104,7 @@ public class RecurringController {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<RecurringDTO> recurringPage = recurringService.findRecurringDetails(pageable, status, search, clientId,
-				type, taskCatId, userId,isAdmin,loginType);
+				type, taskCatId, userId,isAdmin,loginType,priority);
 
 		Map<String, Object> response = new HashMap<>();
 

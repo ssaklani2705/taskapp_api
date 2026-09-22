@@ -327,26 +327,143 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			@Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
 
 	// NEW
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfActiveTask(@Param("clientId") Integer clientId);
+	@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfActiveTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfCompletedTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfPendingTask(@Param("clientId") Integer clientId);
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus = 5 " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfCompletedTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfAssignedTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfAssigneeClosureTask(@Param("clientId") Integer clientId);
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus IN (1, 2, 3, 4) " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfPendingTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfReOpenTask(@Param("clientId") Integer clientId);
 
-	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-	int countOfAssigneeReClosureTask(@Param("clientId") Integer clientId);
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus = 1 " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfAssignedTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
+
+
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus = 2 " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfAssigneeClosureTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
+
+
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus = 3 " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfReOpenTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
+
+
+		@Query("SELECT COUNT(t) " +
+		       "FROM TaskEntity t " +
+		       "JOIN t.client c " +
+		       "WHERE t.taskStatus = 4 " +
+		       "AND t.status = 1 " +
+		       "AND (:clientId = 0 OR t.clientId = :clientId) " +
+		       "AND (" +
+		       "    t.assignedTo = :userId " +
+		       "    OR t.addedBy = :userId " +
+		       "    OR c.managerId = :userId " +
+		       "    OR c.userId = :userId" +
+		       ")")
+		int countOfAssigneeReClosureTask(
+		        @Param("clientId") Integer clientId,
+		        @Param("userId") Integer userId);
+	
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfActiveTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfCompletedTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfPendingTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfAssignedTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfAssigneeClosureTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfReOpenTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+//
+//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
+//	int countOfAssigneeReClosureTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
 
 	// For CREATE: any task with same title for this client
 	boolean existsByTitleIgnoreCaseAndClientId(String title, Integer clientId);

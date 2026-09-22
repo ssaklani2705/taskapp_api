@@ -46,6 +46,9 @@ public class RecurringEntity {
 
 	@Column(name = "i_status")
 	private Short status;
+	
+	@Column(name = "i_priority")
+	private Short priority;
 
 	@Column(name = "ts_regdate")
 	private Timestamp regDate;

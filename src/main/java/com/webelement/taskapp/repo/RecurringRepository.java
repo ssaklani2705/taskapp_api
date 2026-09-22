@@ -102,7 +102,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	        + "r.month, "
 	        + "r.taskCatId, "
 	        + "tc.name, "
-	        + "r.status) "
+	        + "r.status,r.priority) "
 
 	        + "FROM RecurringEntity r "
 
@@ -115,6 +115,9 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	        + "WHERE r.recurringId > 0 "
 
 	        + "AND (:status IS NULL OR r.status = :status) "
+	        
+//			+ "AND (:priority IS NULL OR  r.priority = :priority) "
++ "AND (:priority = 0 OR :priority IS NULL OR r.priority = :priority) "
 
 	        + "AND ("
 	        + ":isAdmin = 'Y' "
@@ -142,7 +145,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	        + "OR :search = '' "
 	        + "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "
 	        + "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%'))"
-	        + ")")
+	        + ") ORDER BY r.status ASC,r.regDate DESC")
 	Page<RecurringDTO> findRecurringDetails(
 	        Pageable pageable,
 	        @Param("status") Short status,
@@ -153,7 +156,8 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	        @Param("taskCatId") Integer taskCatId,
 	        @Param("isAdmin") String isAdmin,
 	        @Param("loginType") String loginType,
-	        @Param("userId") Integer userId
+	        @Param("userId") Integer userId,
+	        @Param("priority") Integer priority
 	);
 
 	// For Delete
@@ -164,7 +168,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	// For View
 	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
 			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
-			+ "tc.name, " + "r.status) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
+			+ "tc.name, " + "r.status,r.priority) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
 			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
 			+ "WHERE r.recurringId = :recurringId")
 	RecurringDTO getRecurringById(@Param("recurringId") Integer recurringId);

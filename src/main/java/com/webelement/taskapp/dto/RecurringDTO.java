@@ -25,12 +25,13 @@ public class RecurringDTO {
 	private Integer taskCatId;
 	private String taskCatName;
 	private Short status;
+	private Short priority;
 	
 	private List<TransactionEntity> transactionHistory;
 
 	// For edit
 	public RecurringDTO(Integer recurringId, Integer clientId, String title, String description, Short type,
-			Integer date, Short day, Integer month, Integer taskCatId, Short status) {
+			Integer date, Short day, Integer month, Integer taskCatId, Short status,Short priority) {
 		super();
 		this.recurringId = recurringId;
 		this.clientId = clientId;
@@ -42,11 +43,12 @@ public class RecurringDTO {
 		this.month = month;
 		this.taskCatId = taskCatId;
 		this.status = status;
+		this.priority = priority;
 	}
 
 	// For view
 	public RecurringDTO(Integer recurringId, Integer clientId, String clientName, String title, String description,
-			Short type, Integer date, Short day, Integer month, Integer taskCatId, String taskCatName, Short status) {
+			Short type, Integer date, Short day, Integer month, Integer taskCatId, String taskCatName, Short status,Short priority) {
 		super();
 		this.recurringId = recurringId;
 		this.clientId = clientId;
@@ -60,6 +62,7 @@ public class RecurringDTO {
 		this.taskCatId = taskCatId;
 		this.taskCatName = taskCatName;
 		this.status = status;
+		this.priority = priority;
 	}
 	
 }

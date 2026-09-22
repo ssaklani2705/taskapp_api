@@ -66,6 +66,10 @@ public class RecurringService {
 
 			throw new RuntimeException("Invalid recurring type.");
 		}
+		
+		if (dto.getPriority() == null || dto.getPriority() < 1 || dto.getPriority() > 3) {
+            throw new RuntimeException("Invalid priority.");
+        }
 
 		validateRecurringType(dto);
 
@@ -78,6 +82,7 @@ public class RecurringService {
 			recurring.setRegDate(Timestamp.from(Instant.now()));
 
 			recurring.setStatus((short) 1);
+			
 
 		}
 
@@ -92,13 +97,13 @@ public class RecurringService {
 
 			recurring = existing.get();
 
-			Optional<ClientEntity> existingClient = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
-					userId);
-
-			if (existingClient.isEmpty()) {
-
-				throw new RuntimeException("You are not authorized to update this recurring record.");
-			}
+//			Optional<ClientEntity> existingClient = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
+//					userId);
+//
+//			if (existingClient.isEmpty()) {
+//
+//				throw new RuntimeException("You are not authorized to update this recurring record.");
+//			}
 
 			recurring.setModDate(Timestamp.from(Instant.now()));
 
@@ -108,6 +113,7 @@ public class RecurringService {
 			}
 		}
 
+		recurring.setPriority(dto.getPriority());
 		recurring.setClientId(dto.getClientId());
 		recurring.setTitle(dto.getTitle());
 		recurring.setDescription(dto.getDescription());
@@ -178,16 +184,16 @@ public class RecurringService {
 
 		RecurringEntity recurring = existing.get();
 
-		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
-				userId);
-
-		if (clientOptional.isEmpty()) {
-			throw new RuntimeException("You are not authorized to view this recurring record.");
-		}
+//		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
+//				userId);
+//
+//		if (clientOptional.isEmpty()) {
+//			throw new RuntimeException("You are not authorized to view this recurring record.");
+//		}
 
 		return new RecurringDTO(recurring.getRecurringId(), recurring.getClientId(), recurring.getTitle(),
 				recurring.getDescription(), recurring.getType(), recurring.getDate(), recurring.getDay(),
-				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus());
+				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus(),recurring.getPriority());
 	}
 
 	// For Index
@@ -221,7 +227,7 @@ public class RecurringService {
 	        Integer taskCatId,
 	        Integer userId,
 	        String isAdmin,
-	        String loginType) {
+	        String loginType,Integer priority) {
 
 	    Short statusFilter =
 	            (status != null && status == 0) ? null : status;
@@ -250,7 +256,8 @@ public class RecurringService {
 	            taskCatFilter,
 	            isAdmin,
 	            loginType,
-	            userId
+	            userId,
+	            priority
 	    );
 	}
 
@@ -264,12 +271,12 @@ public class RecurringService {
 			throw new RuntimeException("Recurring record not found.");
 		}
 
-		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
-				userId);
-
-		if (clientOptional.isEmpty()) {
-			throw new RuntimeException("You are not authorized to view this recurring record.");
-		}
+//		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerId(recurring.getClientId(),
+//				userId);
+//
+//		if (clientOptional.isEmpty()) {
+//			throw new RuntimeException("You are not authorized to view this recurring record.");
+//		}
 
 		if (recurring != null) {
 			List<TransactionEntity> history = getTransactionLogs(11, recurringId);

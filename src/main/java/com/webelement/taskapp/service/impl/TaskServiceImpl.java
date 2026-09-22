@@ -41,8 +41,10 @@ import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
+import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.StateRepo;
 import com.webelement.taskapp.repo.TaskRepository;
+import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.TaskService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,10 @@ public class TaskServiceImpl implements TaskService {
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
 	private final TaskMailService taskMailService;
+	
+	@Autowired
+	private UserLoginRepository userLoginRepository; // adjust to your actual repo name
+
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
@@ -84,7 +90,31 @@ public class TaskServiceImpl implements TaskService {
 		// Update modification date
 		task.setModificationDate(LocalDateTime.now());
 
-		taskRepository.save(task);
+//		taskRepository.save(task);
+		 TaskEntity savedTask = taskRepository.save(task);
+
+		  // Get assigned user's name
+		    String assignedUserName = "Unknown";
+
+		    if (savedTask.getAssignedTo() != null) {
+		        assignedUserName = userLoginRepository
+		                .findById(savedTask.getAssignedTo())
+		                .map(UserLoginEntity::getFirstName)
+		                .orElse("Unknown");
+		    }
+
+		    // History
+		    String action = "Task reassigned to " + assignedUserName;
+
+		    commonFunction.createHistoryAccess(
+		            userId,
+		            commonFunction.resolveClientIp(httpRequest),
+		            commonFunction.getLocalIp(),
+		            action,
+		            10,
+		            savedTask.getTaskId(),
+		            -1
+		    );
 
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
@@ -244,7 +274,28 @@ public class TaskServiceImpl implements TaskService {
 			task.setFileName2(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
-		String action = isUpdate ? "Task Updated" : "Task Added";
+		
+		String action;
+
+		if (isUpdate) {
+
+		    action = "Task Updated";
+
+		} else {
+
+		    String assignedUserName = "Unknown";
+
+		    if (savedTask.getAssignedTo() != null) {
+		        assignedUserName = userLoginRepository
+		                .findById(savedTask.getAssignedTo())
+		                .map(UserLoginEntity::getFirstName)
+		                .orElse("Unknown");
+		    }
+
+		    action = "Task Added and Assigned to " + assignedUserName;
+		}
+		
+//		String action = isUpdate ? "Task Updated" : "Task Added";
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		return savedTask;
@@ -376,88 +427,216 @@ public class TaskServiceImpl implements TaskService {
 	@Override
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
 
-		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
-				.orElseThrow(() -> new RuntimeException("Task not found"));
+	    TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
 
-		// boolean disabled = canDisableChangeManager(task, dto.getUserId());
-		// if (disabled) {
-//	      throw new RuntimeException("You are not allowed to change this task's status.");
-		// }
+	    Short currentStatus = task.getTaskStatus();
+	    Short nextStatus;
+	    boolean isReopen = false;
 
-		Short currentStatus = task.getTaskStatus();
-		Short nextStatus;
+	    if (currentStatus == 2 || currentStatus == 4) {
 
-		if (currentStatus == 2 || currentStatus == 4) {
+	        Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
 
-			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+	        if (selectedStatus == 3) {
+	            isReopen = true;
 
-			if (selectedStatus == 3) {
+	            Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
 
-				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
+	            if (reopenCount >= 3) {
+	                throw new RuntimeException("Task can only be reopened 3 times.");
+	            }
 
-				if (reopenCount >= 3) {
-					throw new RuntimeException("Task can only be reopened 3 times.");
-				}
+	            task.setReopenCount(reopenCount + 1);
+	        }
 
-				task.setReopenCount(reopenCount + 1);
-			}
+	        nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
 
-			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
+	        if (nextStatus == null) {
+	            throw new RuntimeException("Please select a valid task status.");
+	        }
 
-			if (nextStatus == null) {
-				throw new RuntimeException("Please select a valid task status.");
-			}
+	    } else {
 
-		} else {
+	        nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
 
-			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
+	        if (nextStatus == null) {
+	            if (currentStatus == 5) {
+	                throw new RuntimeException("This task is already closed and cannot be updated.");
+	            }
+	            throw new RuntimeException("Invalid task status: " + currentStatus);
+	        }
+	    }
 
-			if (nextStatus == null) {
+	    String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+	    String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
 
-				if (currentStatus == 5) {
-					throw new RuntimeException("This task is already closed and cannot be updated.");
-				}
+	    // Convert status name into filename format
+	    String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
 
-				throw new RuntimeException("Invalid task status: " + currentStatus);
-			}
-		}
+	    // Build the action message per scenario
+	    String actionMessage = buildActionMessage(dto, currentStatus, nextStatus, newStatus, isReopen);
 
-		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+	    task.setTaskStatus(nextStatus);
+	    task.setCloseRemarks(dto.getDescription());
+	    task.setModificationDate(LocalDateTime.now());
 
-		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
+	    // PDF Upload
+	    if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
+	        validatePdf(dto.getFileName3());
+	        String pdfFileName = saveFileNew(dto.getFileName3(), "pdf", statusPrefix);
+	        task.setFileName3(pdfFileName);
+	    }
+	    // ZIP Upload
+	    if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
+	        validateZip(dto.getFileName4());
+	        String zipFileName = saveFileNew(dto.getFileName4(), "zip", statusPrefix);
+	        task.setFileName4(zipFileName);
+	    }
 
-		// Convert status name into filename format
-		// Example: Assignor Closure -> ASSIGNOR_CLOSURE
-		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
-
-		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
-
-		task.setTaskStatus(nextStatus);
-		task.setCloseRemarks(dto.getDescription());
-		task.setModificationDate(LocalDateTime.now());
-
-		// PDF Upload
-		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-
-			validatePdf(dto.getFileName3());
-
-			String pdfFileName = saveFileNew(dto.getFileName3(), "pdf", statusPrefix);
-
-			task.setFileName3(pdfFileName);
-		}
-		// ZIP Upload
-		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-			validateZip(dto.getFileName4());
-			String zipFileName = saveFileNew(dto.getFileName4(), "zip", statusPrefix);
-			task.setFileName4(zipFileName);
-		}
-		TaskEntity savedTask = taskRepository.save(task);
-		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
-		logger.debug("Sending mail over here {}", savedTask.toString());
-		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
-		return savedTask;
+	    TaskEntity savedTask = taskRepository.save(task);
+	    commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+	            commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
+	    logger.debug("Sending mail over here {}", savedTask.toString());
+	    taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
+	    return savedTask;
 	}
+
+	/**
+	 * Builds a human-readable action message depending on what actually happened
+	 * to the task (added+assigned, added by system, closed, reopened, or a
+	 * generic status change).
+	 */
+	private String buildActionMessage(UpdateTaskStatusDTO dto, Short currentStatus, Short nextStatus,
+	        String newStatus, boolean isReopen) {
+
+	    Integer userId = dto.getUserId();
+	    boolean isSystemActor = (userId == null || userId == -1); // adjust condition to your system-user marker
+
+	    // Task added by the system (no human actor)
+	    if (isSystemActor) {
+	        return "Task added by the system.";
+	    }
+
+	    String actorName = resolveUserName(userId);
+
+	    // Reopen scenario
+	    if (isReopen) {
+	        return "Task reopened by " + actorName + ".";
+	    }
+
+	    // Closed scenario
+	    if (nextStatus == 5) {
+	        return "Task closed by " + actorName + ".";
+	    }
+
+	    // Added and assigned scenario
+	    if ("Assigned".equalsIgnoreCase(newStatus)) {
+	        return "Task added and assigned to " + actorName + ".";
+	    }
+
+	    // Fallback: generic status change — now includes actor name
+	    String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+	    return "Task status updated from " + oldStatus + " to " + newStatus + " by " + actorName + ".";
+	}
+
+	/**
+	 * Fetches the display name of the user from t_userlogin.
+	 */
+	private String resolveUserName(Integer userId) {
+	    if (userId == null) {
+	        return "Unknown";
+	    }
+	    return userLoginRepository.findById(userId)
+	            .map(UserLoginEntity::getFirstName)
+	            .orElse("Unknown");
+	}
+	
+	
+//	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
+//
+//		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
+//				.orElseThrow(() -> new RuntimeException("Task not found"));
+//
+//		// boolean disabled = canDisableChangeManager(task, dto.getUserId());
+//		// if (disabled) {
+////	      throw new RuntimeException("You are not allowed to change this task's status.");
+//		// }
+//
+//		Short currentStatus = task.getTaskStatus();
+//		Short nextStatus;
+//
+//		if (currentStatus == 2 || currentStatus == 4) {
+//
+//			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+//
+//			if (selectedStatus == 3) {
+//
+//				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
+//
+//				if (reopenCount >= 3) {
+//					throw new RuntimeException("Task can only be reopened 3 times.");
+//				}
+//
+//				task.setReopenCount(reopenCount + 1);
+//			}
+//
+//			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
+//
+//			if (nextStatus == null) {
+//				throw new RuntimeException("Please select a valid task status.");
+//			}
+//
+//		} else {
+//
+//			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
+//
+//			if (nextStatus == null) {
+//
+//				if (currentStatus == 5) {
+//					throw new RuntimeException("This task is already closed and cannot be updated.");
+//				}
+//
+//				throw new RuntimeException("Invalid task status: " + currentStatus);
+//			}
+//		}
+//
+//		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+//
+//		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
+//
+//		// Convert status name into filename format
+//		// Example: Assignor Closure -> ASSIGNOR_CLOSURE
+//		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
+//
+//		String actionMessage = "Task status updated from " + oldStatus + " to " + newStatus + ".";
+//
+//		task.setTaskStatus(nextStatus);
+//		task.setCloseRemarks(dto.getDescription());
+//		task.setModificationDate(LocalDateTime.now());
+//
+//		// PDF Upload
+//		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
+//
+//			validatePdf(dto.getFileName3());
+//
+//			String pdfFileName = saveFileNew(dto.getFileName3(), "pdf", statusPrefix);
+//
+//			task.setFileName3(pdfFileName);
+//		}
+//		// ZIP Upload
+//		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
+//			validateZip(dto.getFileName4());
+//			String zipFileName = saveFileNew(dto.getFileName4(), "zip", statusPrefix);
+//			task.setFileName4(zipFileName);
+//		}
+//		TaskEntity savedTask = taskRepository.save(task);
+//		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+//				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
+//		logger.debug("Sending mail over here {}", savedTask.toString());
+//		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
+//		return savedTask;
+//	}
 
 	@Override
 	public boolean canDisableChangeManager(TaskEntity task, Integer userId) {
