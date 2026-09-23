@@ -63,7 +63,7 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 
 	List<PlanEntity> findByStatus(Short status);
 	
-	@Query("SELECT u.planId FROM PlanEntity u WHERE LOWER(u.name) = LOWER(:name)")
+	@Query("SELECT u.planId FROM PlanEntity u WHERE LOWER(u.name) = LOWER(:name) AND u.status = 1")
     Integer findIdByName(@Param("name") String name);
 	
 	
