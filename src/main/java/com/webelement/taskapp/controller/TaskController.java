@@ -54,19 +54,14 @@ public class TaskController {
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
 	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
-	
-	
-	@PutMapping("/updateAssignedUser")
-	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(
-	        @RequestBody UpdateTaskAssignedUserDTO request) {
 
-	    return taskService.updateTaskAssignedUser(
-	            request.getTaskId(),
-	            request.getAssignedTo(),
-	            request.getUserId(),
-	            request.getRemarks()
-	            
-	    );
+	@PutMapping("/updateAssignedUser")
+	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(@RequestBody UpdateTaskAssignedUserDTO request) {
+
+		return taskService.updateTaskAssignedUser(request.getTaskId(), request.getAssignedTo(), request.getUserId(),
+				request.getRemarks()
+
+		);
 	}
 
 	@PostMapping("/deleteTask")
@@ -124,24 +119,22 @@ public class TaskController {
 			@RequestParam(required = false) String loginType,
 			@RequestParam(required = false, defaultValue = "") String dashboardFilter) {
 
-		  LinkedHashSet<Short> taskStatusSet = new LinkedHashSet<>();
-		  if (taskStatusIds != null && !taskStatusIds.trim().isEmpty()) {
+		LinkedHashSet<Short> taskStatusSet = new LinkedHashSet<>();
+		if (taskStatusIds != null && !taskStatusIds.trim().isEmpty()) {
 
-		        taskStatusSet = Arrays.stream(taskStatusIds.split(","))
-		                .map(String::trim)
-		                .filter(s -> !s.isEmpty())
-		                .map(Short::valueOf)
-		                .collect(Collectors.toCollection(LinkedHashSet::new));
-		    }
-		  
+			taskStatusSet = Arrays.stream(taskStatusIds.split(",")).map(String::trim).filter(s -> !s.isEmpty())
+					.map(Short::valueOf).collect(Collectors.toCollection(LinkedHashSet::new));
+		}
+
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
-				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType,dashboardFilter);
+				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType,
+				dashboardFilter);
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", pageData.getContent());
 		response.put("totalElements", pageData.getTotalElements());
 		return response;
 	}
-	
+
 	@GetMapping("/getTaskFilterDataOnChange")
 	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
 			@RequestParam String loginType, @RequestParam Integer clientId) {
@@ -152,14 +145,15 @@ public class TaskController {
 
 		return response;
 	}
-	
+
 	@GetMapping("/changesCategoryIdgetUserFilterData")
-	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType, @RequestParam Integer clientId, @RequestParam Integer categoryId) {
+	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
+			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
+			@RequestParam Integer categoryId) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 //		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId,categoryId));
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId));
 		return response;
 	}
 
@@ -168,7 +162,7 @@ public class TaskController {
 			@RequestParam String loginType) {
 
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
-				.supplyAsync(() -> clientRepository.findAllActiveClients(userId,loginType));
+				.supplyAsync(() -> clientRepository.findAllActiveClients(userId, loginType));
 		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
 				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
@@ -184,7 +178,7 @@ public class TaskController {
 		response.put("assignedUsers", assignedUsersFuture.join());
 
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-	
+
 		return response;
 	}
 
@@ -228,8 +222,7 @@ public class TaskController {
 			// -----------------------------------------
 			// DATE
 			// -----------------------------------------
-			DateTimeFormatter formatter =
-			        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 //			LocalDateTime taskDate = LocalDateTime.parse(date);
 			LocalDateTime taskDate = LocalDateTime.parse(date, formatter);
 

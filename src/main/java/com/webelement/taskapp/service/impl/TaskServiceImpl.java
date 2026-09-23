@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,7 +55,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
-
+	
 	static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 	private final TaskRepository taskRepository;
 	private final CommonFunction commonFunction;
@@ -70,77 +71,33 @@ public class TaskServiceImpl implements TaskService {
 
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,String remark) {
-
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
-
+		
 		if (optionalTask.isEmpty()) {
-
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
 		}
-
 		TaskEntity task = optionalTask.get();
-		
-		// Resolve assigner's name for the remark trail
-	    String actorName = resolveUserName(userId);
-
-	    // Build the new remark entry with a timestamp + actor
-//	    String timestamp = LocalDateTime.now()
-//	            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
-//
-//	    String newEntry = "[" + timestamp + " - " + actorName + "] " + (remark == null ? "" : remark.trim());
-//
-//		 // Append to existing remarks (preserve history), skip if new remark is blank
-//	    if (remark != null && !remark.trim().isEmpty()) {
-//
-//	        String existingRemarks = task.getAssignremark();
-//
-//	        String updatedRemarks = (existingRemarks == null || existingRemarks.trim().isEmpty())
-//	                ? newEntry
-//	                : existingRemarks + System.lineSeparator() + newEntry;
-//
-//	        task.setAssignremark(updatedRemarks);
-//	    }
-
+		Integer oldAssigneeId = task.getAssignedTo();
+		String actorName = resolveUserName(userId);
 		// Update only assigned user
 		task.setAssignedTo(assignedTo);
 		task.setAddedBy(userId);
 		task.setTaskStatus((short) 1);
-		
-		// Set current date and time in d_date
-	    task.setDate(LocalDateTime.now());
-
-		// Update modification date
+		task.setDate(LocalDateTime.now());
 		task.setModificationDate(LocalDateTime.now());
-
-//		taskRepository.save(task);
-		 TaskEntity savedTask = taskRepository.save(task);
-
-		  // Get assigned user's name
-		    String assignedUserName = "Unknown";
-
-		    if (savedTask.getAssignedTo() != null) {
-		        assignedUserName = userLoginRepository
-		                .findById(savedTask.getAssignedTo())
-		                .map(UserLoginEntity::getFirstName)
-		                .orElse("Unknown");
-		    }
-
-		    // History
-//		    String action = "Task reassigned to " + assignedUserName;
-		    String action = "Task reassigned to " + assignedUserName
-		            + (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
-
-
-		    commonFunction.createHistoryAccess(
-		            userId,
-		            commonFunction.resolveClientIp(httpRequest),
-		            commonFunction.getLocalIp(),
-		            action,
-		            10,
-		            savedTask.getTaskId(),
-		            -1
-		    );
-
+		TaskEntity savedTask = taskRepository.save(task);
+		String assignedUserName = "Unknown";
+		if (savedTask.getAssignedTo() != null) {
+			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo()).map(UserLoginEntity::getFirstName).orElse("Unknown");
+		}
+		String action = "Task reassigned to " + assignedUserName + (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		try {
+			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);
+		} catch (Exception e) {
+			logger.debug("{} ERROR FOUND " ,e.getMessage());
+			e.printStackTrace();
+		}
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
 
@@ -162,66 +119,6 @@ public class TaskServiceImpl implements TaskService {
 				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime);
 
 	}
-
-//	@Transactional
-//	@Override
-//	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
-//			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-//			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
-//
-//		System.err.println("date +++" + date);
-//
-//		// =====================================================
-//		// CREATE / UPDATE
-//		// =====================================================
-//
-//		boolean isUpdate = taskId != null;
-//
-//		TaskEntity task;
-//
-//		if (isUpdate) {
-//
-//			task = taskRepository.findById(taskId)
-//					.orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
-//
-//		} else {
-//			task = new TaskEntity();
-//			// ID will be generated by database if AUTO_INCREMENT
-//			task.setRegistrationDate(LocalDateTime.now());
-//			// Default status for CREATE
-//			task.setStatus((short) 1);
-//			task.setAddedBy(addedBy);
-//			task.setTaskStatus((short) 1);
-//		}
-//		task.setTitle(title);
-//		task.setClientId(clientId);
-//		task.setDate(date);
-//		task.setTaskCategoryId(taskCategoryId);
-//		task.setDescription(description);
-//		task.setAssignedTo(assignedTo);
-//		task.setPriority(priority);
-//		if (isUpdate) {
-//			if (status != null) {
-//				task.setStatus(status);
-//			}
-//			task.setModificationDate(LocalDateTime.now());
-//		}
-//		if (pdfFile != null && !pdfFile.isEmpty()) {
-//			validatePdf(pdfFile);
-//			String fileName = saveFile(pdfFile, "pdf");
-//			task.setFileName1(fileName);
-//		}
-//		if (zipFile != null && !zipFile.isEmpty()) {
-//			validateZip(zipFile);
-//			String fileName = saveFile(zipFile, "zip");
-//			task.setFileName2(fileName);
-//		}
-//		TaskEntity savedTask = taskRepository.save(task);
-//		String action = isUpdate ? "Task Updated" : "Task Added";
-//		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-//				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
-//		return savedTask;
-//	}
 
 	@Transactional
 	@Override
@@ -529,27 +426,21 @@ public class TaskServiceImpl implements TaskService {
 	 */
 	private String buildActionMessage(UpdateTaskStatusDTO dto, Short currentStatus, Short nextStatus,
 	        String newStatus, boolean isReopen) {
-
 	    Integer userId = dto.getUserId();
 	    boolean isSystemActor = (userId == null || userId == -1); // adjust condition to your system-user marker
-
 	    // Task added by the system (no human actor)
 	    if (isSystemActor) {
 	        return "Task added by the system.";
 	    }
-
 	    String actorName = resolveUserName(userId);
-
 	    // Reopen scenario
 	    if (isReopen) {
 	        return "Task reopened by " + actorName + ".";
 	    }
-
 	    // Closed scenario
 	    if (nextStatus == 5) {
 	        return "Task closed by " + actorName + ".";
 	    }
-
 	    // Added and assigned scenario
 	    if ("Assigned".equalsIgnoreCase(newStatus)) {
 	        return "Task added and assigned to " + actorName + ".";
