@@ -1101,13 +1101,36 @@ public class ClientService {
 		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
 				.collect(Collectors.toList());
 	}
-//	public List<ClientDTO> getClientsForRecurring(Integer userId,String isAdmin,String loginType) {
-//		Short activeStatus = 1;
-//		List<ClientEntity> clients = clientRepository.findByManagerIdAndStatus(userId, activeStatus);
-//
-//		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
-//				.collect(Collectors.toList());
-//	}
+
+	
+	//For Index
+	public List<ClientDTO> getClientsForRecurringForIndex(Integer userId, String isAdmin, String loginType) {
+
+		Short activeStatus = 1;
+		List<ClientEntity> clients;
+
+		// MANAGER
+		if ("manager".equalsIgnoreCase(loginType)) {
+
+			clients = clientRepository.findByManagerIdAndStatusForIndex(userId, activeStatus);
+//			clients = clientRepository.findByStatus(activeStatus);
+
+		}
+		// NON-MANAGER + ADMIN
+		else if ("Y".equalsIgnoreCase(isAdmin)) {
+
+			clients = clientRepository.findByStatusForIndex(activeStatus);
+
+		}
+		// NON-MANAGER + NON-ADMIN
+		else {
+
+			clients = clientRepository.findByUserIdAndStatusForIndex(userId, activeStatus);
+		}
+
+		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
+				.collect(Collectors.toList());
+	}
 
 	// Manager Change
 	@Transactional

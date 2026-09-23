@@ -187,6 +187,32 @@ public class TaskController {
 	
 		return response;
 	}
+	
+	
+	@GetMapping("/getTaskFilterDataForIndex")
+	public Map<String, Object> getTaskFilterDataForIndex(@RequestParam String isAdmin, @RequestParam Integer userId,
+			@RequestParam String loginType) {
+
+		CompletableFuture<List<?>> clientsFuture = CompletableFuture
+				.supplyAsync(() -> clientRepository.findAllActiveClientsForIndex(userId,loginType,isAdmin));
+		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
+				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId,loginType,isAdmin));
+		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
+			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsersForIndex(userId,loginType,isAdmin));
+			users.add(0, new UserActiveDTO(0, "Unassigned User"));
+			return users;
+		});
+		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
+		Map<String, Object> response = new HashMap<>();
+
+		response.put("clients", clientsFuture.join());
+		response.put("taskCategories", taskCategoriesFuture.join());
+		response.put("assignedUsers", assignedUsersFuture.join());
+
+//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+	
+		return response;
+	}
 
 	@PostMapping(value = "/saveTask", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> saveTask(

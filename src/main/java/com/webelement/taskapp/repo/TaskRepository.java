@@ -99,8 +99,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + ") "
 //	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds)"//old
 //	        + " OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) "
-	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
-	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
++ "AND (:fromDate IS NULL OR :fromDate = '' OR FUNCTION('DATE', t.date) >= FUNCTION('DATE', CAST(:fromDate AS date))) "
++ "AND (:toDate IS NULL OR :toDate = '' OR FUNCTION('DATE', t.date) <= FUNCTION('DATE', CAST(:toDate AS date))) "
 
 	        // Dashboard Filter
 	        + "AND ( "

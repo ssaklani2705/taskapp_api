@@ -228,6 +228,49 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	List<UserActiveDTO> findActiveUsers();
 	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+	        + "FROM UserLoginEntity u "
+	        + "WHERE u.status = 1 "
+	        + "AND EXISTS ( "
+	        + "     SELECT 1 FROM TaskEntity t "
+	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+	        + "     WHERE (t.assignedTo = u.userId OR t.addedBy = u.userId) "
+	        + "     AND ( "
+	        + "          ( "
+	        + "               :loginType = 'manager' "
+	        + "               AND ( "
+	        + "                    t.assignedTo = :userId "
+	        + "                    OR t.addedBy = :userId "
+	        + "                    OR c.managerId = :userId "
+	        + "               ) "
+	        + "          ) "
+	        + "          OR "
+	        + "          ( "
+	        + "               :loginType <> 'manager' "
+	        + "               AND ( "
+	        + "                    :isAdmin = 'Y' "
+//	        + "                    OR t.assignedTo = :userId "
+	        + "                    OR t.addedBy = :userId "
+	        + "                    OR ( "
+	        + "                         :isAdmin <> 'Y' "
+	        + "                         AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+	        + "                         AND EXISTS ( "
+	        + "                              SELECT 1 FROM UserLoginEntity ul "
+	        + "                              WHERE ul.userId = :userId "
+	        + "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
+	        + "                                  LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+	        + "                         ) "
+	        + "                    ) "
+	        + "               ) "
+	        + "          ) "
+	        + "     ) "
+	        + ") "
+	        + "ORDER BY u.firstName ASC")
+	List<UserActiveDTO> findActiveUsersForIndex(
+	        @Param("userId") Integer userId,
+	        @Param("loginType") String loginType,
+	        @Param("isAdmin") String isAdmin);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 			+ "FROM UserLoginEntity u WHERE u.status = 1 and u.departmentId = 1 and u.designationId =1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveManager();
 

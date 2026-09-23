@@ -57,6 +57,23 @@ public class RecurringController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}
 	}
+	
+	@GetMapping("/getRecurringClientsForIndex")
+	public ResponseEntity<?> getRecurringClientsForIndex(@RequestParam("userId") Integer userId,
+			@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType
+			) {
+		try {
+			System.out.println("getRecurringClients userId = " + userId);
+			List<ClientDTO> clients = clientService.getClientsForRecurringForIndex(userId,isAdmin,loginType);
+			System.out.println("clients found = " + clients.size());
+
+			return ResponseEntity.ok(clients);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+		}
+	}
 
 	// For AddOrUpdate
 	@PostMapping("/addOrUpdateRecurring")

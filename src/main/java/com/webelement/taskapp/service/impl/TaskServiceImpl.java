@@ -103,7 +103,11 @@ public class TaskServiceImpl implements TaskService {
 
 		// Update only assigned user
 		task.setAssignedTo(assignedTo);
-		task.setAddedBy(userId);
+//		task.setAddedBy(userId);
+		// Only set addedBy if it isn't already populated
+	    if (task.getAddedBy() == null || task.getAddedBy() == 0) {
+	        task.setAddedBy(userId);
+	    }
 		task.setTaskStatus((short) 1);
 		
 		// Set current date and time in d_date

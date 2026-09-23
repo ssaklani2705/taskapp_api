@@ -123,6 +123,14 @@ public class TaskCategoryController {
                 .getActiveTaskCategoriesForRecurring(userId,isAdmin,loginType);
     }
     
+    @GetMapping("recurringForindex/active")
+    public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(	@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType,@RequestParam("userId") Integer userId) {
+
+        return taskCategoryService
+                .getActiveTaskCategoriesForRecurringForIndex(userId,isAdmin,loginType);
+    }
+    
     @GetMapping("/department/{departmentId}")
     public List<TaskCategoryDTO> getCategoriesByDepartmentId(
             @PathVariable Integer departmentId) {

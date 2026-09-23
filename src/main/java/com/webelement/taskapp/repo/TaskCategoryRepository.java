@@ -17,6 +17,49 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 
 @Repository
 public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity, Integer> {
+	
+	@Query("SELECT tc FROM TaskCategoryEntity tc "
+	        + "WHERE tc.status = 1 "
+	        + "AND EXISTS ( "
+	        + "     SELECT 1 FROM TaskEntity t "
+	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+	        + "     WHERE t.taskCategoryId = tc.taskcategoryId "
+	        + "     AND ( "
+	        + "          ( "
+	        + "               :loginType = 'manager' "
+	        + "               AND ( "
+	        + "                    t.assignedTo = :userId "
+	        + "                    OR t.addedBy = :userId "
+	        + "                    OR c.managerId = :userId "
+	        + "               ) "
+	        + "          ) "
+	        + "          OR "
+	        + "          ( "
+	        + "               :loginType <> 'manager' "
+	        + "               AND ( "
+	        + "                    :isAdmin = 'Y' "
+	        + "                    OR t.assignedTo = :userId "
+	        + "                    OR t.addedBy = :userId "
+	        + "                    OR ( "
+	        + "                         :isAdmin <> 'Y' "
+	        + "                         AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+	        + "                         AND EXISTS ( "
+	        + "                              SELECT 1 FROM UserLoginEntity ul "
+	        + "                              WHERE ul.userId = :userId "
+	        + "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
+	        + "                                  LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+	        + "                         ) "
+	        + "                    ) "
+	        + "               ) "
+	        + "          ) "
+	        + "     ) "
+	        + ") "
+	        + "ORDER BY tc.name ASC")
+	List<TaskCategoryEntity> findAllActiveTaskCategoriesForIndex(
+	        @Param("userId") Integer userId,
+	        @Param("loginType") String loginType,
+	        @Param("isAdmin") String isAdmin);
+	
 	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
 	List<TaskCategoryEntity> findAllActiveTaskCategories();
 	
@@ -47,6 +90,14 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 			@Param("search") String search, @Param("departmentId") int departmentId);
 
 	List<TaskCategoryEntity> findByStatus(Integer status);
+	
+	@Query("SELECT tc FROM TaskCategoryEntity tc "
+	        + "WHERE tc.status = :status "
+	        + "AND EXISTS ( "
+	        + "     SELECT 1 FROM RecurringEntity r WHERE r.taskCatId = tc.taskcategoryId "
+	        + ") "
+	        + "ORDER BY tc.name ASC")
+	List<TaskCategoryEntity> findByStatusForIndex(@Param("status") Integer status);
 
 	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
 
