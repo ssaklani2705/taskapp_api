@@ -48,11 +48,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 
 	@Override
 	public void sendTaskStatusMail(TaskEntity task, String oldStatus, String newStatus) throws Exception {
-		logger.info("{} check the status ",newStatus);
-		
-		System.err.println("{} check the status =" +newStatus);
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
-
 		Set<Integer> userIds = new HashSet<>();
 
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
@@ -72,15 +68,18 @@ public class TaskMailServiceImpl implements TaskMailService {
 		
 		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus);
 		logger.info("{} check the status ",isClose);
+		String recipientName = "";
 		if (isClose) {
 			
 			addEmail(toSet, assignedUser);
 			addEmail(ccSet, addedByUser);
 			addEmail(ccSet, societyManager);
+			recipientName = assignedUser.getFirstName();
 		}else {
 			addEmail(toSet, addedByUser);
 			addEmail(ccSet, assignedUser);
 			addEmail(ccSet, societyManager);
+			recipientName = addedByUser.getFirstName();
 		}
 //		if (isClose) {
 //			addEmail(toSet, addedByUser);
@@ -96,7 +95,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 			logger.warn("No recipient found for task {}", task.getTaskId());
 			return;
 		}
-		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
+//		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
 		String mailBody = commonFunction.getTaskStatusMailTemplate(recipientName, task.getTitle(), oldStatus, newStatus,"");
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
