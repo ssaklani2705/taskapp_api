@@ -66,7 +66,9 @@ public class TaskMailServiceImpl implements TaskMailService {
 		Set<String> ccSet = new LinkedHashSet<>();
 		
 		
-		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus);
+//		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus);
+		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus) || "Re-Open".equalsIgnoreCase(newStatus);
+        
 		logger.info("{} check the status ",isClose);
 		String recipientName = "";
 		if (isClose) {
