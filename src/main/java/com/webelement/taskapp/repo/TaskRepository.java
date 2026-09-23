@@ -54,80 +54,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
 	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
 
-	// @Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, "
-	// + "c.name, " + "t.date, "
-	// + "tc.duedatetime, " + "tc.name, " + "COALESCE(u.firstName, '0'), " +
-	// "t.priority, " + "t.status, "
-	// + "t.title, " + "t.taskStatus, " + "t.assignedTo, " +
-	// "t.addedBy,u1.firstName,t.description,"
-	// + "t.clientId,t.taskCategoryId" + ") "
-	//
-	// + "FROM TaskEntity t "
-	//
-	// + "LEFT JOIN ClientEntity c " + "ON c.clientId = t.clientId "
-	//
-	// + "LEFT JOIN TaskCategoryEntity tc " + "ON tc.taskcategoryId =
-	// t.taskCategoryId "
-	//
-	// + "LEFT JOIN UserLoginEntity u " + "ON u.userId = t.assignedTo "
-	//
-	// + "LEFT JOIN UserLoginEntity u1 " + "ON u1.userId = t.addedBy "
-	//
-	// + "WHERE t.taskId > 0 "
-	//
-	// + "AND (:statusIndex = 0 OR t.status = :statusIndex) "
-	//
-	// + "AND (" + " :search IS NULL " + " OR :search = '' "
-	// + " OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
-	// + " OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-	// + " OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-	// + " OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))" + ") "
-	//
-	// + "AND (:clientId = 0 OR t.clientId = :clientId) "
-	//
-	// + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
-	//
-	// + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
-	//
-	// + "AND (:priority = 0 OR t.priority = :priority) "
-	//
-	// + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds) "
-	//
-	// + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
-	//
-	// + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
-	//
-	// + "AND ("
-	//
-	// // MANAGER LOGIN
-	// + " (" + " :loginType = 'manager' " + " AND (" + " t.assignedTo = :userId "
-	// + " OR t.addedBy = :userId " + " OR c.managerId = :userId" + " )" + " ) "
-	//
-	// + " OR "
-	//
-	// // NON-MANAGER LOGIN
-	// + " (" + " :loginType <> 'manager' " + " AND (" + " :isAdmin = 'Y' "
-	// + " OR t.assignedTo = :userId " + " OR t.addedBy = :userId " + " OR ("
-	// + " :isAdmin <> 'Y' " + " AND t.assignedTo = 0 AND EXISTS (" + " SELECT 1 "
-	// + " FROM TaskCategoryEntity tc2 "
-	// + " WHERE tc2.taskcategoryId = t.taskCategoryId "
-	// + " AND tc2.departmentId IN (" + " SELECT ul.departmentId "
-	// + " FROM UserLoginEntity ul " + " WHERE ul.userId = :userId"
-	// + " )" + " )" + " )" + " )" + " )"
-	//
-	// + ") "
-	//
-	// + "ORDER BY t.status ASC, c.name ASC")
-	// Page<TaskDetailsDTO> findTaskDetails(PageRequest pageable,
-	// @Param("statusIndex") int statusIndex,
-	// @Param("search") String search, @Param("clientId") Integer clientId,
-	// @Param("taskCategoryId") Integer taskCategoryId, @Param("assignedTo") Integer
-	// assignedTo,
-	// @Param("priority") Integer priority, @Param("fromDate") String fromDate,
-	// @Param("toDate") String toDate,
-	// @Param("isAdmin") String isAdmin, @Param("userId") Integer userId,
-	// @Param("taskStatusIds") Set<Integer> taskStatusIds, @Param("loginType")
-	// String loginType);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO("
 	        + "t.taskId, c.managerId, "
@@ -166,8 +92,13 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
 	        + "AND (:assignedTo = -1 OR t.assignedTo = :assignedTo) "
 	        + "AND (:priority = 0 OR t.priority = :priority) "
-	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds)"
-	        + " OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) "
+	        + "AND ( "
+	        + "     0 IN :taskStatusIds "
+	        + "     OR t.taskStatus IN :taskStatusIds "
+	        + "     OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) "
+	        + ") "
+//	        + "AND (0 IN :taskStatusIds OR t.taskStatus IN :taskStatusIds)"//old
+//	        + " OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) "
 	        + "AND (:fromDate IS NULL OR :fromDate = '' OR t.date >= :fromDate) "
 	        + "AND (:toDate IS NULL OR :toDate = '' OR t.date <= :toDate) "
 
