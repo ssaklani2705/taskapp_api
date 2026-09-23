@@ -38,7 +38,7 @@ import com.webelement.taskapp.repo.UserLoginRepository;
 public class CommonFunction {
 	@Autowired
 	private MailLogRepo logRepo;
-	
+
 	@Autowired
 	private ResourceLoader resourceLoader;
 
@@ -55,10 +55,10 @@ public class CommonFunction {
 
 	@Value("${secret_key:}")
 	private String SECRET_KEY;
-	
+
 	@Value("${pdffilepath}")
-    private String templatePath;
-	
+	private String templatePath;
+
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = userLoginRepository.getTransactionLogs(moduleId, recordId);
 		System.out.println("results : " + results);
@@ -72,6 +72,7 @@ public class CommonFunction {
 			return dto;
 		}).collect(Collectors.toList());
 	}
+
 	@Async
 	public void createHistoryAccess(int userId, String ipAddrStr, String localip, String desc, int moduleId,
 			int recordid, int bankUserId) {
@@ -86,7 +87,7 @@ public class CommonFunction {
 		entity.setBankUserId(bankUserId);
 		transactionRepo.save(entity);
 	}
-	
+
 	public String getLocalIp() {
 		try {
 			InetAddress localHost = InetAddress.getLocalHost();
@@ -162,7 +163,7 @@ public class CommonFunction {
 		}
 		return ipAddrStr;
 	}
-	
+
 	public String getForgotMessageCreate(String name, String link, String url) {
 		try {
 			// Load the HTML template from resources/templates/
@@ -177,7 +178,7 @@ public class CommonFunction {
 			return "";
 		}
 	}
-	
+
 	public String createFolder(String path) {
 		String foldername = "";
 		try {
@@ -201,7 +202,7 @@ public class CommonFunction {
 		}
 		return foldername;
 	}
-	
+
 	public String writeHTMLFile(String content, String filePath, String fileName) {
 		try {
 			File dir = new File(filePath);
@@ -221,14 +222,14 @@ public class CommonFunction {
 			return null;
 		}
 	}
-	
+
 	public String currDate1() {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Calcutta"));
 		java.util.Date dt = cal.getTime();
 		return sdf.format(dt);
 	}
-	
+
 	public static String getDateAfter(String date, int type, int no, String sformatv, String endformatv) {
 		String dt = "";
 		try {
@@ -259,9 +260,7 @@ public class CommonFunction {
 		}
 		return dt;
 	}
-	
-	
-	
+
 	public String getTaskStatusMailTemplate(String name, String taskTitle, String oldStatus, String newStatus,
 			String websitePath) {
 
@@ -293,75 +292,126 @@ public class CommonFunction {
 
 		return sb.toString();
 	}
-	 
-	 
-	 
-	 
-	 
-	 public String getTaskNotesMailTemplate(
-		        String name,
-		        String taskTitle,
-		        String note,
-		        String createdBy,
-		        String websitePath) {
 
-		    StringBuilder sb = new StringBuilder();
+	public String getTaskNotesMailTemplate(String name, String taskTitle, String note, String createdBy,
+			String websitePath) {
 
-		    sb.append("<html>");
-		    sb.append("<body style='font-family:Arial,sans-serif;'>");
+		StringBuilder sb = new StringBuilder();
 
-		    sb.append("<p>Dear ").append(name).append(",</p>");
+		sb.append("<html>");
+		sb.append("<body style='font-family:Arial,sans-serif;'>");
 
-		    sb.append("<p>A new note has been added to the task.</p>");
+		sb.append("<p>Dear ").append(name).append(",</p>");
 
-		    sb.append("<table style='border-collapse:collapse;'>");
+		sb.append("<p>A new note has been added to the task.</p>");
 
-		    sb.append("<tr>");
-		    sb.append("<td><b>Task</b></td>");
-		    sb.append("<td>: ").append(taskTitle).append("</td>");
-		    sb.append("</tr>");
+		sb.append("<table style='border-collapse:collapse;'>");
 
-		    sb.append("<tr>");
-		    sb.append("<td><b>Added By</b></td>");
-		    sb.append("<td>: ").append(createdBy).append("</td>");
-		    sb.append("</tr>");
+		sb.append("<tr>");
+		sb.append("<td><b>Task</b></td>");
+		sb.append("<td>: ").append(taskTitle).append("</td>");
+		sb.append("</tr>");
 
-		    sb.append("<tr>");
-		    sb.append("<td valign='top'><b>Note</b></td>");
-		    sb.append("<td>: ").append(note).append("</td>");
-		    sb.append("</tr>");
+		sb.append("<tr>");
+		sb.append("<td><b>Added By</b></td>");
+		sb.append("<td>: ").append(createdBy).append("</td>");
+		sb.append("</tr>");
 
-		    sb.append("</table>");
+		sb.append("<tr>");
+		sb.append("<td valign='top'><b>Note</b></td>");
+		sb.append("<td>: ").append(note).append("</td>");
+		sb.append("</tr>");
 
-		    sb.append("<br/><br/>");
+		sb.append("</table>");
 
-		    sb.append("Regards,<br>");
-		    sb.append("Task App Team");
+		sb.append("<br/><br/>");
 
-		    sb.append("</body>");
-		    sb.append("</html>");
+		sb.append("Regards,<br>");
+		sb.append("Task App Team");
 
-		    return sb.toString();
-		}
-	 
-	 
-	 
-	 public void createMailLog(int type, String name, String to, String cc, String bcc, String from, String subject,
-				String filename, String ip, String iplocal, int status) {
-			MailLogEntity log = new MailLogEntity();
-			log.setType(type);
-			log.setName(name);
-			log.setTo(to);
-			log.setCc(cc);
-			log.setBcc(bcc);
-			log.setFrom(from);
-			log.setSubject(subject);
-			log.setStatus(status);
-			log.setFilename(filename);
-			log.setRegDate(LocalDateTime.now());
-			log.setModDate(LocalDateTime.now());
-			log.setIpAddress(ip);
-			log.setLocalIp(iplocal);
-			logRepo.save(log);
-		}
+		sb.append("</body>");
+		sb.append("</html>");
+
+		return sb.toString();
+	}
+
+	public void createMailLog(int type, String name, String to, String cc, String bcc, String from, String subject,
+			String filename, String ip, String iplocal, int status) {
+		MailLogEntity log = new MailLogEntity();
+		log.setType(type);
+		log.setName(name);
+		log.setTo(to);
+		log.setCc(cc);
+		log.setBcc(bcc);
+		log.setFrom(from);
+		log.setSubject(subject);
+		log.setStatus(status);
+		log.setFilename(filename);
+		log.setRegDate(LocalDateTime.now());
+		log.setModDate(LocalDateTime.now());
+		log.setIpAddress(ip);
+		log.setLocalIp(iplocal);
+		logRepo.save(log);
+	}
+
+	public String getTaskAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
+			String clientName, String priority, String dueDate, String description) {
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("<html>");
+		sb.append("<body style='font-family:Arial,sans-serif;'>");
+
+		sb.append("<p>Dear ").append(assigneeName).append(",</p>");
+
+		sb.append("<p>A new task has been assigned to you.</p>");
+
+		sb.append("<table style='border-collapse:collapse;'>");
+
+		sb.append("<tr>");
+		sb.append("<td><b>Task Title</b></td>");
+		sb.append("<td>: ").append(taskTitle).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td><b>Assigned By</b></td>");
+		sb.append("<td>: ").append(assignedBy).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td><b>Client</b></td>");
+		sb.append("<td>: ").append(clientName).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td><b>Priority</b></td>");
+		sb.append("<td>: ").append(priority).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td><b>Due Date</b></td>");
+		sb.append("<td>: ").append(dueDate).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td valign='top'><b>Description</b></td>");
+		sb.append("<td>: ").append(description).append("</td>");
+		sb.append("</tr>");
+
+		sb.append("</table>");
+
+		sb.append("<br/><br/>");
+
+		sb.append("<p>Please review and take the necessary action.</p>");
+
+		sb.append("<br/>");
+
+		sb.append("Regards,<br>");
+		sb.append("Task App Team");
+
+		sb.append("</body>");
+		sb.append("</html>");
+
+		return sb.toString();
+	}
 }

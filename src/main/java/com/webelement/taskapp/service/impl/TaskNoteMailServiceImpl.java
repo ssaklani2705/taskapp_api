@@ -83,12 +83,8 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 		}
 
 		String recipientName = assignedUser.getFirstName() != null ? assignedUser.getFirstName() : "";
-
-		String actionUserName = actionUser != null && actionUser.getFirstName() != null ? actionUser.getFirstName()
-				: "";
-
-		String mailBody = commonFunction.getTaskNotesMailTemplate(recipientName, task.getTitle(), request.getNote(),
-				actionUserName, "");
+		String actionUserName = actionUser != null && actionUser.getFirstName() != null ? actionUser.getFirstName() : "";
+		String mailBody = commonFunction.getTaskNotesMailTemplate(recipientName, task.getTitle(), request.getNote(),actionUserName, "");
 
 		String[] to = toEmails.toArray(new String[0]);
 		String[] cc = ccEmails.toArray(new String[0]);

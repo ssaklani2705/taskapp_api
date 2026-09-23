@@ -129,19 +129,7 @@ public class TaskServiceImpl implements TaskService {
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
-
-	
-
-		// =====================================================
-		// CREATE / UPDATE
-		// =====================================================
-
 		boolean isUpdate = taskId != null;
-
-		// =====================================================
-		// DUPLICATE TITLE CHECK
-		// =====================================================
-
 		if (title != null) {
 			String trimmedTitle = title.trim();
 
@@ -195,30 +183,33 @@ public class TaskServiceImpl implements TaskService {
 			task.setFileName2(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
-		
+
 		String action;
 
 		if (isUpdate) {
 
-		    action = "Task Updated";
+			action = "Task Updated";
 
 		} else {
 
-		    String assignedUserName = "Unknown";
+			String assignedUserName = "Unknown";
 
-		    if (savedTask.getAssignedTo() != null) {
-		        assignedUserName = userLoginRepository
-		                .findById(savedTask.getAssignedTo())
-		                .map(UserLoginEntity::getFirstName)
-		                .orElse("Unknown");
-		    }
+			if (savedTask.getAssignedTo() != null) {
+				assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
+						.map(UserLoginEntity::getFirstName).orElse("Unknown");
+			}
 
-		    action = "Task Added and Assigned to " + assignedUserName;
+			action = "Task Added and Assigned to " + assignedUserName;
 		}
-		
-//		String action = isUpdate ? "Task Updated" : "Task Added";
-		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		if(!isUpdate) {
+		try {
+			taskMailService.sendTaskAssignedMail(savedTask);
+		} catch (Exception e) {
+			logger.debug("{} ERROR FOUND " ,e.getMessage());
+			e.printStackTrace();
+		}
+		}
 		return savedTask;
 	}
 
