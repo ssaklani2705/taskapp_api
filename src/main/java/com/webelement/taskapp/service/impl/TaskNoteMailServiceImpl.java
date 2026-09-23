@@ -54,8 +54,7 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
 		Optional.ofNullable(request.getUserId()).ifPresent(userIds::add);
 
-		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
-				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
+		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream().collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 
 		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
 		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
