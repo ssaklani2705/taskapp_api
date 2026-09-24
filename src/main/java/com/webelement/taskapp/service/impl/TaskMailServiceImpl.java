@@ -45,9 +45,15 @@ public class TaskMailServiceImpl implements TaskMailService {
 	static final Logger logger = LoggerFactory.getLogger(TaskMailServiceImpl.class);
 
 	private final HttpServletRequest request;
+	
+	@Value("${file_maillog:}")
+	private  String file_maillog;
+	
+	
 
 	@Override
 	public void sendTaskStatusMail(TaskEntity task, String oldStatus, String newStatus) throws Exception {
+		String filePath = commonFunction.createFolder(file_maillog);
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
 		Set<Integer> userIds = new HashSet<>();
 
@@ -106,11 +112,13 @@ public class TaskMailServiceImpl implements TaskMailService {
 				"", "", -1, "", smtp);
 		logger.info("Mail service response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
-		commonFunction.createMailLog(2, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "","Task App :: Task Status Updated", "", ip, commonFunction.getLocalIp(), 2);
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "","Task App :: Task Status Updated", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 	
 	@Override
 	public void sendTaskReassignMail(TaskEntity task, Integer oldAssigneeId) throws Exception {
+		String filePath = commonFunction.createFolder(file_maillog);
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
@@ -146,12 +154,15 @@ public class TaskMailServiceImpl implements TaskMailService {
 				"", -1, "", smtp);
 		logger.info("Reassign mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
-		commonFunction.createMailLog(2, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
-				"Task App :: Task Reassigned", "", ip, commonFunction.getLocalIp(), 2);
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
+				"Task App :: Task Reassigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 	
 	@Override
 	public void sendTaskAssignedMail(TaskEntity task) throws Exception {
+		String filePath = commonFunction.createFolder(file_maillog);
+
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
@@ -191,7 +202,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
 		logger.info("Task assignment mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
-		commonFunction.createMailLog(2, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",subject, "", ip, commonFunction.getLocalIp(), 2);
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",subject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 
 	private void addEmail(Set<String> emails, UserLoginEntity user) {

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,10 +42,14 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 	static final Logger logger = LoggerFactory.getLogger(TaskNoteMailServiceImpl.class);
 
 	private final HttpServletRequest httpReq;
+	
+	@Value("${file_maillog:}")
+	private  String file_maillog;
 
 	@Override
 	public void sendTaskNotesMail(TaskNoteEntity request) throws Exception {
-
+		String filePath = commonFunction.createFolder(file_maillog);
+		
 		TaskEntity task = taskRepo.findById(request.getTaskId())
 				.orElseThrow(() -> new RuntimeException("Task not found"));
 
@@ -99,9 +104,10 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 
 		String ip = commonFunction.resolveClientIp(httpReq);
 		String iplocal = commonFunction.getLocalIp();
-
-		commonFunction.createMailLog(2, recipientName, String.join(",", toEmails), String.join(",", ccEmails), String.join(",", toEmails), "",
-				subject, "", ip, iplocal, 2);
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+		
+		commonFunction.createMailLog(1, recipientName, String.join(",", toEmails), String.join(",", ccEmails), String.join(",", toEmails), "",
+				subject, filePath + "/" + fname, ip, iplocal, 1);
 	}
 
 	private void addEmail(Set<String> emails, UserLoginEntity user) {

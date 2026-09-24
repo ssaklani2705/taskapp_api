@@ -110,11 +110,7 @@ public class TaskEntity {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_addedby", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedByUser;
-	
+
 	@Transient
 	private Integer ManagerId;
-	
-//	@Column(name = "s_assignremark", columnDefinition = "LONGTEXT")
-//	private String assignremark;
-	
 }

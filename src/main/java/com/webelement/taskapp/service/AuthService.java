@@ -290,8 +290,7 @@ public class AuthService {
 					+ commonFunction.cipher(isManager);
 			String mailBody = commonFunction.getForgotMessageCreate(userRequest.getFirstName(), link, websitePath);
 			String filePath = commonFunction.createFolder(file_maillog);
-			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
-					"np-" + System.currentTimeMillis());
+			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
 			String[] to = { usernameN };
 			String cc[] = new String[0];
 			String bcc[] = new String[0];

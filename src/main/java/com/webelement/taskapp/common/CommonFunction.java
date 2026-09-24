@@ -21,6 +21,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -31,21 +33,25 @@ import org.springframework.stereotype.Component;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
+import com.webelement.taskapp.repo.SmtpRepo;
+import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.TransactionRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
+import com.webelement.taskapp.service.MailService;
+import com.webelement.taskapp.service.impl.TaskNoteMailServiceImpl;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class CommonFunction {
-	@Autowired
-	private MailLogRepo logRepo;
-
-	@Autowired
-	private ResourceLoader resourceLoader;
-
-	@Autowired
-	TransactionRepo transactionRepo;
-	@Autowired
-	private UserLoginRepository userLoginRepository;
+	
+	static final Logger logger = LoggerFactory.getLogger(CommonFunction.class);
+	
+	private final MailLogRepo logRepo;
+	private final ResourceLoader resourceLoader;
+	private final TransactionRepo transactionRepo;
+	private final UserLoginRepository userLoginRepository;
 
 	@Value("${ipflag:}")
 	private String ipFlag;
@@ -207,10 +213,10 @@ public class CommonFunction {
 		try {
 			File dir = new File(filePath);
 			if (!dir.exists()) {
-				dir.mkdirs(); // Use mkdirs() to ensure parent directories are also created
+				dir.mkdirs(); 
 			}
 			fileName = fileName + ".html";
-			File file = new File(dir, fileName); // Cleaner path handling
+			File file = new File(dir, fileName); 
 
 			try (BufferedWriter writer = new BufferedWriter(
 					new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
@@ -261,80 +267,6 @@ public class CommonFunction {
 		return dt;
 	}
 
-	public String getTaskStatusMailTemplate(String name, String taskTitle, String oldStatus, String newStatus,
-			String websitePath) {
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("<html>");
-		sb.append("<body style='font-family:Arial;'>");
-		sb.append("<p>Dear ").append(name).append(",</p>");
-		sb.append("<p>Your task status has been updated.</p>");
-		sb.append("<table>");
-		sb.append("<tr>");
-		sb.append("<td><b>Task</b></td>");
-		sb.append("<td>: ").append(taskTitle).append("</td>");
-		sb.append("</tr>");
-		sb.append("<tr>");
-		sb.append("<td><b>Current Status</b></td>");
-		sb.append("<td>: ").append(oldStatus).append("</td>");
-		sb.append("</tr>");
-		sb.append("<tr>");
-		sb.append("<td><b>New Status</b></td>");
-		sb.append("<td>: ").append(newStatus).append("</td>");
-		sb.append("</tr>");
-		sb.append("</table>");
-		sb.append("<br><br>");
-		sb.append("<br><br>");
-		sb.append("Regards,<br>");
-		sb.append("Task App Team");
-		sb.append("</body>");
-		sb.append("</html>");
-
-		return sb.toString();
-	}
-
-	public String getTaskNotesMailTemplate(String name, String taskTitle, String note, String createdBy,
-			String websitePath) {
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("<html>");
-		sb.append("<body style='font-family:Arial,sans-serif;'>");
-
-		sb.append("<p>Dear ").append(name).append(",</p>");
-
-		sb.append("<p>A new note has been added to the task.</p>");
-
-		sb.append("<table style='border-collapse:collapse;'>");
-
-		sb.append("<tr>");
-		sb.append("<td><b>Task</b></td>");
-		sb.append("<td>: ").append(taskTitle).append("</td>");
-		sb.append("</tr>");
-
-		sb.append("<tr>");
-		sb.append("<td><b>Added By</b></td>");
-		sb.append("<td>: ").append(createdBy).append("</td>");
-		sb.append("</tr>");
-
-		sb.append("<tr>");
-		sb.append("<td valign='top'><b>Note</b></td>");
-		sb.append("<td>: ").append(note).append("</td>");
-		sb.append("</tr>");
-
-		sb.append("</table>");
-
-		sb.append("<br/><br/>");
-
-		sb.append("Regards,<br>");
-		sb.append("Task App Team");
-
-		sb.append("</body>");
-		sb.append("</html>");
-
-		return sb.toString();
-	}
-
 	public void createMailLog(int type, String name, String to, String cc, String bcc, String from, String subject,
 			String filename, String ip, String iplocal, int status) {
 		MailLogEntity log = new MailLogEntity();
@@ -354,64 +286,73 @@ public class CommonFunction {
 		logRepo.save(log);
 	}
 
+	public String getTaskStatusMailTemplate(String name, String taskTitle, String oldStatus, String newStatus,
+			String url) {
+
+		try {
+
+			Resource resource = resourceLoader.getResource("classpath:templates/task_status_mail.html");
+
+			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+
+			content = content.replace("__NAME__", name != null ? name : "");
+			content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
+			content = content.replace("__OLD_STATUS__", oldStatus != null ? oldStatus : "");
+			content = content.replace("__NEW_STATUS__", newStatus != null ? newStatus : "");
+			content = content.replace("__URL__", url != null ? url : "");
+
+			return content;
+
+		} catch (IOException e) {
+			 logger.error("Error loading task status email template", e);
+			return "";
+		}
+	}
+
 	public String getTaskAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
 			String clientName, String priority, String dueDate, String description) {
 
-		StringBuilder sb = new StringBuilder();
+		try {
 
-		sb.append("<html>");
-		sb.append("<body style='font-family:Arial,sans-serif;'>");
+			Resource resource = resourceLoader.getResource("classpath:templates/task_assigned_mail.html");
 
-		sb.append("<p>Dear ").append(assigneeName).append(",</p>");
+			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
 
-		sb.append("<p>A new task has been assigned to you.</p>");
+			content = content.replace("__ASSIGNEE_NAME__", assigneeName != null ? assigneeName : "");
+			content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
+			content = content.replace("__ASSIGNED_BY__", assignedBy != null ? assignedBy : "");
+			content = content.replace("__CLIENT_NAME__", clientName != null ? clientName : "");
+			content = content.replace("__PRIORITY__", priority != null ? priority : "");
+			content = content.replace("__DUE_DATE__", dueDate != null ? dueDate : "");
+			content = content.replace("__DESCRIPTION__", description != null ? description : "");
 
-		sb.append("<table style='border-collapse:collapse;'>");
+			return content;
 
-		sb.append("<tr>");
-		sb.append("<td><b>Task Title</b></td>");
-		sb.append("<td>: ").append(taskTitle).append("</td>");
-		sb.append("</tr>");
+		} catch (IOException e) {
+			 logger.error("Error loading task assigned email template", e);
+			return "";
+		}
+	}
 
-		sb.append("<tr>");
-		sb.append("<td><b>Assigned By</b></td>");
-		sb.append("<td>: ").append(assignedBy).append("</td>");
-		sb.append("</tr>");
+	public String getTaskNotesMailTemplate(String name, String taskTitle, String note, String createdBy,
+			String websitePath) {
 
-		sb.append("<tr>");
-		sb.append("<td><b>Client</b></td>");
-		sb.append("<td>: ").append(clientName).append("</td>");
-		sb.append("</tr>");
+		try {
 
-		sb.append("<tr>");
-		sb.append("<td><b>Priority</b></td>");
-		sb.append("<td>: ").append(priority).append("</td>");
-		sb.append("</tr>");
+			Resource resource = resourceLoader.getResource("classpath:templates/task_notes_mail.html");
 
-		sb.append("<tr>");
-		sb.append("<td><b>Due Date</b></td>");
-		sb.append("<td>: ").append(dueDate).append("</td>");
-		sb.append("</tr>");
+			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
 
-		sb.append("<tr>");
-		sb.append("<td valign='top'><b>Description</b></td>");
-		sb.append("<td>: ").append(description).append("</td>");
-		sb.append("</tr>");
+			content = content.replace("__NAME__", name != null ? name : "");
+			content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
+			content = content.replace("__CREATED_BY__", createdBy != null ? createdBy : "");
+			content = content.replace("__NOTE__", note != null ? note : "");
 
-		sb.append("</table>");
+			return content;
 
-		sb.append("<br/><br/>");
-
-		sb.append("<p>Please review and take the necessary action.</p>");
-
-		sb.append("<br/>");
-
-		sb.append("Regards,<br>");
-		sb.append("Task App Team");
-
-		sb.append("</body>");
-		sb.append("</html>");
-
-		return sb.toString();
+		} catch (IOException e) {
+			logger.error("Error loading task notes email template", e);
+			return "";
+		}
 	}
 }
