@@ -3,7 +3,6 @@ package com.webelement.taskapp.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -12,12 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.webelement.taskapp.dto.ClientDashboardDTO;
 import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.entity.ClientEntity;
-import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -31,20 +28,17 @@ public class DashboardController {
 	
 	@Autowired
 	private DashboardService taskService;
-	
 	@Autowired
 	private UserLoginRepository userLoginRepository;
-	
 	@Autowired
 	private ClientRepository clientRepository;
-	
+
 	@RestController
 	@RequestMapping("/api/task")
 	public class TaskController {
 
 	    @Autowired
 	    private TaskService taskService;
-	    
 	    @Autowired
 	    private DashboardService dashboardService;
 
@@ -69,34 +63,24 @@ public class DashboardController {
 	// For Employee dashboard
 	 @GetMapping("/dashboard")
 	    public ResponseEntity<TaskDashboardResponse> getDashboard( @RequestParam(defaultValue = "0") Integer userId,@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId) {
-
 	        TaskDashboardResponse response = taskService.getDashboard(userId,isAdmin,selectedClientId);
-
 	        return ResponseEntity.ok(response);
 	    }
 	
 	// For manager dashboard
-    //NEW
-
 	 @GetMapping("/getTasksByStatus")
 	    public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
 	            @RequestParam(defaultValue = "20") int size,
 	            @RequestParam(required = false, defaultValue = "0") Integer clientId,
 	            @RequestParam("userId") Integer userId) {
-
 	        Map<String, Object> map = new HashMap<>();
-
 	        size = Math.min(size, 20);
-
 	        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
-
 	        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
 	        Double totalOutstanding = taskService.getTotalOutstanding(clientId, userId);
-	        
 	        map.put("taskList", taskList.getContent());
 	        map.put("totalTasks", taskList.getTotalElements());
 	        map.put("totalOutstanding", totalOutstanding);
-
 	        return ResponseEntity.ok(map);
 	    }
 

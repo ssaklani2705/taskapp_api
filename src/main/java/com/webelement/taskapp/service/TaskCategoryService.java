@@ -383,4 +383,6 @@ public class TaskCategoryService {
 	public List<TaskCategoryDTO> getCategoriesByDepartmentId(Integer departmentId) {
 		return taskCategoryRepository.findCategoriesByDepartmentId(departmentId);
 	}
+	
+	
 }

@@ -27,17 +27,14 @@ import com.webelement.taskapp.service.AuthService;
 @CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc" }, allowCredentials = "true")
 public class AuthController {
 	
-	
 	@Autowired
 	private AuthService authService;
-	
 	private Boolean isManager = false;
-
+	
 	@GetMapping("/test")
 	public String test() {
 		return "20-08-2026 10:53";
 	}
-
 	@GetMapping("/captcha")
 	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
 		int captcha = 100000 + new Random().nextInt(900000);
@@ -45,14 +42,12 @@ public class AuthController {
 		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
 		return ResponseEntity.ok(response);
 	}
-
 	@PostMapping("/login")
 	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request, HttpSession session,
 			HttpServletRequest httpRequest, HttpServletResponse response) throws Exception {
 		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request, session, httpRequest);
 		return loginResponse;
 	}
-
 	@PostMapping("/forgotpasswordMail")
 	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(@RequestParam String emailId,
 			@RequestParam String loginType,
@@ -60,18 +55,9 @@ public class AuthController {
 		 isManager = false;
 		return authService.forgotpasswordMail(emailId, httpRequest,isManager,loginType);
 	}
-
-//	@PostMapping("/forgot_password_manager_login")
-//	public ResponseEntity<ResponseApi<String>> forgotpasswordManagerLoginMail(@RequestParam String emailId,HttpServletRequest httpRequest) throws Exception {
-//		 isManager = true;
-//		return authService.forgotpasswordMail(emailId, httpRequest,isManager);
-//	}
-
 	@PostMapping("/forgotpassword")
 	public ResponseEntity<ResponseApi<String>> forgotpassword(@RequestParam String emailId, @RequestParam String userId,
 			@RequestParam String password,@RequestParam(required = false) String isManagerLogin) throws Exception {
-//		System.out.println("isManagerLogin : "+isManagerLogin);
 		return authService.forgotpassword(emailId, userId, password,isManagerLogin);
 	}
-
 }

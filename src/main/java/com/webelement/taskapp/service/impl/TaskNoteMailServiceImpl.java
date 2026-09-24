@@ -99,9 +99,10 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 				String.join(",", toEmails), String.join(",", ccEmails));
 
 		String ip = commonFunction.resolveClientIp(httpReq);
+		String iplocal = commonFunction.getLocalIp();
 
-		commonFunction.createMailLog(2, recipientName, String.join(",", toEmails), String.join(",", ccEmails), "", "",
-				subject, "", ip, "", 2);
+		commonFunction.createMailLog(2, recipientName, String.join(",", toEmails), String.join(",", ccEmails), String.join(",", toEmails), "",
+				subject, "", ip, iplocal, 2);
 	}
 
 	private void addEmail(Set<String> emails, UserLoginEntity user) {

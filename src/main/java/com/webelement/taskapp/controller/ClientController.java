@@ -40,21 +40,15 @@ public class ClientController {
 
 	@Autowired
 	private ClientService clientService;
-
 	@Autowired
 	private ClientRepository clientRepository;
 
-	// Add or Update
 	@PostMapping("/addOrUpdateClient")
 	public ResponseEntity<ApiResponse<ClientEntity>> addOrUpdateClient(@RequestBody ClientEntity client,
 			HttpServletRequest httpRequest) {
-
 		ApiResponse<ClientEntity> response = clientService.addOrUpdateClient(client, httpRequest);
-
 		return ResponseEntity.ok(response);
 	}
-
-	// For View
 	@GetMapping("/clientDetails/{clientId}")
 	public ResponseEntity<?> getClientDetailsById(@PathVariable int clientId) {
 		ClientDTO client = clientService.getClientDetailsById(clientId);
@@ -64,8 +58,6 @@ public class ClientController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-
-	// For Edit
 	@GetMapping("getClient/{clientId}")
 	public ApiResponse<ClientEntity> getCClientById(@PathVariable Integer clientId) {
 		Optional<ClientEntity> company = clientRepository.findById(clientId);
@@ -75,12 +67,9 @@ public class ClientController {
 			return new ApiResponse<>(false, "Client not found", null);
 		}
 	}
-
 	private static final Map<String, String> CLIENT_SORT_MAP = Map.of("name", "c.name", "code", "c.code", "status",
 			"c.status", "managerName", "u.firstName", "stateName", "s.name", "contactName", "c.contactName",
 			"contactEmail", "c.contactEmail", "city", "c.city", "regdate", "c.regdate");
-
-	// For Index
 	@GetMapping("/getClientDetails")
     public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
             @RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
@@ -92,86 +81,58 @@ public class ClientController {
             @RequestParam(required = false) String contactName, @RequestParam(required = false) String contactEmail,
             @RequestParam(required = false) String search, @RequestParam(defaultValue = "name") String sortColumn,
             @RequestParam(defaultValue = "asc") String sortDirection) {
-
         String sortBy = CLIENT_SORT_MAP.getOrDefault(sortColumn, "c.name");
-
         Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
                 : Sort.Direction.ASC;
-
         sortBy = sortBy.replace("c.", "").replace("u.", "").replace("s.", "");
-
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
         Page<ClientDTO> clientPage = clientService.findClientDetails(pageable, status, managerId, stateId, gstFlag,
                 taxFlag, planId, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
-
         Map<String, Object> response = new HashMap<>();
-
         response.put("data", clientPage.getContent());
         response.put("totalElements", clientPage.getTotalElements());
         response.put("totalPages", clientPage.getTotalPages());
         response.put("currentPage", clientPage.getNumber());
         response.put("pageSize", clientPage.getSize());
-
         return response;
     }
-
-	// Delete client
 	@PostMapping("/deleteClient")
 	public ResponseEntity<ResponseApi<String>> deleteClient(@RequestParam int clientId, @RequestParam int userId,
 			HttpServletRequest httpRequest) throws Exception {
 		return clientService.deleteClient(clientId, userId, httpRequest);
 	}
-
-	// Upload excel
 	@PostMapping("/uploadClientsExcel")
 	public ResponseEntity<ApiResponse<List<ClientEntity>>> uploadClientsExcel(@RequestParam("file") MultipartFile file,
 			@RequestParam("userId") Integer userId, HttpServletRequest request) {
-
 		try {
-
 			if (file == null || file.isEmpty()) {
 				return ResponseEntity.ok(new ApiResponse<>(false, "Please select an Excel file", null));
 			}
-
 			String fileName = file.getOriginalFilename();
-
 			if (fileName == null
 					|| !(fileName.toLowerCase().endsWith(".xlsx") || fileName.toLowerCase().endsWith(".xls"))) {
-
 				return ResponseEntity.ok(new ApiResponse<>(false, "Only Excel files (.xlsx, .xls) are allowed", null));
 			}
-
 			List<ClientEntity> clients = clientService.readClientsFromExcel(file);
-
 			ApiResponse<List<ClientEntity>> response = clientService.saveClientsFromExcel(clients, userId, request);
-
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			return ResponseEntity.ok(new ApiResponse<>(false,
 					e.getMessage() != null ? e.getMessage() : "Failed to upload Excel file", null));
 		}
 	}
-
-	// Change manager
 	@PutMapping("/client/{clientId}/manager")
 	public ResponseEntity<ApiResponse<String>> changeClientManager(@PathVariable Integer clientId,
 			@RequestBody Map<String, Integer> request, HttpServletRequest httpRequest) {
-
 		Integer managerId = request.get("managerId");
 		Integer userId = request.get("userId");
-
 		clientService.changeClientManager(clientId, managerId,userId, httpRequest);
-
 		return ResponseEntity.ok(new ApiResponse<>(true, "Manager changed successfully", null));
 	}
-	
 	@PostMapping("/updateClientOutstanding")
     public ResponseEntity<ApiResponse<ClientEntity>> updateClientOutstanding(@RequestBody ClientDTO dto,
             @RequestParam("managerId") Integer managerId, HttpServletRequest httpRequest) {
-
         ApiResponse<ClientEntity> response = clientService.updateClientOutstanding(dto, managerId, httpRequest);
-
         return ResponseEntity.ok(response);
     }
 }
