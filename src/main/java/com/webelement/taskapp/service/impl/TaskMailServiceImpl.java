@@ -119,7 +119,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 		if (client != null) {
 			Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
 		}
-		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream().collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
+		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
+				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity newAssignee = userMap.get(task.getAssignedTo());
 		UserLoginEntity assignor = userMap.get(task.getAddedBy());
 		UserLoginEntity oldAssignee = userMap.get(oldAssigneeId);
@@ -145,7 +146,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 				"", -1, "", smtp);
 		logger.info("Reassign mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
-		commonFunction.createMailLog(2, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "","Task App :: Task Reassigned", "", ip, commonFunction.getLocalIp(), 2);
+		commonFunction.createMailLog(2, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
+				"Task App :: Task Reassigned", "", ip, commonFunction.getLocalIp(), 2);
 	}
 	
 	@Override
