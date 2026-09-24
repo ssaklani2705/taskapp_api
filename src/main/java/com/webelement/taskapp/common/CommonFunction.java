@@ -45,9 +45,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class CommonFunction {
-	
+
 	static final Logger logger = LoggerFactory.getLogger(CommonFunction.class);
-	
+
 	private final MailLogRepo logRepo;
 	private final ResourceLoader resourceLoader;
 	private final TransactionRepo transactionRepo;
@@ -213,10 +213,10 @@ public class CommonFunction {
 		try {
 			File dir = new File(filePath);
 			if (!dir.exists()) {
-				dir.mkdirs(); 
+				dir.mkdirs();
 			}
 			fileName = fileName + ".html";
-			File file = new File(dir, fileName); 
+			File file = new File(dir, fileName);
 
 			try (BufferedWriter writer = new BufferedWriter(
 					new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
@@ -304,13 +304,13 @@ public class CommonFunction {
 			return content;
 
 		} catch (IOException e) {
-			 logger.error("Error loading task status email template", e);
+			logger.error("Error loading task status email template", e);
 			return "";
 		}
 	}
 
 	public String getTaskAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
-			String clientName, String priority, String dueDate, String description) {
+			String clientName, String priority, String startDate, String dueDate, String description) {
 
 		try {
 
@@ -323,13 +323,41 @@ public class CommonFunction {
 			content = content.replace("__ASSIGNED_BY__", assignedBy != null ? assignedBy : "");
 			content = content.replace("__CLIENT_NAME__", clientName != null ? clientName : "");
 			content = content.replace("__PRIORITY__", priority != null ? priority : "");
+			content = content.replace("__START_DATE__", startDate != null ? startDate : "");
 			content = content.replace("__DUE_DATE__", dueDate != null ? dueDate : "");
 			content = content.replace("__DESCRIPTION__", description != null ? description : "");
 
 			return content;
 
 		} catch (IOException e) {
-			 logger.error("Error loading task assigned email template", e);
+			logger.error("Error loading task assigned email template", e);
+			return "";
+		}
+	}
+	
+	
+	public String getTaskReAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
+			String clientName, String priority, String startDate, String dueDate, String description) {
+
+		try {
+
+			Resource resource = resourceLoader.getResource("classpath:templates/task_reassigned_mail.html");
+
+			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+
+			content = content.replace("__ASSIGNEE_NAME__", assigneeName != null ? assigneeName : "");
+			content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
+			content = content.replace("__ASSIGNED_BY__", assignedBy != null ? assignedBy : "");
+			content = content.replace("__CLIENT_NAME__", clientName != null ? clientName : "");
+			content = content.replace("__PRIORITY__", priority != null ? priority : "");
+			content = content.replace("__START_DATE__", startDate != null ? startDate : "");
+			content = content.replace("__DUE_DATE__", dueDate != null ? dueDate : "");
+			content = content.replace("__DESCRIPTION__", description != null ? description : "");
+
+			return content;
+
+		} catch (IOException e) {
+			logger.error("Error loading task assigned email template", e);
 			return "";
 		}
 	}

@@ -22,6 +22,7 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.SmtpEntity;
+import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
@@ -29,7 +30,7 @@ import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.MailService;
-
+import com.webelement.taskapp.repo.TaskCategoryRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,13 +38,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TaskMailServiceImpl implements TaskMailService {
 
+	private final TaskCategoryRepository  TaskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
 	private final ClientRepository clientRepository;
 	private final MailService mailService;
 	private final CommonFunction commonFunction;
 	private final SmtpRepo smtpRepo;
 	static final Logger logger = LoggerFactory.getLogger(TaskMailServiceImpl.class);
-
 	private final HttpServletRequest request;
 	
 	@Value("${file_maillog:}")
@@ -145,8 +146,14 @@ public class TaskMailServiceImpl implements TaskMailService {
 			return;
 		}
 		String recipientName = newAssignee != null ? newAssignee.getFirstName() : "";
-		String mailBody = commonFunction.getTaskStatusMailTemplate(recipientName, task.getTitle(), "Assigned",
-				"Re-Assigned", "");
+		String startDate = "";
+
+		if (task.getDate() != null) {
+			startDate = task.getDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+		}
+		String mailBody = commonFunction.getTaskReAssignedMailTemplate(recipientName, task.getTitle(),
+				assignor != null ? assignor.getFirstName() : "", client != null ? client.getName() : "",
+				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getDescription());
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
@@ -154,7 +161,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 				"", -1, "", smtp);
 		logger.info("Reassign mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
-		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
+				"np-" + System.currentTimeMillis());
 		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
 				"Task App :: Task Reassigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
@@ -186,14 +194,14 @@ public class TaskMailServiceImpl implements TaskMailService {
 		addEmail(ccSet, societyManager);
 		ccSet.removeAll(toSet);
 		String recipientName = assignedUser.getFirstName();
-		String dueDate = "";
+		String startDate = "";
 
 		if (task.getDate() != null) {
-		    dueDate = task.getDate()
-		            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+			startDate = task.getDate()
+		            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
 		}
 		String mailBody = commonFunction.getTaskAssignedMailTemplate(recipientName, task.getTitle(),
-				addedByUser != null ? addedByUser.getFirstName() : "", client != null ? client.getName() : "", getPriorityName(task.getPriority()) ,dueDate ,
+				addedByUser != null ? addedByUser.getFirstName() : "", client != null ? client.getName() : "", getPriorityName(task.getPriority()),startDate ,calculateDueDate(task) ,
 				task.getDescription());	
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
@@ -233,5 +241,32 @@ public class TaskMailServiceImpl implements TaskMailService {
 	    default:
 	        return "";
 	    }
+	}
+	
+	
+	private String calculateDueDate(TaskEntity task) {
+
+		if (task == null || task.getTaskCategoryId() == null || task.getDate() == null) {
+			return "";
+		}
+
+		TaskCategoryEntity taskCategory = TaskCategoryRepository.findById(task.getTaskCategoryId()).orElse(null);
+
+		if (taskCategory == null || taskCategory.getDuedatetime() == null || taskCategory.getDuedatetime().isBlank()) {
+			return "";
+		}
+
+		try {
+
+			long hours = Long.parseLong(taskCategory.getDuedatetime().trim());
+
+			return task.getDate().plusHours(hours).format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+
+		} catch (Exception e) {
+
+			logger.error("Error calculating due date for task {}", task.getTaskId(), e);
+
+			return "";
+		}
 	}
 }
