@@ -271,6 +271,31 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	        @Param("loginType") String loginType,
 	        @Param("isAdmin") String isAdmin);
 	
+	@Query("SELECT COUNT(t) "
+		     + "FROM TaskEntity t "
+		     + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+		     + "WHERE (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+		     + "AND ( "
+		     + "     ( :loginType = 'manager' "
+		     + "       AND ( t.addedBy = :userId OR c.managerId = :userId ) ) "
+		     + "     OR "
+		     + "     ( :loginType <> 'manager' "
+		     + "       AND ( "
+		     + "            :isAdmin = 'Y' "
+		     + "            OR t.addedBy = :userId "
+		     + "            OR EXISTS ( "
+		     + "                 SELECT 1 FROM UserLoginEntity ul "
+		     + "                 WHERE ul.userId = :userId "
+		     + "                 AND CONCAT(',', ul.taskcategoryIds, ',') "
+		     + "                     LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+		     + "            ) "
+		     + "       ) ) "
+		     + ")")
+		long countUnassignedTasksForIndex(
+		        @Param("userId") Integer userId,
+		        @Param("loginType") String loginType,
+		        @Param("isAdmin") String isAdmin);
+	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 			+ "FROM UserLoginEntity u WHERE u.status = 1 and u.departmentId = 1 and u.designationId =1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveManager();

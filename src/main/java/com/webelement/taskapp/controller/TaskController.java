@@ -193,7 +193,10 @@ public class TaskController {
 				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId,loginType,isAdmin));
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
 			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsersForIndex(userId,loginType,isAdmin));
-			users.add(0, new UserActiveDTO(0, "Unassigned User"));
+//			users.add(0, new UserActiveDTO(0, "Unassigned User"));
+			if (userLoginRepository.countUnassignedTasksForIndex(userId, loginType, isAdmin) > 0) {
+		        users.add(0, new UserActiveDTO(0, "Unassigned User"));
+		    }
 			return users;
 		});
 		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
