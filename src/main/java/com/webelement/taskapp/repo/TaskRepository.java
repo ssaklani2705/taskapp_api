@@ -43,16 +43,53 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 	Optional<TaskEntity> findByTaskId(Integer taskId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.addedBy, " + "t.assignedTo, "
-			+ "t.clientId, " + "t.closeRemarks, " + "t.date, " + "t.description, " + "t.fileName1, " + "t.fileName2, "
-			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
-			+ "c.name, " + "tc.name, " + "u.firstName, " + // assignedTo user
-			"a.firstName, t.taskStatus) " + // addedBy user
-			"FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
-	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
+//	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.addedBy, " + "t.assignedTo, "
+//			+ "t.clientId, " + "t.closeRemarks, " + "t.date, " + "t.description, " + "t.fileName1, " + "t.fileName2, "
+//			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
+//			+ "c.name, " + "tc.name, " + "u.firstName, " + // assignedTo user
+//			"a.firstName, t.taskStatus) " + // addedBy user
+//			"FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+//			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+//			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+//			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
+//	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
+	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" 
+	        + "t.taskId, "
+	        + "t.addedBy, "
+	        + "t.assignedTo, "
+	        + "t.clientId, "
+	        + "t.closeRemarks, "
+	        + "t.date, "
+	        + "t.description, "
+	        + "t.fileName1, "
+	        + "t.fileName2, "
+	        + "t.fileName3, "
+	        + "t.fileName4, "
+	        + "t.priority, "
+	        + "t.status, "
+	        + "t.taskCategoryId, "
+	        + "t.title, "
+	        + "c.name, "
+	        + "tc.name, "
+	        + "u.firstName, "       // assignedTo user
+	        + "a.firstName, "       // addedBy user
+	        + "t.taskStatus,"
+	        + "tc.duedatetime "
+	        + ") "
+	        + "FROM TaskEntity t "
+	        + "LEFT JOIN ClientEntity c "
+	        + "ON c.clientId = t.clientId "
+	        + "LEFT JOIN TaskCategoryEntity tc "
+	        + "ON tc.taskcategoryId = t.taskCategoryId "
+	        + "LEFT JOIN UserLoginEntity u "
+	        + "ON u.userId = t.assignedTo "
+	        + "LEFT JOIN UserLoginEntity a "
+	        + "ON a.userId = t.addedBy "
+	        + "WHERE t.taskId = :taskId")
+	Optional<TaskEditDTO> findTaskById(
+	        @Param("taskId") Integer taskId
+	);
+
 
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO("

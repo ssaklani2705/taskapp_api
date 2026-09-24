@@ -72,32 +72,6 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
-//	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
-//		       "u.userId, " +
-//		       "u.firstName, " +
-//		       "u.email, " +
-//		       "u.mobileNo, " +
-//		       "u.status, " +
-//		       "u.permission, " +
-//		       "d.name,de.name) " +
-//		       "FROM UserLoginEntity u " +
-//		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
-//		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
-//		       "WHERE u.userId > 0  " +
-////		       AND d.departmentId != 1
-//		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
-//		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
-//		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
-//		       "AND (:search IS NULL OR :search = '' " +
-//		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-//		       "ORDER BY u.status,u.regDate DESC, u.firstName")
-//		Page<UserInfo> findBasicUserInfo(Pageable pageable,@Param("statusIndex") int statusIndex,@Param("search") String search,
-//				int departmentId,int designationId);
-	
-
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
 		       "u.userId, " +
 		       "u.firstName, " +
@@ -114,6 +88,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
 		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
+		       "AND (:selectedCategoryId = 0 OR " +
+		       "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) " +
 		       "AND (:search IS NULL OR :search = '' " +
 		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -125,7 +101,39 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		        @Param("statusIndex") int statusIndex,
 		        @Param("search") String search,
 		        @Param("departmentId") int departmentId,
-		        @Param("designationId") int designationId);
+		        @Param("designationId") int designationId,
+		        @Param("selectedCategoryId") int selectedCategoryId
+		);
+
+
+//	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
+//		       "u.userId, " +
+//		       "u.firstName, " +
+//		       "u.email, " +
+//		       "u.mobileNo, " +
+//		       "u.status, " +
+//		       "u.permission, " +
+//		       "d.name, " +
+//		       "de.name) " +
+//		       "FROM UserLoginEntity u " +
+//		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
+//		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
+//		       "WHERE u.userId > 0 " +
+//		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
+//		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
+//		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
+//		       "AND (:search IS NULL OR :search = '' " +
+//		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
+//		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+//		       "ORDER BY u.status, u.regDate DESC, u.firstName")
+//		Page<UserInfo> findBasicUserInfo(
+//		        Pageable pageable,
+//		        @Param("statusIndex") int statusIndex,
+//		        @Param("search") String search,
+//		        @Param("departmentId") int departmentId,
+//		        @Param("designationId") int designationId);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId

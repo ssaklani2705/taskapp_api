@@ -75,14 +75,15 @@ public class UserManagementService {
 	        int statusIndex,
 	        String search,
 	        int departmentId,
-	        int designationId) {
+	        int designationId,int selectedCategoryId) {
 
 	    Page<UserInfo> pageData = loginRepository.findBasicUserInfo(
 	            PageRequest.of(page, size),
 	            statusIndex,
 	            search,
 	            departmentId,
-	            designationId
+	            designationId,
+	            selectedCategoryId
 	    );
 
 	    pageData.getContent().forEach(user -> {

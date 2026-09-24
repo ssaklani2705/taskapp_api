@@ -84,6 +84,12 @@ public class ClientService {
 	public ApiResponse<ClientEntity> addOrUpdateClient(ClientEntity client, HttpServletRequest httpRequest) {
 
 		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
+		
+		String location = client.getLocation() != null ? client.getLocation().trim() : "";
+        if (location.isEmpty()) {
+            throw new ClientValidationException("Location is required.");
+        }
+        client.setLocation(location);
 
 		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
 			throw new RuntimeException("Invalid stateId: " + client.getStateId());
@@ -479,9 +485,9 @@ public class ClientService {
 				Short taxFlag = client.getTaxFlag();
 
 				if (taxFlag == null) {
-					reasons.add("Tax Payable is required");
+					reasons.add("Tax Applicable is required");
 				} else if (taxFlag != 0 && taxFlag != 1) {
-					reasons.add("Tax Payable must be Yes/No or 1/0");
+					reasons.add("Tax Applicable must be Yes/No or 1/0");
 				}
 
 				if (client.getStateId() == null || client.getStateId() == 0) {
@@ -971,7 +977,7 @@ public class ClientService {
 		}
 
 		String[] expectedHeaders = { "Sr No", "Society Manager Email", "Client Name", "Client Code", "PAN",
-				"GST Applicable", "GST Number", "Tax Payable", "Address Line 1", "Address Line 2", "City", "State",
+				"GST Applicable", "GST Number", "Tax Applicable", "Address Line 1", "Address Line 2", "City", "State",
 				"Location", "Pincode", "Contact Name", "Contact Email", "Chairman’s Name", "Chairman’s Email ID",
 				"Secretary’s Name", "Secretary’s Email ID", "Treasurer’s Name", "Treasurer’s Email ID", "CC Email",
 				"Start Date", "Plan", "Outstanding", "Status" };
@@ -1151,6 +1157,7 @@ public class ClientService {
 			throw new RuntimeException("Selected Society manager is not active");
 		}
 
+		
 		client.setManagerId(managerId);
 		client.setModdate(new Timestamp(System.currentTimeMillis()));
 

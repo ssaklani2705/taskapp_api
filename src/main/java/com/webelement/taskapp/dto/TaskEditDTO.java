@@ -40,7 +40,58 @@ public class TaskEditDTO {
 	private String addedByName;
 	
 	private Short taskStatus;
+	
+//	private String dueDatetime;
 	private List<TransactionEntity> transactionHistory;
+	
+	public TaskEditDTO(
+	        Integer taskId,
+	        Integer addedBy,
+	        Integer assignedTo,
+	        Integer clientId,
+	        String closeRemarks,
+	        LocalDateTime date,
+	        String description,
+	        String fileName1,
+	        String fileName2,
+	        String fileName3,
+	        String fileName4,
+	        Short priority,
+	        Short status,
+	        Integer taskCategoryId,
+	        String title,
+	        String clientName,
+	        String taskCategoryName,
+	        String assignedUserName,
+	        String addedByName,
+	        Short taskStatus,
+	        String dueDatetime) {
+
+	    super();
+
+	    this.taskId = taskId;
+	    this.addedBy = addedBy;
+	    this.assignedTo = assignedTo;
+	    this.clientId = clientId;
+	    this.closeRemarks = closeRemarks;
+	    this.date = date;
+	    this.description = description;
+	    this.fileName1 = fileName1;
+	    this.fileName2 = fileName2;
+	    this.fileName3 = fileName3;
+	    this.fileName4 = fileName4;
+	    this.priority = priority;
+	    this.status = status;
+	    this.taskCategoryId = taskCategoryId;
+	    this.title = title;
+	    this.clientName = clientName;
+	    this.taskCategoryName = taskCategoryName;
+	    this.assignedUserName = assignedUserName;
+	    this.addedByName = addedByName;
+	    this.taskStatus = taskStatus;
+	    this.dueDateTime = dueDatetime;
+	}
+	
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,
 			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3, String fileName4,
 			Short priority, Short status, Integer taskCategoryId, String title, String clientName,
