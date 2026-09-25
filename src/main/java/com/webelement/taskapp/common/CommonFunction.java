@@ -30,6 +30,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.webelement.taskapp.dto.TaskMailDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
@@ -286,28 +287,7 @@ public class CommonFunction {
 		logRepo.save(log);
 	}
 
-	public String getTaskStatusMailTemplate(String name, String taskTitle, String oldStatus, String newStatus,
-			String url) {
-
-		try {
-
-			Resource resource = resourceLoader.getResource("classpath:templates/task_status_mail.html");
-
-			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
-
-			content = content.replace("__NAME__", name != null ? name : "");
-			content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
-			content = content.replace("__OLD_STATUS__", oldStatus != null ? oldStatus : "");
-			content = content.replace("__NEW_STATUS__", newStatus != null ? newStatus : "");
-			content = content.replace("__URL__", url != null ? url : "");
-
-			return content;
-
-		} catch (IOException e) {
-			logger.error("Error loading task status email template", e);
-			return "";
-		}
-	}
+	
 
 	public String getTaskAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
 			String clientName, String priority, String startDate, String dueDate, String description) {
@@ -380,6 +360,91 @@ public class CommonFunction {
 
 		} catch (IOException e) {
 			logger.error("Error loading task notes email template", e);
+			return "";
+		}
+	}
+	
+	public String getTaskStatusMailTemplate(TaskMailDTO param) {
+
+		try {
+
+			Resource resource = resourceLoader.getResource("classpath:templates/task_status_mail.html");
+
+			String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+
+			content = content.replace("__NAME__", param.getName() != null ? param.getName() : "");
+
+			content = content.replace("__TASK_TITLE__", param.getTaskName() != null ? param.getTaskName() : "");
+
+			content = content.replace("__URL__", param.getUrl() != null ? param.getUrl() : "");
+
+			String statusRows = "";
+
+			if ("Re-Open".equalsIgnoreCase(param.getCurrentStatus())) {
+
+				statusRows = "<tr>" + "<td><b>Client Name</b></td>" + "<td>: "
+						+ (param.getClientName() != null ? param.getClientName() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
+						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
+						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Reopened On</b></td>" + "<td>: "
+						+ (param.getReopenedOn() != null ? param.getReopenedOn() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Reopened By</b></td>" + "<td>: "
+						+ (param.getReopendBy() != null ? param.getReopendBy() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Priority</b></td>" + "<td>: "
+						+ (param.getPriority() != null ? param.getPriority() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Due Date</b></td>" + "<td>: "
+						+ (param.getDueDate() != null ? param.getDueDate() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Remark</b></td>" + "<td>: "
+						+ (param.getRemark() != null ? param.getRemark() : "") + "</td>" + "</tr>";
+
+			} else if ("Assignor Closure".equalsIgnoreCase(param.getCurrentStatus())) {
+
+				statusRows = "<tr>" + "<td><b>Client Name</b></td>" + "<td>: "
+						+ (param.getClientName() != null ? param.getClientName() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Assigned By</b></td>" + "<td>: "
+						+ (param.getAssignedBy() != null ? param.getAssignedBy() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
+						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
+						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Submitted On</b></td>" + "<td>: "
+						+ (param.getSubmittedOn() != null ? param.getSubmittedOn() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Priority</b></td>" + "<td>: "
+						+ (param.getPriority() != null ? param.getPriority() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Due Date</b></td>" + "<td>: "
+						+ (param.getDueDate() != null ? param.getDueDate() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Remark</b></td>" + "<td>: "
+						+ (param.getRemark() != null ? param.getRemark() : "") + "</td>" + "</tr>";
+
+			} else {
+
+				statusRows = "<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
+						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
+
+						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
+						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>";
+			}
+
+			content = content.replace("__STATUS_ROWS__", statusRows);
+			return content;
+		} catch (IOException e) {
+			logger.error("Error loading task status email template", e);
 			return "";
 		}
 	}
