@@ -18,6 +18,8 @@ import com.webelement.taskapp.entity.ClientEntity;
 
 @Repository
 public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
+	
+    boolean existsByManagerIdAndStatus(Integer managerId, Short status);
 
 	boolean existsByCode(String code);
 
@@ -96,29 +98,31 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	// MANAGER — only clients they manage that actually have recurring entries
     @Query("SELECT c FROM ClientEntity c "
             + "WHERE c.managerId = :managerId "
-            + "AND c.status = :status "
+//            + "AND c.status = :status "
             + "AND EXISTS ( "
             + "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId "
             + ") "
             + "ORDER BY c.name ASC")
     List<ClientEntity> findByManagerIdAndStatusForIndex(
-            @Param("managerId") Integer managerId,
-            @Param("status") Short status);
+            @Param("managerId") Integer managerId);
 
     // NON-MANAGER + ADMIN — all active clients that have recurring entries
     @Query("SELECT c FROM ClientEntity c "
-            + "WHERE c.status = :status "
-            + "AND EXISTS ( "
+            + "WHERE "
+//            + "c.status = :status AND "
+            + " EXISTS ( "
             + "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId "
             + ") "
             + "ORDER BY c.name ASC")
-    List<ClientEntity> findByStatusForIndex(@Param("status") Short status);
+    List<ClientEntity> findByStatusForIndex();
+//    List<ClientEntity> findByStatusForIndex(@Param("status") Short status);
 
     // NON-MANAGER + NON-ADMIN — clients with a recurring entry whose taskCatId
     // matches one of this user's allowed categories
     @Query("SELECT DISTINCT c FROM ClientEntity c "
-            + "WHERE c.status = :status "
-            + "AND EXISTS ( "
+            + "WHERE "
+//            + "c.status = :status AND "
+            + " EXISTS ( "
             + "     SELECT 1 FROM RecurringEntity r "
             + "     WHERE r.clientId = c.clientId "
             + "     AND EXISTS ( "
@@ -130,8 +134,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
             + ") "
             + "ORDER BY c.name ASC")
     List<ClientEntity> findByUserIdAndStatusForIndex(
-            @Param("userId") Integer userId,
-            @Param("status") Short status);
+            @Param("userId") Integer userId);
 	
 
 	Optional<ClientEntity> findByClientIdAndManagerIdAndStatus(Integer clientId, Integer managerId, Short status);
@@ -197,8 +200,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 //            + "ORDER BY c.name ASC")
     
     @Query("SELECT DISTINCT c FROM ClientEntity c "
-            + "WHERE c.status = 1 "
-            + "AND EXISTS ( "
+//            + "WHERE c.status = 1 AND "
++ "WHERE  "
+            + " EXISTS ( "
             + "     SELECT 1 FROM TaskEntity tAny WHERE tAny.clientId = c.clientId "
             + ") "
             + "AND ( "

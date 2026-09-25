@@ -237,8 +237,9 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	        + "FROM UserLoginEntity u "
-	        + "WHERE u.status = 1 "
-	        + "AND EXISTS ( "
+//	        + "WHERE u.status = 1 AND "
++ "WHERE "
+	        + " EXISTS ( "
 	        + "     SELECT 1 FROM TaskEntity t "
 	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 //	        + "     WHERE (t.assignedTo = u.userId OR t.addedBy = u.userId) "

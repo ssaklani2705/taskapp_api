@@ -1118,20 +1118,20 @@ public class ClientService {
 		// MANAGER
 		if ("manager".equalsIgnoreCase(loginType)) {
 
-			clients = clientRepository.findByManagerIdAndStatusForIndex(userId, activeStatus);
+			clients = clientRepository.findByManagerIdAndStatusForIndex(userId);
 //			clients = clientRepository.findByStatus(activeStatus);
 
 		}
 		// NON-MANAGER + ADMIN
 		else if ("Y".equalsIgnoreCase(isAdmin)) {
 
-			clients = clientRepository.findByStatusForIndex(activeStatus);
+			clients = clientRepository.findByStatusForIndex();
 
 		}
 		// NON-MANAGER + NON-ADMIN
 		else {
 
-			clients = clientRepository.findByUserIdAndStatusForIndex(userId, activeStatus);
+			clients = clientRepository.findByUserIdAndStatusForIndex(userId);
 		}
 
 		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))

@@ -19,8 +19,9 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity, Integer> {
 	
 	@Query("SELECT tc FROM TaskCategoryEntity tc "
-	        + "WHERE tc.status = 1 "
-	        + "AND EXISTS ( "
+//	        + "WHERE tc.status = 1 AND "
++ "WHERE "
+	        + " EXISTS ( "
 	        + "     SELECT 1 FROM TaskEntity t "
 	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 	        + "     WHERE t.taskCategoryId = tc.taskcategoryId "

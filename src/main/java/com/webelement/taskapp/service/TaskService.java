@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webelement.taskapp.dto.ApiResponse;
+import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 
@@ -21,5 +22,7 @@ public interface TaskService {
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile) throws Exception;
 			public boolean canDisableChangeManager(TaskEntity task, Integer userId);
+
+			ClientAssignmentCheckDTO checkClientAssigned(Integer managerId);
 
 }

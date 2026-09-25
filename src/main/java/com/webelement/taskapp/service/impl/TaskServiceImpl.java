@@ -39,12 +39,14 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.dto.ApiResponse;
+import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
+import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.StateRepo;
 import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -62,12 +64,30 @@ public class TaskServiceImpl implements TaskService {
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
 	private final TaskMailService taskMailService;
+	private final ClientRepository clientRepository;
 
 	@Autowired
 	private UserLoginRepository userLoginRepository; // adjust to your actual repo name
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
+	
+    private static final short ACTIVE_STATUS = 1;
+	
+	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId) {
+
+        boolean hasActiveClient =
+                clientRepository.existsByManagerIdAndStatus(managerId, ACTIVE_STATUS);
+
+        if (!hasActiveClient) {
+            return new ClientAssignmentCheckDTO(
+                    false,
+                    "No client is currently assigned. Please assign a client to proceed."
+            );
+        }
+
+        return new ClientAssignmentCheckDTO(true, "");
+    }
 
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
@@ -176,16 +196,29 @@ public class TaskServiceImpl implements TaskService {
 			}
 			task.setModificationDate(LocalDateTime.now());
 		}
-		if (pdfFile != null && !pdfFile.isEmpty()) {
-			validatePdf(pdfFile);
-			String fileName = saveFile(pdfFile, "pdf");
-			task.setFileName1(fileName);
-		}
-		if (zipFile != null && !zipFile.isEmpty()) {
-			validateZip(zipFile);
-			String fileName = saveFile(zipFile, "zip");
-			task.setFileName2(fileName);
-		}
+		 // ---------- CHANGED: File - 1 (was pdfFile / validatePdf) ----------
+	    if (pdfFile != null && !pdfFile.isEmpty()) {
+	        validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
+	        String fileName = saveFile(pdfFile, getExtension(pdfFile));
+	        task.setFileName1(fileName);
+	    }
+
+	    // ---------- CHANGED: File - 2 (was zipFile / validateZip) ----------
+	    if (zipFile != null && !zipFile.isEmpty()) {
+	        validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
+	        String fileName = saveFile(zipFile, getExtension(zipFile));
+	        task.setFileName2(fileName);
+	    }
+//		if (pdfFile != null && !pdfFile.isEmpty()) {
+//			validatePdf(pdfFile);
+//			String fileName = saveFile(pdfFile, "pdf");
+//			task.setFileName1(fileName);
+//		}
+//		if (zipFile != null && !zipFile.isEmpty()) {
+//			validateZip(zipFile);
+//			String fileName = saveFile(zipFile, "zip");
+//			task.setFileName2(fileName);
+//		}
 		TaskEntity savedTask = taskRepository.save(task);
 
 		String action;

@@ -235,30 +235,92 @@ public class UserManagementService {
 		}
 
 		// Update permissions for both add & edit
+//		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
+//			permissionRepo.deleteByUserId(uid);
+//			if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
+//				for (ModulePermissionDTO m : userRequest.getModule()) {
+//					if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
+//							|| "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
+//							|| "Y".equalsIgnoreCase(m.getApprovePer())
+//							|| "Y".equalsIgnoreCase(m.getAdminApprovePer()) || "Y".equalsIgnoreCase(m.getExportExcel())) {
+//
+//						PermissionEntity entity = new PermissionEntity();
+//						entity.setUserId(uid);
+//						entity.setModuleId(m.getModuleId());
+//						entity.setAdd(defaultIfNull(m.getAddPer()));
+//						entity.setEdit(defaultIfNull(m.getEditPer()));
+//						entity.setDelete(defaultIfNull(m.getDeletePer()));
+//						entity.setApprove(defaultIfNull(m.getApprovePer()));
+//						entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
+//						entity.setView(defaultIfNull(m.getViewPer()));
+//						entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+//						
+//						permissionRepo.save(entity);
+//					}
+//				}
+//			}
+//		}
+		
+		
+		
 		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
-			permissionRepo.deleteByUserId(uid);
-			if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
-				for (ModulePermissionDTO m : userRequest.getModule()) {
-					if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
-							|| "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
-							|| "Y".equalsIgnoreCase(m.getApprovePer())
-							|| "Y".equalsIgnoreCase(m.getAdminApprovePer()) || "Y".equalsIgnoreCase(m.getExportExcel())) {
 
-						PermissionEntity entity = new PermissionEntity();
-						entity.setUserId(uid);
-						entity.setModuleId(m.getModuleId());
-						entity.setAdd(defaultIfNull(m.getAddPer()));
-						entity.setEdit(defaultIfNull(m.getEditPer()));
-						entity.setDelete(defaultIfNull(m.getDeletePer()));
-						entity.setApprove(defaultIfNull(m.getApprovePer()));
-						entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
-						entity.setView(defaultIfNull(m.getViewPer()));
-						entity.setExportExcel(defaultIfNull(m.getExportExcel()));
-						
-						permissionRepo.save(entity);
-					}
-				}
-			}
+		    permissionRepo.deleteByUserId(uid);
+
+		    // ============================================================
+		    // DEPARTMENT 1 — AUTO-ASSIGN FIXED PERMISSIONS
+		    // Rights & Permissions UI is hidden for this department,
+		    // so module IDs 10 and 11 are granted automatically.
+		    // ============================================================
+		    if (userRequest.getDepartmentId() != null
+		            && userRequest.getDepartmentId() == 1) {
+
+		        int[] autoModuleIds = { 10, 11 };
+
+		        for (int moduleId : autoModuleIds) {
+
+		            PermissionEntity entity = new PermissionEntity();
+		            entity.setUserId(uid);
+		            entity.setModuleId(moduleId);
+		            entity.setAdd("Y");
+		            entity.setEdit("Y");
+		            entity.setDelete("Y");
+		            entity.setApprove("Y");
+		            entity.setAdminApprove("Y");
+		            entity.setView("Y");
+		            entity.setExportExcel("Y");
+
+		            permissionRepo.save(entity);
+		        }
+
+		    }
+		    // ============================================================
+		    // ALL OTHER DEPARTMENTS — USE MODULES SENT FROM FRONTEND
+		    // ============================================================
+		    else if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
+
+		        for (ModulePermissionDTO m : userRequest.getModule()) {
+
+		            if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
+		                    || "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
+		                    || "Y".equalsIgnoreCase(m.getApprovePer())
+		                    || "Y".equalsIgnoreCase(m.getAdminApprovePer()) || "Y".equalsIgnoreCase(m.getExportExcel())) {
+
+		                PermissionEntity entity = new PermissionEntity();
+		                entity.setUserId(uid);
+		                entity.setModuleId(m.getModuleId());
+		                entity.setAdd(defaultIfNull(m.getAddPer()));
+		                entity.setEdit(defaultIfNull(m.getEditPer()));
+		                entity.setDelete(defaultIfNull(m.getDeletePer()));
+		                entity.setApprove(defaultIfNull(m.getApprovePer()));
+		                entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
+		                entity.setView(defaultIfNull(m.getViewPer()));
+		                entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+
+		                permissionRepo.save(entity);
+		            }
+		        }
+		    }
 		}
 
 		return ResponseEntity.ok(

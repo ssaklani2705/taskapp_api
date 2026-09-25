@@ -152,7 +152,7 @@ public class RecurringService {
 		}
 
 		else if (type == 3) {
-			if (dto.getDate() == null || dto.getDate() < 1 || dto.getDate() > 28) {
+			if (dto.getDate() == null || dto.getDate() < -2 || dto.getDate() > 28) {
 				throw new RuntimeException("For monthly recurring, date must be between 1 and 28.");
 			}
 
