@@ -1,6 +1,8 @@
 package com.webelement.taskapp.dto;
 
 
+import org.springframework.data.jpa.repository.Query;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -20,7 +22,7 @@ public class UserInfo {
 	private String firstName;
 	private String email;
 	private String mobile;
-	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,String designationName) {
+	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,String designationName,String isHod) {
 		super();
 		this.userId = userId;
 		this.firstName = firstName;
@@ -29,6 +31,7 @@ public class UserInfo {
 		this.status = status;
 		this.permission = permission;
 		this.designationName = designationName;
+		this.isHod = isHod;
 	}
 	private int status;
 	private String permission;
@@ -37,7 +40,7 @@ public class UserInfo {
 	private String taskCategoryNames;
 	private String isHod;
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
-			String departmentName, String designationName) {
+			String departmentName,String designationName,String isHod) {
 		super();
 		this.userId = userId;
 		this.firstName = firstName;
@@ -47,8 +50,17 @@ public class UserInfo {
 		this.permission = permission;
 		this.departmentName = departmentName;
 		this.designationName = designationName;
+		this.isHod =isHod;
 	}
 	
 	
-
+//	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
+//		       "u.userId, " +
+//		       "u.firstName, " +
+//		       "u.email, " +
+//		       "u.mobileNo, " +
+//		       "u.status, " +
+//		       "u.permission, " +
+//		       "u.departmentIdsCsv, " +
+//		       "de.name) " +
 }

@@ -96,7 +96,7 @@ public class AuthService {
 					UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(),
 							httpRequest);
 					LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules);
+							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules,info.getIsHod());
 					session.removeAttribute("captcha");
 					return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
 				} else {

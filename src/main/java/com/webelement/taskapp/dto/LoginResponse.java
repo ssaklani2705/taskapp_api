@@ -24,10 +24,12 @@ public class LoginResponse {
 	private int sessionId;
 	private String isAdmin;
 	private String designationName;
+	private String isHod;
+	
 	private List<ModulePermissionDTO> modules;
 
 	public LoginResponse(String token, int userId, String username, int sessionId, String isAdmin,
-			String designationName,List<ModulePermissionDTO> modules) {
+			String designationName,List<ModulePermissionDTO> modules,String isHod) {
 		this.token = token;
 		this.userId = userId;
 		this.username = username;
@@ -35,6 +37,7 @@ public class LoginResponse {
 		this.isAdmin = isAdmin;
 		this.designationName = designationName;
 		this.modules = modules;
+		this.isHod = isHod;
 	}
 
 }

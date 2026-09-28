@@ -78,6 +78,10 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	// 7th constructor argument is now the raw department CSV
 	// (u.departmentIdsCsv). The service converts it to names.
 	// ------------------------------------------------------------
+//	this.permission = permission;
+//	this.departmentName = departmentName;
+//	this.designationName = designationName;
+//	this.isHod =isHod;
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
 		       "u.userId, " +
 		       "u.firstName, " +
@@ -86,7 +90,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "u.status, " +
 		       "u.permission, " +
 		       "u.departmentIdsCsv, " +
-		       "de.name) " +
+		       "de.name,u.isHod) " +
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
 		       "WHERE u.userId > 0 " +

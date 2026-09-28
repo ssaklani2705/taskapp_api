@@ -117,7 +117,8 @@ public class TaskController {
 			@RequestParam(required = false, defaultValue = "0") Integer userId,
 			@RequestParam(required = false, defaultValue = "0") String taskStatusIds,
 			@RequestParam(required = false) String loginType,
-			@RequestParam(required = false, defaultValue = "") String dashboardFilter) {
+			@RequestParam(required = false, defaultValue = "") String dashboardFilter,
+			@RequestParam(required = false) String isHod) {
 
 		LinkedHashSet<Short> taskStatusSet = new LinkedHashSet<>();
 		if (taskStatusIds != null && !taskStatusIds.trim().isEmpty()) {
@@ -128,7 +129,7 @@ public class TaskController {
 
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
 				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType,
-				dashboardFilter);
+				dashboardFilter,isHod);
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", pageData.getContent());
 		response.put("totalElements", pageData.getTotalElements());

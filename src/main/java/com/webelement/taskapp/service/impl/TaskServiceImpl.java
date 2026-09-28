@@ -132,7 +132,7 @@ public class TaskServiceImpl implements TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter) {
+			String dashboardFilter,String isHod) {
 		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 
@@ -144,7 +144,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
-				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime);
+				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime,isHod);
 
 	}
 
@@ -379,8 +379,9 @@ public class TaskServiceImpl implements TaskService {
 		// Clean original file name
 		fileNameWithoutExtension = fileNameWithoutExtension.replaceAll("[^a-zA-Z0-9_-]", "_");
 
-		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + "_" + fileNameWithoutExtension
-				+ extension;
+//		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + "_" + fileNameWithoutExtension
+//				+ extension;
+		String newFileName = statusPrefix + "_" + System.currentTimeMillis()+ extension;
 
 		Path target = directory.resolve(newFileName);
 
