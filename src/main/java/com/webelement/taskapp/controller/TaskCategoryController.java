@@ -88,7 +88,7 @@ public class TaskCategoryController {
 		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType);
 	}
 
-<<<<<<< HEAD
+
 	@GetMapping("recurringForindex/active")
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,
 			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
@@ -101,15 +101,12 @@ public class TaskCategoryController {
 
 		return taskCategoryService.getCategoriesByDepartmentId(departmentId);
 	}
-=======
-        return taskCategoryService.getCategoriesByDepartmentId(departmentId);
-    }
-    
+
     @GetMapping("/departments")
     public List<TaskCategoryDTO> getCategoriesByDepartmentIds(
             @RequestParam("departmentIds") List<Integer> departmentIds) {
 
         return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
     }
->>>>>>> f65035ff212c8db81662f6f7f4b820fecfe01b22
+
 }
