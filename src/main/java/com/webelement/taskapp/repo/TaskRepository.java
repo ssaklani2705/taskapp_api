@@ -25,34 +25,64 @@ import com.webelement.taskapp.entity.TaskEntity;
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
-	@Query("SELECT DISTINCT c.clientId, c.name " + "FROM ClientEntity c " + "WHERE c.status = 1 " + "AND EXISTS ("
-			+ "    SELECT 1 " + "    FROM TaskEntity t " + "    WHERE t.clientId = c.clientId "
-			+ "    AND t.status = 1 " + "    AND (" + "        :isAdmin = 'Y' " + "        OR " + "        ("
-			+ "            :loginType <> 'manager' " + "            AND (" + "                t.assignedTo = :userId "
-			+ "                OR t.addedBy = :userId " + "                OR ("
-			+ "                    :isAdmin <> 'Y' " + "                    AND EXISTS ("
-			+ "                        SELECT 1 " + "                        FROM TaskCategoryEntity tc2 "
-			+ "                        WHERE tc2.taskcategoryId = t.taskCategoryId "
-			+ "                        AND tc2.departmentId IN ("
-			+ "                            SELECT ul.departmentId "
-			+ "                            FROM UserLoginEntity ul "
-			+ "                            WHERE ul.userId = :userId" + "                        )"
-			+ "                    )" + "                )" + "            )" + "        )" + "    )" + ")")
+//	@Query("SELECT DISTINCT c.clientId, c.name " + "FROM ClientEntity c " + "WHERE c.status = 1 " + "AND EXISTS ("
+//			+ "    SELECT 1 " + "    FROM TaskEntity t " + "    WHERE t.clientId = c.clientId "
+//			+ "    AND t.status = 1 " + "    AND (" + "        :isAdmin = 'Y' " + "        OR " + "        ("
+//			+ "            :loginType <> 'manager' " + "            AND (" + "                t.assignedTo = :userId "
+//			+ "                OR t.addedBy = :userId " + "                OR ("
+//			+ "                    :isAdmin <> 'Y' " + "                    AND EXISTS ("
+//			+ "                        SELECT 1 " + "                        FROM TaskCategoryEntity tc2 "
+//			+ "                        WHERE tc2.taskcategoryId = t.taskCategoryId "
+//			+ "                        AND tc2.departmentId IN ("
+//			+ "                            SELECT ul.departmentId "
+//			+ "                            FROM UserLoginEntity ul "
+//			+ "                            WHERE ul.userId = :userId" + "                        )"
+//			+ "                    )" + "                )" + "            )" + "        )" + "    )" + ")")
+//	List<Object[]> findDashboardClients(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
+//			@Param("loginType") String loginType);
+	
+	@Query("SELECT DISTINCT c.clientId, c.name "
+	        + "FROM ClientEntity c "
+	        + "WHERE c.status = 1 "
+	        + "AND EXISTS ("
+	        + "    SELECT 1 "
+	        + "    FROM TaskEntity t "
+	        + "    WHERE t.clientId = c.clientId "
+	        + "    AND t.status = 1 "
+	        + "    AND ("
+	        + "        :isAdmin = 'Y' "
+	        + "        OR "
+	        + "        ("
+	        + "            :loginType <> 'manager' "
+	        + "            AND ("
+	        + "                t.assignedTo = :userId "
+	        + "                OR t.addedBy = :userId "
+	        + "                OR ("
+	        + "                    :isAdmin <> 'Y' "
+	        + "                    AND EXISTS ("
+	        + "                        SELECT 1 "
+	        + "                        FROM TaskCategoryEntity tc2 "
+	        + "                        WHERE tc2.taskcategoryId = t.taskCategoryId "
+	        // ===== CHANGED: was "AND tc2.departmentId IN (SELECT ul.departmentId ...)" =====
+	        + "                        AND EXISTS ("
+	        + "                            SELECT 1 "
+	        + "                            FROM UserLoginEntity ul "
+	        + "                            WHERE ul.userId = :userId "
+	        + "                            AND CONCAT(',', ul.departmentIdsCsv, ',') "
+	        + "                                LIKE CONCAT('%,', tc2.departmentId, ',%') "
+	        + "                        )"
+	        // ===== END CHANGE =====
+	        + "                    )"
+	        + "                )"
+	        + "            )"
+	        + "        )"
+	        + "    )"
+	        + ")")
 	List<Object[]> findDashboardClients(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
-			@Param("loginType") String loginType);
+	        @Param("loginType") String loginType);
 
 	Optional<TaskEntity> findByTaskId(Integer taskId);
 
-//	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.addedBy, " + "t.assignedTo, "
-//			+ "t.clientId, " + "t.closeRemarks, " + "t.date, " + "t.description, " + "t.fileName1, " + "t.fileName2, "
-//			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
-//			+ "c.name, " + "tc.name, " + "u.firstName, " + // assignedTo user
-//			"a.firstName, t.taskStatus) " + // addedBy user
-//			"FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-//			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-//			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-//			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.taskId = :taskId")
-//	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" 
 	        + "t.taskId, "
 	        + "t.addedBy, "
@@ -216,19 +246,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
-//	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO("
-//			+ "t.taskId, t.assignedTo, COALESCE(NULLIF(u.firstName,''),'-') ," + "COALESCE(NULLIF(t.title,''),'-'), "
-//			+ "t.taskStatus, t.addedBy, COALESCE(NULLIF(a.firstName,''),'-'), t.date as startDate ,tc.duedatetime, t.priority,COALESCE(NULLIF(c.name, ''), '-')) "
-//			+ "FROM TaskEntity t LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-//			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-//			+ "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-//			+ "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1"
-//			+ "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + ":permission = 'Y' "
-//			+ "OR t.assignedTo = :userId " + "OR t.addedBy = :userId " + "OR c.managerId = :userId" + ") "
-//			+ "ORDER BY t.status ASC")
-//	Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
-//			@Param("userId") Integer userId, @Param("permission") String permission);
-	
 	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO("
 	        + "t.taskId, "
 	        + "t.assignedTo, "
@@ -277,27 +294,67 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
 	String findDueTimeByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
 
+//	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser", "assignedByUser" })
+//	@Query("SELECT t " + "FROM TaskEntity t "
+//			+ "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) " + "AND ("
+//
+//			// ADMIN LOGIN
+//			+ "    :isAdmin = 'Y' "
+//
+//			+ "    OR "
+//
+//			// NON-MANAGER LOGIN
+//			+ "    (" + "        :loginType <> 'manager' " + "        AND " + "("
+//			+ "            t.assignedTo = :userId " + "            OR t.addedBy = :userId " + "            OR ("
+//			+ "                :isAdmin <> 'Y' AND (t.assignedTo = 0 OR t.assignedTo IS NULL)  " + "                AND EXISTS (" + "                    SELECT 1 "
+//			+ "                    FROM TaskCategoryEntity tc2 "
+//			+ "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
+//			+ "                    AND tc2.departmentId IN (" + "                        SELECT ul.departmentId "
+//			+ "                        FROM UserLoginEntity ul " + "                        WHERE ul.userId = :userId"
+//			+ "                    )" + "                )" + "            )" + "        )" + "    )" + ")")
+//	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
+//			@Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
+
 	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser", "assignedByUser" })
-	@Query("SELECT t " + "FROM TaskEntity t "
-			+ "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) " + "AND ("
+	@Query("SELECT t "
+	        + "FROM TaskEntity t "
+	        + "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) "
+	        + "AND ("
 
-			// ADMIN LOGIN
-			+ "    :isAdmin = 'Y' "
+	        // ADMIN LOGIN
+	        + "    :isAdmin = 'Y' "
 
-			+ "    OR "
+	        + "    OR "
 
-			// NON-MANAGER LOGIN
-			+ "    (" + "        :loginType <> 'manager' " + "        AND " + "("
-			+ "            t.assignedTo = :userId " + "            OR t.addedBy = :userId " + "            OR ("
-			+ "                :isAdmin <> 'Y' AND (t.assignedTo = 0 OR t.assignedTo IS NULL)  " + "                AND EXISTS (" + "                    SELECT 1 "
-			+ "                    FROM TaskCategoryEntity tc2 "
-			+ "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
-			+ "                    AND tc2.departmentId IN (" + "                        SELECT ul.departmentId "
-			+ "                        FROM UserLoginEntity ul " + "                        WHERE ul.userId = :userId"
-			+ "                    )" + "                )" + "            )" + "        )" + "    )" + ")")
+	        // NON-MANAGER LOGIN
+	        + "    ("
+	        + "        :loginType <> 'manager' "
+	        + "        AND ("
+	        + "            t.assignedTo = :userId "
+	        + "            OR t.addedBy = :userId "
+	        + "            OR ("
+	        + "                :isAdmin <> 'Y' AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+	        + "                AND EXISTS ("
+	        + "                    SELECT 1 "
+	        + "                    FROM TaskCategoryEntity tc2 "
+	        + "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
+	        // ===== CHANGED: was "AND tc2.departmentId IN (SELECT ul.departmentId ...)" =====
+	        + "                    AND EXISTS ("
+	        + "                        SELECT 1 "
+	        + "                        FROM UserLoginEntity ul "
+	        + "                        WHERE ul.userId = :userId "
+	        + "                        AND CONCAT(',', ul.departmentIdsCsv, ',') "
+	        + "                            LIKE CONCAT('%,', tc2.departmentId, ',%') "
+	        + "                    )"
+	        // ===== END CHANGE =====
+	        + "                )"
+	        + "            )"
+	        + "        )"
+	        + "    )"
+	        + ")")
 	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
-			@Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
-
+	        @Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
+	
 	// NEW
 	@Query("SELECT COUNT(t) " +
 		       "FROM TaskEntity t " +

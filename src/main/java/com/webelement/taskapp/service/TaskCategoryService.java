@@ -2,6 +2,7 @@ package com.webelement.taskapp.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -384,5 +385,11 @@ public class TaskCategoryService {
 		return taskCategoryRepository.findCategoriesByDepartmentId(departmentId);
 	}
 	
+	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(List<Integer> departmentIds) {
+	    if (departmentIds == null || departmentIds.isEmpty()) {
+	        return new ArrayList<>();
+	    }
+	    return taskCategoryRepository.findCategoriesByDepartmentIds(departmentIds);
+	}
 	
 }

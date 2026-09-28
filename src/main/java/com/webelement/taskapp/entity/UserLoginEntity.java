@@ -73,16 +73,15 @@ public class UserLoginEntity {
 
 	@Column(name = "s_pcb")
 	private String pcb;
-	
+
 	@Column(name = "s_taskcategoryIds")
 	private String taskcategoryIds;
-	
-	@Transient
-    private List<Integer> categoryIds;
-	
-	@Transient
-    private List<String> TaskCategories;
 
+	@Transient
+	private List<Integer> categoryIds;
+
+	@Transient
+	private List<String> TaskCategories;
 
 	@Transient
 	private String pcbName;
@@ -95,18 +94,29 @@ public class UserLoginEntity {
 
 	@Transient
 	private List<TransactionEntity> transactionhistory;
-	
-	@Column(name = "i_departmentid")
-	private Integer departmentId;
-	
-	@Column(name = "i_designationid")
-	private Integer designationId;
-	
+
+	// ---------- Departments (multiple) ----------
+
+	/** Stored in DB as comma separated ids, e.g. "1,2,3" */
+	@Column(name = "s_departmentids")
+	private String departmentIdsCsv;
+
+	/** Used in request/response JSON, not stored directly */
+	@Transient
+	private List<Integer> departmentIds;
+
+	/** Comma separated department names for display, e.g. "HR, IT" */
 	@Transient
 	private String departmentName;
 
+	@Column(name = "i_designationid")
+	private Integer designationId;
+
 	@Transient
 	private String designationName;
+	
+	@Column(name = "s_ishod")
+	private String isHod;   // "Y" / "N"
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

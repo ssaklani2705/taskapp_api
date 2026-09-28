@@ -64,16 +64,21 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
 	List<TaskCategoryEntity> findAllActiveTaskCategories();
 	
+	// ===== CHANGED: user's departments are now a CSV (ul.departmentIdsCsv) =====
+	// OLD: AND tc.departmentId = (SELECT ul.departmentId FROM UserLoginEntity ul WHERE ...)
 	@Query("SELECT tc FROM TaskCategoryEntity tc " +
 		       "WHERE tc.status = 1 " +
-		       "AND tc.departmentId = (" +
-		       "    SELECT ul.departmentId FROM UserLoginEntity ul " +
+		       "AND EXISTS (" +
+		       "    SELECT 1 FROM UserLoginEntity ul " +
 		       "    WHERE ul.userId = (" +
 		       "        SELECT c.managerId FROM ClientEntity c WHERE c.clientId = :clientId" +
-		       "    )" +
+		       "    ) " +
+		       "    AND CONCAT(',', ul.departmentIdsCsv, ',') " +
+		       "        LIKE CONCAT('%,', tc.departmentId, ',%')" +
 		       ") " +
 		       "ORDER BY tc.name ASC")
 		List<TaskCategoryEntity> findAllActiveTaskCategoriesByclientId(@Param("clientId") int clientId);
+	// ===== END CHANGE =====
 
 	@Transactional
 	@Modifying
@@ -107,18 +112,25 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	@Query(value = "SELECT EXISTS (SELECT 1 FROM t_task WHERE i_taskcategoryid = :taskCategoryId AND i_status <> 3)", nativeQuery = true)
 	Integer existsByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
 	
-//	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO(" +
-//	           "t.taskcategoryId, t.name) " +
-//	           "FROM TaskCategoryEntity t " +
-//	           "WHERE t.departmentId = :departmentId AND status =1 order by t.name ASC ")
-	
+	// Single department (kept for existing callers)
+	// CHANGED (cleanup): "status" -> "t.status"
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO(" +
 	           "t.taskcategoryId, t.name) " +
 	           "FROM TaskCategoryEntity t " +
-	           "WHERE (:departmentId = 0 OR :departmentId IS NULL OR t.departmentId = :departmentId) AND status =1 order by t.name ASC ")
+	           "WHERE (:departmentId = 0 OR :departmentId IS NULL OR t.departmentId = :departmentId) " +
+	           "AND t.status = 1 ORDER BY t.name ASC")
 	    List<TaskCategoryDTO> findCategoriesByDepartmentId(
 	            @Param("departmentId") Integer departmentId);
 	
+	// Multiple departments (used by the Add/Edit User page)
+	// CHANGED (cleanup): "IN :departmentIds" -> "IN (:departmentIds)"
+	@Query("SELECT DISTINCT new com.webelement.taskapp.dto.TaskCategoryDTO(" +
+		       "t.taskcategoryId, t.name) " +
+		       "FROM TaskCategoryEntity t " +
+		       "WHERE t.departmentId IN (:departmentIds) AND t.status = 1 " +
+		       "ORDER BY t.name ASC")
+		List<TaskCategoryDTO> findCategoriesByDepartmentIds(
+		        @Param("departmentIds") List<Integer> departmentIds);
 	
 	@Query("SELECT tc.name " +
 		       "FROM TaskCategoryEntity tc " +
