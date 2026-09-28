@@ -17,124 +17,87 @@ import com.webelement.taskapp.service.TaskCategoryService;
 
 @RestController
 @RequestMapping("/admin/taskcategory")
-@CrossOrigin(origins = {
-        "http://localhost:4500",
-        "https://app.webelement.cc",
-        "https://13.202.30.190"
-})
+@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
 public class TaskCategoryController {
 
-    @Autowired
-    private TaskCategoryService taskCategoryService;
+	@Autowired
+	private TaskCategoryService taskCategoryService;
 
-    @GetMapping("/getTaskCategoryDetails")
-    public Map<String, Object> findTaskCategoryDetails(
-            @RequestParam int page,
-            @RequestParam int size,
-            @RequestParam int statusIndex,
+	@GetMapping("/getTaskCategoryDetails")
+	public Map<String, Object> findTaskCategoryDetails(@RequestParam int page, @RequestParam int size,
+			@RequestParam int statusIndex,
 
-            @RequestParam(required = false) String search,@RequestParam int departmentId) {
-    	
-        Page<TaskCategoryDTO> pageData =
-                taskCategoryService.findTaskCategoryDetails(
-                        page,
-                        size,
-                        statusIndex,
-                        search,departmentId);
+			@RequestParam(required = false) String search, @RequestParam int departmentId) {
 
-        Map<String, Object> response =
-                new HashMap<>();
+		Page<TaskCategoryDTO> pageData = taskCategoryService.findTaskCategoryDetails(page, size, statusIndex, search,
+				departmentId);
 
-        response.put(
-                "data",
-                pageData.getContent());
+		Map<String, Object> response = new HashMap<>();
 
-        response.put(
-                "totalElements",
-                pageData.getTotalElements());
+		response.put("data", pageData.getContent());
 
-        return response;
-    }
+		response.put("totalElements", pageData.getTotalElements());
 
-    @PostMapping("/saveTaskCategory")
-    public ResponseEntity<ApiResponse<TaskCategoryDTO>> saveTaskCategory(
-            @RequestBody TaskCategoryDTO dto,
-            HttpServletRequest httpRequest) {
+		return response;
+	}
 
-        try {
+	@PostMapping("/saveTaskCategory")
+	public ResponseEntity<ApiResponse<TaskCategoryDTO>> saveTaskCategory(@RequestBody TaskCategoryDTO dto,
+			HttpServletRequest httpRequest) {
 
-            ApiResponse<TaskCategoryDTO> response =
-                    taskCategoryService.addOrUpdate(
-                            dto,
-                            httpRequest);
+		try {
 
-            return ResponseEntity.ok(response);
+			ApiResponse<TaskCategoryDTO> response = taskCategoryService.addOrUpdate(dto, httpRequest);
 
-        } catch (Exception e) {
+			return ResponseEntity.ok(response);
 
-            return ResponseEntity.ok(
-                    new ApiResponse<>(
-                            false,
-                            e.getMessage(),
-                            null));
-        }
-    }
+		} catch (Exception e) {
 
-    @GetMapping("/{taskcategoryId}")
-    public ApiResponse<TaskCategoryDTO> getTaskCategoryById(
-            @PathVariable Integer taskcategoryId) {
+			return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+		}
+	}
 
-        try {
-            return taskCategoryService.getById(taskcategoryId);
+	@GetMapping("/{taskcategoryId}")
+	public ApiResponse<TaskCategoryDTO> getTaskCategoryById(@PathVariable Integer taskcategoryId) {
 
-        } catch (Exception e) {
-            return new ApiResponse<>(
-                    false,
-                    e.getMessage(),
-                    null
-            );
-        }
-    }
+		try {
+			return taskCategoryService.getById(taskcategoryId);
 
+		} catch (Exception e) {
+			return new ApiResponse<>(false, e.getMessage(), null);
+		}
+	}
 
-    @PostMapping("/deleteTaskCategory")
-    public ResponseEntity<ApiResponse<String>> deleteTaskCategory(
-            @RequestBody TaskCategoryDTO dto,
-            HttpServletRequest httpRequest) {
+	@PostMapping("/deleteTaskCategory")
+	public ResponseEntity<ApiResponse<String>> deleteTaskCategory(@RequestBody TaskCategoryDTO dto,
+			HttpServletRequest httpRequest) {
 
-        return taskCategoryService.deleteTaskCategory(
-                dto.getTaskcategoryId(),
-                dto.getUserId(),
-                httpRequest);
-    }
+		return taskCategoryService.deleteTaskCategory(dto.getTaskcategoryId(), dto.getUserId(), httpRequest);
+	}
 
-    @GetMapping("/active")
-    public List<TaskCategoryDTO> getActiveTaskCategories() {
+	@GetMapping("/active")
+	public List<TaskCategoryDTO> getActiveTaskCategories() {
 
-        return taskCategoryService
-                .getActiveTaskCategories();
-    }
-    
-    @GetMapping("recurring/active")
-    public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(	@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType,@RequestParam("userId") Integer userId) {
+		return taskCategoryService.getActiveTaskCategories();
+	}
 
-        return taskCategoryService
-                .getActiveTaskCategoriesForRecurring(userId,isAdmin,loginType);
-    }
-    
-    @GetMapping("recurringForindex/active")
-    public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(	@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType,@RequestParam("userId") Integer userId) {
+	@GetMapping("recurring/active")
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
 
-        return taskCategoryService
-                .getActiveTaskCategoriesForRecurringForIndex(userId,isAdmin,loginType);
-    }
-    
-    @GetMapping("/department/{departmentId}")
-    public List<TaskCategoryDTO> getCategoriesByDepartmentId(
-            @PathVariable Integer departmentId) {
+		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType);
+	}
 
-        return taskCategoryService.getCategoriesByDepartmentId(departmentId);
-    }
+	@GetMapping("recurringForindex/active")
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
+
+		return taskCategoryService.getActiveTaskCategoriesForRecurringForIndex(userId, isAdmin, loginType);
+	}
+
+	@GetMapping("/department/{departmentId}")
+	public List<TaskCategoryDTO> getCategoriesByDepartmentId(@PathVariable Integer departmentId) {
+
+		return taskCategoryService.getCategoriesByDepartmentId(departmentId);
+	}
 }

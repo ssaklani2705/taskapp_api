@@ -67,7 +67,7 @@ public class TaskServiceImpl implements TaskService {
 	private final ClientRepository clientRepository;
 
 	@Autowired
-	private UserLoginRepository userLoginRepository; // adjust to your actual repo name
+	private UserLoginRepository userLoginRepository; 
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
@@ -384,6 +384,7 @@ public class TaskServiceImpl implements TaskService {
 
 		Path target = directory.resolve(newFileName);
 
+
 		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
 		return newFileName;
@@ -551,84 +552,6 @@ public class TaskServiceImpl implements TaskService {
 	            .toLowerCase();
 	}
 	
-	
-//	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
-//
-//		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
-//				.orElseThrow(() -> new RuntimeException("Task not found"));
-//
-//		Short currentStatus = task.getTaskStatus();
-//		Short nextStatus;
-//		boolean isReopen = false;
-//
-//		if (currentStatus == 2 || currentStatus == 4) {
-//
-//			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
-//
-//			if (selectedStatus == 3) {
-//				isReopen = true;
-//
-//				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
-//
-//				if (reopenCount >= 3) {
-//					throw new RuntimeException("Task can only be reopened 3 times.");
-//				}
-//
-//				task.setReopenCount(reopenCount + 1);
-//			}
-//
-//			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
-//
-//			if (nextStatus == null) {
-//				throw new RuntimeException("Please select a valid task status.");
-//			}
-//
-//		} else {
-//
-//			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
-//
-//			if (nextStatus == null) {
-//				if (currentStatus == 5) {
-//					throw new RuntimeException("This task is already closed and cannot be updated.");
-//				}
-//				throw new RuntimeException("Invalid task status: " + currentStatus);
-//			}
-//		}
-//
-//		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
-//		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
-//
-//		// Convert status name into filename format
-//		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
-//
-//		// Build the action message per scenario
-//		String actionMessage = buildActionMessage(dto, currentStatus, nextStatus, newStatus, isReopen);
-//
-//		task.setTaskStatus(nextStatus);
-//		task.setCloseRemarks(dto.getDescription());
-//		task.setModificationDate(LocalDateTime.now());
-//
-//		// PDF Upload
-//		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-//			validatePdf(dto.getFileName3());
-//			String pdfFileName = saveFileNew(dto.getFileName3(), "pdf", statusPrefix);
-//			task.setFileName3(pdfFileName);
-//		}
-//		// ZIP Upload
-//		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-//			validateZip(dto.getFileName4());
-//			String zipFileName = saveFileNew(dto.getFileName4(), "zip", statusPrefix);
-//			task.setFileName4(zipFileName);
-//		}
-//
-//		TaskEntity savedTask = taskRepository.save(task);
-//		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-//				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
-//		logger.debug("Sending mail over here {}", savedTask.toString());
-//		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
-//		return savedTask;
-//	}
-
 	/**
 	 * Builds a human-readable action message depending on what actually happened to
 	 * the task (added+assigned, added by system, closed, reopened, or a generic

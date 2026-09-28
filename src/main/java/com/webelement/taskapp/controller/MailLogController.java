@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.dto.MailLogDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.service.MailLogService;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/mailLog")
@@ -25,6 +38,9 @@ public class MailLogController {
 
 	@Autowired
 	MailLogService mailLogService;
+
+	@Value("${task.upload-dir}") // change to your actual property key
+	private String uploadDir;
 
 	@GetMapping("/getMailLogDetails")
 	public Map<String, Object> getMailLogDetails(@RequestParam int page, @RequestParam int size,
@@ -46,6 +62,33 @@ public class MailLogController {
 
 			return ResponseEntity.ok(response);
 		});
+	}
+
+	@GetMapping("/download")
+	public ResponseEntity<Resource> download(@RequestParam String type, @RequestParam String fileName)
+			throws IOException {
+
+		Path base = Paths.get(uploadDir, type).toAbsolutePath().normalize();
+		Path filePath = base.resolve(fileName).normalize();
+
+		System.err.println("Looking for: " + filePath + " exists=" + Files.exists(filePath));
+		// Prevent path traversal
+		if (!filePath.startsWith(base) || !Files.exists(filePath)) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Resource resource = new UrlResource(filePath.toUri());
+
+		String contentType = Files.probeContentType(filePath);
+		if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+				.contentLength(Files.size(filePath))
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						ContentDisposition.attachment().filename(fileName, StandardCharsets.UTF_8).build().toString())
+				.body(resource);
 	}
 
 }
