@@ -11,8 +11,11 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -287,8 +290,6 @@ public class CommonFunction {
 		logRepo.save(log);
 	}
 
-	
-
 	public String getTaskAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
 			String clientName, String priority, String startDate, String dueDate, String description) {
 
@@ -314,8 +315,7 @@ public class CommonFunction {
 			return "";
 		}
 	}
-	
-	
+
 	public String getTaskReAssignedMailTemplate(String assigneeName, String taskTitle, String assignedBy,
 			String clientName, String priority, String startDate, String dueDate, String description) {
 
@@ -363,7 +363,7 @@ public class CommonFunction {
 			return "";
 		}
 	}
-	
+
 	public String getTaskStatusMailTemplate(TaskMailDTO param) {
 
 		try {
@@ -378,74 +378,79 @@ public class CommonFunction {
 
 			content = content.replace("__URL__", param.getUrl() != null ? param.getUrl() : "");
 
-			String statusRows = "";
-
-			if ("Re-Open".equalsIgnoreCase(param.getCurrentStatus())) {
-
-				statusRows = "<tr>" + "<td><b>Client Name</b></td>" + "<td>: "
-						+ (param.getClientName() != null ? param.getClientName() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
-						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
-						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Reopened On</b></td>" + "<td>: "
-						+ (param.getReopenedOn() != null ? param.getReopenedOn() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Reopened By</b></td>" + "<td>: "
-						+ (param.getReopendBy() != null ? param.getReopendBy() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Priority</b></td>" + "<td>: "
-						+ (param.getPriority() != null ? param.getPriority() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Due Date</b></td>" + "<td>: "
-						+ (param.getDueDate() != null ? param.getDueDate() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Remark</b></td>" + "<td>: "
-						+ (param.getRemark() != null ? param.getRemark() : "") + "</td>" + "</tr>";
-
-			} else if ("Assignor Closure".equalsIgnoreCase(param.getCurrentStatus())) {
-
-				statusRows = "<tr>" + "<td><b>Client Name</b></td>" + "<td>: "
-						+ (param.getClientName() != null ? param.getClientName() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Assigned By</b></td>" + "<td>: "
-						+ (param.getAssignedBy() != null ? param.getAssignedBy() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
-						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
-						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Submitted On</b></td>" + "<td>: "
-						+ (param.getSubmittedOn() != null ? param.getSubmittedOn() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Priority</b></td>" + "<td>: "
-						+ (param.getPriority() != null ? param.getPriority() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Due Date</b></td>" + "<td>: "
-						+ (param.getDueDate() != null ? param.getDueDate() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Remark</b></td>" + "<td>: "
-						+ (param.getRemark() != null ? param.getRemark() : "") + "</td>" + "</tr>";
-
-			} else {
-
-				statusRows = "<tr>" + "<td><b>Previous Status</b></td>" + "<td>: "
-						+ (param.getPreviousStatus() != null ? param.getPreviousStatus() : "") + "</td>" + "</tr>" +
-
-						"<tr>" + "<td><b>Current Status</b></td>" + "<td>: "
-						+ (param.getCurrentStatus() != null ? param.getCurrentStatus() : "") + "</td>" + "</tr>";
-			}
-
-			content = content.replace("__STATUS_ROWS__", statusRows);
+			content = content.replace("__STATUS_ROWS__", buildStatusRows(param));
 			return content;
 		} catch (IOException e) {
 			logger.error("Error loading task status email template", e);
 			return "";
 		}
+	}
+
+	private String buildStatusRows(TaskMailDTO param) {
+
+		Map<String, String> rows = new LinkedHashMap<>();
+
+		String currentStatus = nvl(param.getCurrentStatus());
+
+		rows.put("Client Name", param.getClientName());
+
+		if (!"Re-Open".equalsIgnoreCase(currentStatus)) {
+			rows.put("Assigned By", param.getAssignedBy());
+		}
+
+		rows.put("Previous Status", param.getPreviousStatus());
+		rows.put("Current Status", currentStatus);
+
+		switch (currentStatus.toLowerCase()) {
+
+		case "re-open":
+
+			rows.put("Reopened On", param.getReopenedOn());
+			rows.put("Reopened By", param.getReopendBy());
+			break;
+
+		case "assignee closure":
+
+			rows.put("Closed/Submitted On", param.getSubmittedOn());
+			rows.put("Closed By", param.getClosedBy());
+			break;
+
+		case "assignee re-closure":
+
+			rows.put("Re-Closed/Submitted On", param.getSubmittedOn());
+			rows.put("Re-Closed By", param.getReClosedBy());
+			break;
+
+		case "assignor closure":
+
+			rows.put("Submitted On", param.getSubmittedOn());
+			break;
+
+		default:
+
+			return "<tr><td><b>Task Name</b></td><td>: " + nvl(param.getTaskName()) + "</td></tr>"
+
+					+ "<tr><td><b>Previous Status</b></td><td>: " + nvl(param.getPreviousStatus()) + "</td></tr>"
+
+					+ "<tr><td><b>Current Status</b></td><td>: " + currentStatus + "</td></tr>";
+		}
+
+		rows.put("Priority", param.getPriority());
+		rows.put("Due Date", param.getDueDate());
+		rows.put("Remark", param.getRemark());
+
+		StringBuilder statusRows = new StringBuilder();
+
+		for (Map.Entry<String, String> row : rows.entrySet()) {
+
+			statusRows.append("<tr>").append("<td><b>").append(row.getKey()).append("</b></td>").append("<td>: ")
+					.append(nvl(row.getValue())).append("</td>").append("</tr>");
+		}
+
+		return statusRows.toString();
+	}
+
+	private String nvl(String value) {
+		return value == null ? "" : value;
 	}
 }

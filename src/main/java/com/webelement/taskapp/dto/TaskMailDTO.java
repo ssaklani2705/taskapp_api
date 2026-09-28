@@ -27,5 +27,7 @@ public class TaskMailDTO {
 	private String dueDate;
 	private String remark;
 	private String url;
+	private String reClosedBy;
+	private String closedBy;
 	
 }

@@ -39,9 +39,7 @@ public class MailLogController {
 	@Autowired
 	MailLogService mailLogService;
 
-	@Value("${task.upload-dir}") // change to your actual property key
-	private String uploadDir;
-
+	
 	@GetMapping("/getMailLogDetails")
 	public Map<String, Object> getMailLogDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam String search) {
@@ -64,31 +62,5 @@ public class MailLogController {
 		});
 	}
 
-	@GetMapping("/download")
-	public ResponseEntity<Resource> download(@RequestParam String type, @RequestParam String fileName)
-			throws IOException {
-
-		Path base = Paths.get(uploadDir, type).toAbsolutePath().normalize();
-		Path filePath = base.resolve(fileName).normalize();
-
-		System.err.println("Looking for: " + filePath + " exists=" + Files.exists(filePath));
-		// Prevent path traversal
-		if (!filePath.startsWith(base) || !Files.exists(filePath)) {
-			return ResponseEntity.notFound().build();
-		}
-
-		Resource resource = new UrlResource(filePath.toUri());
-
-		String contentType = Files.probeContentType(filePath);
-		if (contentType == null) {
-			contentType = "application/octet-stream";
-		}
-
-		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
-				.contentLength(Files.size(filePath))
-				.header(HttpHeaders.CONTENT_DISPOSITION,
-						ContentDisposition.attachment().filename(fileName, StandardCharsets.UTF_8).build().toString())
-				.body(resource);
-	}
-
+	
 }

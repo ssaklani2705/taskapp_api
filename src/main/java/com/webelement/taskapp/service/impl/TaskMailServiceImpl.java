@@ -74,15 +74,14 @@ public class TaskMailServiceImpl implements TaskMailService {
 
 //		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus);
 		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus) || "Re-Open".equalsIgnoreCase(newStatus);
-		boolean isReOpen = "Re-Open".equalsIgnoreCase(newStatus);
-		boolean isAssignorClosure = "Assignor Closure".equalsIgnoreCase(newStatus);
 
 		String assignedBy = "";
 		String submittedOn = "";
 		String reopenedOn = "";
 		String reopenedBy = "";
-
 		String recipientName = "";
+		String reClosedBy = "";
+		String closedBy = "";
 		if (isClose) {
 			addEmail(toSet, assignedUser);
 			addEmail(ccSet, addedByUser);
@@ -90,21 +89,27 @@ public class TaskMailServiceImpl implements TaskMailService {
 			recipientName = assignedUser.getFirstName();
 			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
 			submittedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
-			
-			if (isReOpen) {
+
+			if ("Re-Open".equalsIgnoreCase(newStatus)) {
 				reopenedBy = addedByUser != null ? addedByUser.getFirstName() : "";
 				reopenedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
 			}
-			
+
 		} else {
 
-			addEmail(toSet, addedByUser);
-			addEmail(ccSet, assignedUser);
+			addEmail(toSet, addedByUser); // addBy user
+			addEmail(ccSet, assignedUser); // assignee user
 			addEmail(ccSet, societyManager);
 			recipientName = addedByUser.getFirstName();
-			System.err.println("assignedUser = " +assignedUser.getFirstName() + " " + "addedByUser = " + societyManager.getFirstName() + " " + "societyManager = " + societyManager.getFirstName());
+			System.err.println("assignedUser = " + assignedUser.getFirstName() + " " + "addedByUser = "
+					+ societyManager.getFirstName() + " " + "societyManager = " + societyManager.getFirstName());
+			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
 
+			reClosedBy = closedBy = assignedUser != null ? assignedUser.getFirstName() : "";
+
+			submittedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
 		}
+
 //		if (isClose) {
 //			addEmail(toSet, addedByUser);
 //			addEmail(ccSet, assignedUser);
@@ -122,10 +127,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 //		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
 		TaskMailDTO taskMailDTO = TaskMailDTO.builder().name(recipientName).taskName(task.getTitle())
 				.clientName(societyManager.getFirstName()).assignedBy(assignedBy).previousStatus(oldStatus)
-				.currentStatus(newStatus).reopenedOn(reopenedOn)
-				.reopendBy(reopenedBy).submittedOn(submittedOn).priority(getPriorityName(task.getPriority()))
-				.dueDate(calculateDueDate(task)).remark(task.getDescription()).url("").build();
-		
+				.currentStatus(newStatus).reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
+				.priority(getPriorityName(task.getPriority())).reClosedBy(reClosedBy).dueDate(calculateDueDate(task))
+				.closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
+
 		String mailBody = commonFunction.getTaskStatusMailTemplate(taskMailDTO);
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
