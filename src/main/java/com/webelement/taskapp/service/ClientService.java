@@ -1140,32 +1140,42 @@ public class ClientService {
 
 	// Manager Change
 	@Transactional
-	public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
-			HttpServletRequest httpRequest) {
+    public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
+            HttpServletRequest httpRequest) {
 
-		if (managerId == null) {
-			throw new RuntimeException("Society Manager is required");
-		}
+        if (managerId == null) {
+            throw new RuntimeException("Society Manager is required");
+        }
 
-		ClientEntity client = clientRepository.findById(clientId)
-				.orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
 
-		UserLoginEntity manager = userLoginRepository.findById(managerId)
-				.orElseThrow(() -> new RuntimeException("Society Manager not found with id: " + managerId));
+        String oldManagerName = "-";
 
-		if (manager.getStatus() != 1) {
-			throw new RuntimeException("Selected Society manager is not active");
-		}
+        if (client.getManagerId() != null) {
+            oldManagerName = userLoginRepository.findById(client.getManagerId()).map(UserLoginEntity::getFirstName)
+                    .orElse("-");
+        }
 
-		
-		client.setManagerId(managerId);
-		client.setModdate(new Timestamp(System.currentTimeMillis()));
+        UserLoginEntity manager = userLoginRepository.findById(managerId)
+                .orElseThrow(() -> new RuntimeException("Society Manager not found with id: " + managerId));
 
-		ClientEntity savedClient = clientRepository.save(client);
+        if (manager.getStatus() != 1) {
+            throw new RuntimeException("Selected Society manager is not active");
+        }
 
-		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), "Society Manager Changed", 8, savedClient.getClientId(), -1);
-	}
+        String newManagerName = manager.getFirstName();
+
+        client.setManagerId(managerId);
+        client.setModdate(new Timestamp(System.currentTimeMillis()));
+
+        ClientEntity savedClient = clientRepository.save(client);
+
+        String historyMessage = "Society Manager Changed from " + oldManagerName + " to " + newManagerName;
+
+        commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+                commonFunction.getLocalIp(), historyMessage, 8, savedClient.getClientId(), -1);
+    }
 
 	// Change Outstanding
 	@Transactional
