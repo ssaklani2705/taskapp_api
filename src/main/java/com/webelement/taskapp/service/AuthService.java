@@ -183,8 +183,9 @@ public class AuthService {
 			Integer i_status = ((Number) row.get("d_expirydate")).intValue();
 			String s_permission = (String) row.get("s_permission");
 			String designationName  = (String) row.get("designationName");
+			String isHod  = (String) row.get("isHod");
 
-			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission,designationName);
+			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission,designationName,isHod);
 		}
 		return info;
 	}

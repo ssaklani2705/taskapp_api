@@ -2,9 +2,13 @@ package com.webelement.taskapp.service;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -12,14 +16,12 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
@@ -35,7 +37,6 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.PermissionRepo;
-import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
@@ -45,7 +46,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserManagementService {
 
-	
 	private final UserLoginRepository loginRepository;
 	private final CommonFunction commonFunction;
 	private final PermissionRepo permissionRepo;
@@ -53,29 +53,54 @@ public class UserManagementService {
 	private final DesignationRepository designationRepository;
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final Executor taskExecutor;
-	
+
 	@Value("${paths:}")
 	private String paths;
 
 	@Value("${file_maillog:}")
 	private String file_maillog;
 
+	// ============================================================
+	// CSV HELPERS  (List<Integer>  <->  "1,2,3")
+	// ============================================================
+
+	private static String toCsv(List<Integer> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return "";
+		}
+		return ids.stream()
+				.filter(Objects::nonNull)
+				.distinct()
+				.map(String::valueOf)
+				.collect(Collectors.joining(","));
+	}
+
+	private static List<Integer> toIdList(String csv) {
+		if (csv == null || csv.trim().isEmpty()) {
+			return new ArrayList<>();
+		}
+		return Arrays.stream(csv.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isEmpty())
+				.map(Integer::valueOf)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	// ============================================================
+
 	public List<UserActiveDTO> getActiveUsers() {
 		return loginRepository.findActiveManager();
 	}
 
-//	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search,
-//			int departmentId,int designationId) {
-//		return loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,departmentId, designationId);
-//	}
-	
 	public Page<UserInfo> findBasicUserInfo(
 	        int page,
 	        int size,
 	        int statusIndex,
 	        String search,
 	        int departmentId,
-	        int designationId,int selectedCategoryId) {
+	        int designationId,
+	        int selectedCategoryId) {
 
 	    Page<UserInfo> pageData = loginRepository.findBasicUserInfo(
 	            PageRequest.of(page, size),
@@ -86,31 +111,44 @@ public class UserManagementService {
 	            selectedCategoryId
 	    );
 
+	    // Load all department names once (id -> name)
+	    Map<Integer, String> departmentNames = new HashMap<>();
+	    for (DepartmentEntity d : departmentRepository.findAll()) {
+	        departmentNames.put(d.getDepartmentId(), d.getName());
+	    }
+
 	    pageData.getContent().forEach(user -> {
 
 	        UserLoginEntity userEntity =
 	                loginRepository.findById(user.getUserId()).orElse(null);
 
+	        // ---------------- Task categories ----------------
 	        if (userEntity != null
 	                && userEntity.getTaskcategoryIds() != null
 	                && !userEntity.getTaskcategoryIds().trim().isEmpty()) {
 
-	            List<Integer> categoryIds = Arrays.stream(
-	                            userEntity.getTaskcategoryIds().split(","))
-	                    .map(String::trim)
-	                    .filter(id -> !id.isEmpty())
-	                    .map(Integer::valueOf)
-	                    .collect(Collectors.toList());
+	            List<Integer> categoryIds = toIdList(userEntity.getTaskcategoryIds());
 
 	            List<String> categoryNames =
 	                    taskCategoryRepository.findNamesByIds(categoryIds);
 
-	            user.setTaskCategoryNames(
-	                    String.join(", ", categoryNames)
-	            );
+	            user.setTaskCategoryNames(String.join(", ", categoryNames));
 
 	        } else {
 	            user.setTaskCategoryNames("");
+	        }
+
+	        // ---------------- Departments ----------------
+	        if (userEntity != null) {
+	            String names = toIdList(userEntity.getDepartmentIdsCsv())
+	                    .stream()
+	                    .map(departmentNames::get)
+	                    .filter(Objects::nonNull)
+	                    .collect(Collectors.joining(", "));
+
+	            user.setDepartmentName(names);
+	        } else {
+	            user.setDepartmentName("");
 	        }
 	    });
 
@@ -135,10 +173,8 @@ public class UserManagementService {
 					.body(new ResponseApi<>(false, "Failed to delete user", null));
 		}
 	}
-	
-	
 
-		public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
+	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = loginRepository.getTransactionLogs(moduleId, recordId);
 		return results.stream().map(obj -> {
 			TransactionEntity dto = new TransactionEntity();
@@ -177,8 +213,16 @@ public class UserManagementService {
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-	System.out.println("userRequest.getUserId(): "+userRequest.getUserId());
+		System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
 		boolean isEdit = userRequest.getUserId() > 0;
+		
+		boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
+
+		if (!hod && userRequest.getDepartmentIds() != null
+		        && userRequest.getDepartmentIds().size() > 1) {
+		    return ResponseEntity.badRequest()
+		            .body(new ResponseApi<>(false, "Only HOD can have multiple departments", "Invalid"));
+		}
 
 		if (!isEdit) {
 			// ADD logic - check for duplicate email
@@ -197,33 +241,9 @@ public class UserManagementService {
 		}
 
 		int uid;
-//		String password = "";
 		if (!isEdit) {
 			// Add new user
-			// password = commonFunction.getRandomPassword(8);
-
-			String fNameRaw = userRequest.getFirstName(); // e.g. "Sunil Saklani" or "Sunil"
-			String fName = "";
-			// Handle null / empty
-			if (fNameRaw != null && !fNameRaw.trim().isEmpty()) {
-				// Get only first word
-				String firstWord = fNameRaw.trim().split("\\s+")[0];
-
-				// Capitalize first letter, lower rest
-				fName = firstWord.substring(0, 1).toUpperCase() + firstWord.substring(1).toLowerCase();
-
-				// Append @123
-				fName = fName + "@123";
-			}
-
-//			password = fName;
-
 			uid = createUser(userRequest, userRequest.getPassword(), 0);
-
-			// Optionally send welcome/reset email
-//			String ip = commonFunction.resolveClientIp(httpRequest);
-//			String subject = "HD APP :: Login Credentials";
-//			int type = 1;
 
 			commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
 					commonFunction.getLocalIp(), "Add User", 1, uid, -1);
@@ -235,45 +255,18 @@ public class UserManagementService {
 		}
 
 		// Update permissions for both add & edit
-//		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
-//			permissionRepo.deleteByUserId(uid);
-//			if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
-//				for (ModulePermissionDTO m : userRequest.getModule()) {
-//					if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
-//							|| "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
-//							|| "Y".equalsIgnoreCase(m.getApprovePer())
-//							|| "Y".equalsIgnoreCase(m.getAdminApprovePer()) || "Y".equalsIgnoreCase(m.getExportExcel())) {
-//
-//						PermissionEntity entity = new PermissionEntity();
-//						entity.setUserId(uid);
-//						entity.setModuleId(m.getModuleId());
-//						entity.setAdd(defaultIfNull(m.getAddPer()));
-//						entity.setEdit(defaultIfNull(m.getEditPer()));
-//						entity.setDelete(defaultIfNull(m.getDeletePer()));
-//						entity.setApprove(defaultIfNull(m.getApprovePer()));
-//						entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
-//						entity.setView(defaultIfNull(m.getViewPer()));
-//						entity.setExportExcel(defaultIfNull(m.getExportExcel()));
-//						
-//						permissionRepo.save(entity);
-//					}
-//				}
-//			}
-//		}
-		
-		
-		
 		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
 
 		    permissionRepo.deleteByUserId(uid);
 
 		    // ============================================================
-		    // DEPARTMENT 1 — AUTO-ASSIGN FIXED PERMISSIONS
-		    // Rights & Permissions UI is hidden for this department,
-		    // so module IDs 10 and 11 are granted automatically.
+		    // DEPARTMENT 1 (among selected departments) — AUTO-ASSIGN
+		    // FIXED PERMISSIONS
+		    // Rights & Permissions UI is hidden in this case, so module
+		    // IDs 10 and 11 are granted automatically.
 		    // ============================================================
-		    if (userRequest.getDepartmentId() != null
-		            && userRequest.getDepartmentId() == 1) {
+		    if (userRequest.getDepartmentIds() != null
+		            && userRequest.getDepartmentIds().contains(1)) {
 
 		        int[] autoModuleIds = { 10, 11 };
 
@@ -359,15 +352,18 @@ public class UserManagementService {
 			user.setModDate(timestamp);
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
-			user.setDepartmentId(info.getDepartmentId());
 			user.setDesignationId(info.getDesignationId());
-//			user.setTaskcategoryIds(info.getTaskcategoryIds());	
-			String categoryIds = info.getCategoryIds()
-			        .stream()
-			        .map(String::valueOf)
-			        .collect(Collectors.joining(","));
+			
+			
 
-			user.setTaskcategoryIds(categoryIds);
+			// Departments stored as CSV, e.g. "1,2,3"
+			user.setDepartmentIdsCsv(toCsv(info.getDepartmentIds()));
+			
+			user.setIsHod("Y".equalsIgnoreCase(info.getIsHod()) ? "Y" : "N");
+
+			// Task categories stored as CSV, e.g. "4,5"
+			user.setTaskcategoryIds(toCsv(info.getCategoryIds()));
+
 			UserLoginEntity savedUser = loginRepository.save(user);
 			return savedUser.getUserId(); // JPA auto-fills the generated ID
 
@@ -388,18 +384,17 @@ public class UserManagementService {
 		existing.setStatus(request.getStatus());
 		existing.setPermission(request.getPermission());
 		existing.setTelephone(request.getTelephone());
-		existing.setDepartmentId(request.getDepartmentId());
-		existing.setDesignationId(request.getDesignationId());
-//		existing.setTaskcategoryIds(request.getTaskcategoryIds());	
 		existing.setDesignationId(request.getDesignationId());
 
-		String categoryIds = request.getCategoryIds()
-		        .stream()
-		        .map(String::valueOf)
-		        .collect(Collectors.joining(","));
+		// Departments stored as CSV, e.g. "1,2,3"
+		existing.setDepartmentIdsCsv(toCsv(request.getDepartmentIds()));
+		
+		existing.setIsHod("Y".equalsIgnoreCase(request.getIsHod()) ? "Y" : "N");
 
-		existing.setTaskcategoryIds(categoryIds);
-		// ✅ Update password only if provided
+		// Task categories stored as CSV, e.g. "4,5"
+		existing.setTaskcategoryIds(toCsv(request.getCategoryIds()));
+
+		// Update password only if provided
 		if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
 			String encodedPassword = commonFunction.cipher(request.getPassword());
 			existing.setPassword(encodedPassword);
@@ -408,15 +403,12 @@ public class UserManagementService {
 		return existing.getUserId();
 	}
 
-
-
 	@Transactional
 	public int updateForgotpasswordlink(String username, String password, String linksentdate) throws Exception {
 		Timestamp linkDateTs = linksentdate != null && !linksentdate.isEmpty() ? Timestamp.valueOf(linksentdate) : null;
 		return loginRepository.updateForgotPasswordLink(username, commonFunction.cipher(password), linkDateTs);
 	}
 
-	
 	public UserLoginEntity getUserById(int userId) {
 
 	    UserLoginEntity user = loginRepository.getUserById(userId);
@@ -436,7 +428,7 @@ public class UserManagementService {
 	            CompletableFuture.supplyAsync(() -> getTransactionLogs(1, userId), taskExecutor);
 
 	    CompletableFuture<String> departmentFuture =
-	            CompletableFuture.supplyAsync(() -> resolveDepartmentName(user), taskExecutor);
+	            CompletableFuture.supplyAsync(() -> resolveDepartmentNames(user), taskExecutor);
 
 	    CompletableFuture<String> designationFuture =
 	            CompletableFuture.supplyAsync(() -> resolveDesignationName(user), taskExecutor);
@@ -449,6 +441,10 @@ public class UserManagementService {
 
 	    user.setModule(moduleFuture.join());
 	    user.setTransactionhistory(historyFuture.join());
+
+	    // Department ids as list for the edit form (Angular reads response.departmentIds)
+	    user.setDepartmentIds(toIdList(user.getDepartmentIdsCsv()));
+
 	    if (departmentFuture.join() != null) user.setDepartmentName(departmentFuture.join());
 	    if (designationFuture.join() != null) user.setDesignationName(designationFuture.join());
 	    user.setTaskCategories(categoriesFuture.join());
@@ -456,11 +452,16 @@ public class UserManagementService {
 	    return user;
 	}
 
-	private String resolveDepartmentName(UserLoginEntity user) {
-	    if (user.getDepartmentId() == null) return null;
-	    return departmentRepository.findById(user.getDepartmentId())
+	/** Comma separated department names, e.g. "HR, IT" */
+	private String resolveDepartmentNames(UserLoginEntity user) {
+	    List<Integer> ids = toIdList(user.getDepartmentIdsCsv());
+
+	    if (ids.isEmpty()) return null;
+
+	    return departmentRepository.findAllById(ids)
+	            .stream()
 	            .map(DepartmentEntity::getName)
-	            .orElse(null);
+	            .collect(Collectors.joining(", "));
 	}
 
 	private String resolveDesignationName(UserLoginEntity user) {
@@ -471,15 +472,7 @@ public class UserManagementService {
 	}
 
 	private List<String> resolveTaskCategories(UserLoginEntity user) {
-	    String rawIds = user.getTaskcategoryIds();
-	    if (rawIds == null || rawIds.isBlank()) return List.of();
-
-	    List<Integer> categoryIds = Arrays.stream(rawIds.split(","))
-	            .map(String::trim)
-	            .filter(s -> !s.isEmpty())
-	            .map(Integer::parseInt)
-	            .distinct()
-	            .collect(Collectors.toList());
+	    List<Integer> categoryIds = toIdList(user.getTaskcategoryIds());
 
 	    if (categoryIds.isEmpty()) return List.of();
 
@@ -488,6 +481,5 @@ public class UserManagementService {
 	            .map(TaskCategoryEntity::getName)
 	            .collect(Collectors.toList());
 	}
-	
 
 }

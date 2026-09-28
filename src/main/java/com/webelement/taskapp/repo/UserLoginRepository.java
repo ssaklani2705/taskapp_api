@@ -23,25 +23,26 @@ import com.webelement.taskapp.entity.UserLoginEntity;
 
 @Repository
 public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Integer> {
-	
+
 	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
-    String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
-	
-//	@Query("SELECT u FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
-//	List<UserLoginEntity> findAllActiveUsers();
+	String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
 
+	// ------------------------------------------------------------
+	// DEPARTMENT IN USE CHECK
+	// Departments are now stored as CSV ("1,2,3"), so the old derived
+	// query existsByDepartmentId() can no longer be generated.
+	// ------------------------------------------------------------
+	@Query(value = "SELECT COUNT(*) FROM t_userlogin " +
+	        "WHERE FIND_IN_SET(:departmentId, s_departmentids) > 0",
+	        nativeQuery = true)
+	long countUsersByDepartmentId(@Param("departmentId") Integer departmentId);
 
-	boolean existsByDepartmentId(Integer departmentId);
-	
-//	boolean existsByDesignationId(Integer designationId);
+	default boolean existsByDepartmentId(Integer departmentId) {
+		return countUsersByDepartmentId(departmentId) > 0;
+	}
+
 	boolean existsByDesignationIdAndStatusNot(Integer designationId, Integer status);
-	
-//	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password ", nativeQuery = true)
-//	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password);
 
-//	@Query(value = "SELECT i_userid, s_firstname, s_email, s_mobileno, CURRENT_DATE() <= d_expirydate as d_expirydate,s_permission FROM t_userlogin WHERE i_status =1 AND s_email =:email AND s_password =:password AND ( (:logintype = 'manager' AND i_departmentid = 1 AND i_designationid = 1 ) OR (:logintype <> 'manager'AND NOT (i_departmentid = 1 AND i_designationid = 1)) ) ", nativeQuery = true)
-//	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password, @Param("logintype") String logintype);
-	
 	@Query(value = "SELECT " +
 	        "u.i_userid, " +
 	        "u.s_firstname, " +
@@ -49,29 +50,34 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	        "u.s_mobileno, " +
 	        "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " +
 	        "u.s_permission, " +
-	        "d.s_name AS designationName " +
+	        "d.s_name AS designationName,u.s_ishod as isHod " +
 	        "FROM t_userlogin u " +
 	        "LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid " +
 	        "WHERE u.i_status = 1 " +
 	        "AND u.s_email = :email " +
 	        "AND u.s_password = :password " +
 	        "AND ( " +
-	        "    (:logintype = 'manager' AND u.i_departmentid = 1 AND u.i_designationid = 1) " +
+	        "    (:logintype = 'manager' AND FIND_IN_SET('1', u.s_departmentids) > 0 AND u.i_designationid = 1) " +
 	        "    OR " +
-	        "    (:logintype <> 'manager' AND NOT (u.i_departmentid = 1 AND u.i_designationid = 1)) " +
+	        "    (:logintype <> 'manager' AND NOT (FIND_IN_SET('1', u.s_departmentids) > 0 AND u.i_designationid = 1)) " +
 	        ")",
 	        nativeQuery = true)
 	List<Map<String, Object>> findActiveLogin(
 	        @Param("email") String email,
 	        @Param("password") String password,
 	        @Param("logintype") String logintype);
-	
+
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
+	// ------------------------------------------------------------
+	// USER LIST
+	// 7th constructor argument is now the raw department CSV
+	// (u.departmentIdsCsv). The service converts it to names.
+	// ------------------------------------------------------------
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
 		       "u.userId, " +
 		       "u.firstName, " +
@@ -79,14 +85,14 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "u.mobileNo, " +
 		       "u.status, " +
 		       "u.permission, " +
-		       "d.name, " +
+		       "u.departmentIdsCsv, " +
 		       "de.name) " +
 		       "FROM UserLoginEntity u " +
-		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
 		       "WHERE u.userId > 0 " +
 		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
-		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
+		       "AND (:departmentId = 0 OR " +
+		       "     FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) " +
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
 		       "AND (:selectedCategoryId = 0 OR " +
 		       "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) " +
@@ -94,7 +100,9 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
-		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+		       "OR EXISTS (SELECT 1 FROM DepartmentEntity dx " +
+		       "           WHERE FIND_IN_SET(CAST(dx.departmentId AS string), u.departmentIdsCsv) > 0 " +
+		       "           AND LOWER(dx.name) LIKE LOWER(CONCAT('%', :search, '%')))) " +
 		       "ORDER BY u.status, u.regDate DESC, u.firstName")
 		Page<UserInfo> findBasicUserInfo(
 		        Pageable pageable,
@@ -105,43 +113,17 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		        @Param("selectedCategoryId") int selectedCategoryId
 		);
 
-
-//	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" +
-//		       "u.userId, " +
-//		       "u.firstName, " +
-//		       "u.email, " +
-//		       "u.mobileNo, " +
-//		       "u.status, " +
-//		       "u.permission, " +
-//		       "d.name, " +
-//		       "de.name) " +
-//		       "FROM UserLoginEntity u " +
-//		       "LEFT JOIN DepartmentEntity d ON d.departmentId = u.departmentId " +
-//		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
-//		       "WHERE u.userId > 0 " +
-//		       "AND (:statusIndex = 0 OR u.status = :statusIndex) " +
-//		       "AND (:departmentId = 0 OR u.departmentId = :departmentId) " +
-//		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
-//		       "AND (:search IS NULL OR :search = '' " +
-//		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
-//		       "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-//		       "ORDER BY u.status, u.regDate DESC, u.firstName")
-//		Page<UserInfo> findBasicUserInfo(
-//		        Pageable pageable,
-//		        @Param("statusIndex") int statusIndex,
-//		        @Param("search") String search,
-//		        @Param("departmentId") int departmentId,
-//		        @Param("designationId") int designationId);
-
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId
 
-	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) AND u.departmentId <> 1 AND u.designationId <> 1")
+	// Non-manager user: department list does NOT contain 1 and designation is not 1
+	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) " +
+	       "AND FIND_IN_SET('1', u.departmentIdsCsv) = 0 AND u.designationId <> 1")
 	Optional<UserLoginEntity> findByEmailExcludeStatuses(@Param("email") String email);
-	
-	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) AND u.departmentId = 1 AND u.designationId = 1 ORDER BY u.userId DESC")
+
+	// Manager user: department list contains 1 and designation is 1
+	@Query("SELECT u FROM UserLoginEntity u WHERE u.email = :email AND u.status NOT IN (2, 3) " +
+	       "AND FIND_IN_SET('1', u.departmentIdsCsv) > 0 AND u.designationId = 1 ORDER BY u.userId DESC")
 	Optional<UserLoginEntity> findByEmailExcludeStatuses1(@Param("email") String email);
 
 	@Query(value = "SELECT DATE_FORMAT(t.ts_regdate, '%d-%m-%Y %h:%i %p') AS entryDate, REPLACE(CONCAT_WS(' ', u.s_firstname), '  ', ' ') AS name, t.s_action AS action, t.i_userid AS userId, t.s_flag AS flag FROM t_transaction t LEFT JOIN t_userlogin u ON u.i_userid = t.i_userid WHERE t.i_moduleid = :moduleId AND t.s_action NOT LIKE '%Log%' AND (:recordId IS NULL OR t.i_recordid = :recordId)  order by t.ts_regdate desc", nativeQuery = true)
@@ -187,7 +169,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers(int clientId);
-	
+
 	@Query(
 		    "SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
 		    "FROM UserLoginEntity u " +
@@ -201,7 +183,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		    "    OR " +
 		    "    ( " +
 		    "        FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 " +
-		    "        AND u.departmentId <> 1 " +
+		    "        AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 " +
 		    "    ) " +
 		    ") " +
 		    "ORDER BY u.firstName ASC"
@@ -209,32 +191,11 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	List<UserActiveDTO> findActiveUsers(
 	        @Param("clientId") int clientId,
 	        @Param("categoryId") int categoryId);
-	
-//	@Query(
-//		    "SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
-//		    "FROM UserLoginEntity u " +
-//		    "WHERE u.status = 1 " +
-//		    "AND ( " +
-//		    "    u.userId IN ( " +
-//		    "        SELECT ul.userId " +
-//		    "        FROM UserLoginEntity ul " +
-//		    "        WHERE FUNCTION('FIND_IN_SET', :categoryId, ul.taskcategoryIds) > 0 " +
-//		    "    ) " +
-//		    "    OR " +
-//		    "    u.userId = ( " +
-//		    "        SELECT c.managerId " +
-//		    "        FROM ClientEntity c " +
-//		    "        WHERE c.clientId = :clientId " +
-//		    "    ) " +
-//		    ") " +
-//		    "ORDER BY u.firstName ASC"
-//		)
-//		List<UserActiveDTO> findActiveUsers(@Param("clientId") int clientId, @Param("categoryId") int categoryId);
-	
+
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers();
-	
+
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	        + "FROM UserLoginEntity u "
 //	        + "WHERE u.status = 1 AND "
@@ -279,7 +240,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	        @Param("userId") Integer userId,
 	        @Param("loginType") String loginType,
 	        @Param("isAdmin") String isAdmin);
-	
+
 	@Query("SELECT COUNT(t) "
 		     + "FROM TaskEntity t "
 		     + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
@@ -304,24 +265,28 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		        @Param("userId") Integer userId,
 		        @Param("loginType") String loginType,
 		        @Param("isAdmin") String isAdmin);
-	
+
+	// Managers: department list contains 1 and designation is 1
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
-			+ "FROM UserLoginEntity u WHERE u.status = 1 and u.departmentId = 1 and u.designationId =1 order by u.firstName asc")
+			+ "FROM UserLoginEntity u WHERE u.status = 1 "
+			+ "AND FIND_IN_SET('1', u.departmentIdsCsv) > 0 AND u.designationId = 1 "
+			+ "order by u.firstName asc")
 	List<UserActiveDTO> findActiveManager();
 
 //	Optional<UserLoginEntity> findByEmail(String email);
 	Optional<UserLoginEntity> findByEmailAndStatus(String email,int status);
 
-	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(TRIM(u.firstName)) = LOWER(TRIM0(:name))")
-    List<Integer> findIdsByName(@Param("name") String name);
-	
+	// NOTE: original had TRIM0(...), which looks like a typo for TRIM(...)
+	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(TRIM(u.firstName)) = LOWER(TRIM(:name))")
+	List<Integer> findIdsByName(@Param("name") String name);
+
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.email) = LOWER(:email)")
-    Optional<Integer> findIdByEmail(@Param("email") String email);
-	
+	Optional<Integer> findIdByEmail(@Param("email") String email);
+
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin " +
-            "WHERE i_status = 1 " +
-            "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')",
-    nativeQuery = true)
-Integer countActiveUsersUsingTaskCategory(@Param("taskcategoryId") Integer taskcategoryId);
+	        "WHERE i_status = 1 " +
+	        "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')",
+	        nativeQuery = true)
+	Integer countActiveUsersUsingTaskCategory(@Param("taskcategoryId") Integer taskcategoryId);
 
 }
