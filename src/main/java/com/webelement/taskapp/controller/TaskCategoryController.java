@@ -88,7 +88,10 @@ public class TaskCategoryController {
 		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType);
 	}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 18e91692d3aa4e8f8a51a6c85a235cb40a469d23
 	@GetMapping("recurringForindex/active")
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,
 			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
@@ -108,5 +111,8 @@ public class TaskCategoryController {
 
         return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 18e91692d3aa4e8f8a51a6c85a235cb40a469d23
 }

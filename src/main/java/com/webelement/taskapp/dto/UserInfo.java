@@ -30,18 +30,6 @@ public class UserInfo {
 		this.permission = permission;
 		this.designationName = designationName;
 	}
-	
-	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,String designationName,String isHod) {
-		super();
-		this.userId = userId;
-		this.firstName = firstName;
-		this.email = email;
-		this.mobile = mobile;
-		this.status = status;
-		this.permission = permission;
-		this.designationName = designationName;
-		this.isHod = isHod;
-	}
 	private int status;
 	private String permission;
 	private String departmentName;
