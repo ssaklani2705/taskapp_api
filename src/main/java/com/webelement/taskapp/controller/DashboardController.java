@@ -72,8 +72,9 @@ public class DashboardController {
 	
 	// For Employee dashboard
 	 @GetMapping("/dashboard")
-	    public ResponseEntity<TaskDashboardResponse> getDashboard( @RequestParam(defaultValue = "0") Integer userId,@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId) {
-	        TaskDashboardResponse response = taskService.getDashboard(userId,isAdmin,selectedClientId);
+	    public ResponseEntity<TaskDashboardResponse> getDashboard( @RequestParam(defaultValue = "0") Integer userId,@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId,
+	    		@RequestParam(required = false) String isHod) {
+	        TaskDashboardResponse response = taskService.getDashboard(userId,isAdmin,selectedClientId,isHod);
 	        return ResponseEntity.ok(response);
 	    }
 	

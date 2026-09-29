@@ -199,14 +199,83 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 //            + ") "
 //            + "ORDER BY c.name ASC")
     
+//    @Query("SELECT DISTINCT c FROM ClientEntity c "
+////            + "WHERE c.status = 1 AND "
+//+ "WHERE  "
+//            + " EXISTS ( "
+//            + "     SELECT 1 FROM TaskEntity tAny WHERE tAny.clientId = c.clientId "
+//            + ") "
+//            + "AND ( "
+//            + "     ( "
+//            + "          :loginType = 'manager' "
+//            + "          AND ( "
+//            + "               c.managerId = :userId "
+//            + "               OR EXISTS ( "
+//            + "                    SELECT 1 FROM TaskEntity t "
+//            + "                    WHERE t.clientId = c.clientId "
+//            + "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) "
+//            + "               ) "
+//            + "          ) "
+//            + "     ) "
+//            + "     OR "
+//            + "     ( "
+//            + "          :loginType <> 'manager' "
+//            + "          AND ( "
+//            + "               :isAdmin = 'Y' "
+//            + "               OR EXISTS ( "
+//            + "                    SELECT 1 FROM TaskEntity t "
+//            + "                    WHERE t.clientId = c.clientId "
+//            + "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) "
+//            + "               ) "
+//            + "               OR ( "
+//            + "                    :isAdmin <> 'Y' "
+//            + "                    AND EXISTS ( "
+//            + "                         SELECT 1 FROM TaskEntity t2 "
+//            + "                         WHERE t2.clientId = c.clientId "
+//            + "                         AND (t2.assignedTo = 0 OR t2.assignedTo IS NULL) "
+//            + "                         AND EXISTS ( "
+//            + "                              SELECT 1 FROM UserLoginEntity ul "
+//            + "                              WHERE ul.userId = :userId "
+//            + "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
+//            + "                                  LIKE CONCAT('%,', t2.taskCategoryId, ',%') "
+//            + "                         ) "
+//            + "                    ) "
+//            + "               ) "
+//            + "          ) "
+//            + "     ) "
+//            + ") "
+//            + "ORDER BY c.name ASC")
+//    List<ClientEntity> findAllActiveClientsForIndex(
+//            @Param("userId") Integer userId,
+//            @Param("loginType") String loginType,
+//            @Param("isAdmin") String isAdmin,
+//            String isHod);
+    
+    
     @Query("SELECT DISTINCT c FROM ClientEntity c "
-//            + "WHERE c.status = 1 AND "
-+ "WHERE  "
+            + "WHERE "
             + " EXISTS ( "
             + "     SELECT 1 FROM TaskEntity tAny WHERE tAny.clientId = c.clientId "
             + ") "
             + "AND ( "
+
+            // ---- HOD: clients having tasks in own task categories ----
             + "     ( "
+            + "          :isHod = 'Y' "
+            + "          AND EXISTS ( "
+            + "               SELECT 1 FROM TaskEntity th "
+            + "               WHERE th.clientId = c.clientId "
+            + "               AND EXISTS ( "
+            + "                    SELECT 1 FROM UserLoginEntity h "
+            + "                    WHERE h.userId = :userId "
+            + "                    AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+            + "                        LIKE CONCAT('%,', th.taskCategoryId, ',%') "
+            + "               ) "
+            + "          ) "
+            + "     ) "
+
+            // ---- MANAGER ----
+            + "     OR ( "
             + "          :loginType = 'manager' "
             + "          AND ( "
             + "               c.managerId = :userId "
@@ -217,8 +286,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
             + "               ) "
             + "          ) "
             + "     ) "
-            + "     OR "
-            + "     ( "
+
+            // ---- ADMIN / OTHERS ----
+            + "     OR ( "
             + "          :loginType <> 'manager' "
             + "          AND ( "
             + "               :isAdmin = 'Y' "
@@ -248,7 +318,8 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     List<ClientEntity> findAllActiveClientsForIndex(
             @Param("userId") Integer userId,
             @Param("loginType") String loginType,
-            @Param("isAdmin") String isAdmin);
+            @Param("isAdmin") String isAdmin,
+            @Param("isHod") String isHod);
     
     @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
     List<ClientEntity> findAllActiveClients();

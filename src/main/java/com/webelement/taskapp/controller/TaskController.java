@@ -186,14 +186,14 @@ public class TaskController {
 	
 	@GetMapping("/getTaskFilterDataForIndex")
 	public Map<String, Object> getTaskFilterDataForIndex(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType) {
+			@RequestParam String loginType,@RequestParam String isHod) {
 
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
-				.supplyAsync(() -> clientRepository.findAllActiveClientsForIndex(userId,loginType,isAdmin));
+				.supplyAsync(() -> clientRepository.findAllActiveClientsForIndex(userId,loginType,isAdmin,isHod));
 		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
-				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId,loginType,isAdmin));
+				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId,loginType,isAdmin,isHod));
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
-			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsersForIndex(userId,loginType,isAdmin));
+			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsersForIndex(userId,loginType,isAdmin,isHod));
 //			users.add(0, new UserActiveDTO(0, "Unassigned User"));
 			if (userLoginRepository.countUnassignedTasksForIndex(userId, loginType, isAdmin) > 0) {
 		        users.add(0, new UserActiveDTO(0, "Unassigned User"));

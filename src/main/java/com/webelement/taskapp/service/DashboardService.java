@@ -59,14 +59,14 @@ public class DashboardService {
 		return task.getAssignedUser().getFirstName();
 	}
 
-	public TaskDashboardResponse getDashboard(Integer userId, String isAdmin, Integer selectedClientId) {
+	public TaskDashboardResponse getDashboard(Integer userId, String isAdmin, Integer selectedClientId,String isHod) {
 		LocalDate today = LocalDate.now();
 		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 		LocalDateTime startOfToday = today.atStartOfDay();
 		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
 		LocalDateTime now = LocalDateTime.now();
-		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId, isAdmin, "other", selectedClientId);
+		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId, isAdmin, "other", selectedClientId,isHod);
 		if (tasks == null || tasks.isEmpty()) {
 			return TaskDashboardResponse.builder().myTasksToday(0).dueThisWeek(0).overdue(0)
 					.todo(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())

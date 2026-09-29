@@ -200,17 +200,74 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers();
 
+//	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+//	        + "FROM UserLoginEntity u "
+////	        + "WHERE u.status = 1 AND "
+//+ "WHERE "
+//	        + " EXISTS ( "
+//	        + "     SELECT 1 FROM TaskEntity t "
+//	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+////	        + "     WHERE (t.assignedTo = u.userId OR t.addedBy = u.userId) "
+//			+ "     WHERE (t.assignedTo = u.userId) "
+//	        + "     AND ( "
+//	        + "          ( "
+//	        + "               :loginType = 'manager' "
+//	        + "               AND ( "
+//	        + "                    t.assignedTo = :userId "
+//	        + "                    OR t.addedBy = :userId "
+//	        + "                    OR c.managerId = :userId "
+//	        + "               ) "
+//	        + "          ) "
+//	        + "          OR "
+//	        + "          ( "
+//	        + "               :loginType <> 'manager' "
+//	        + "               AND ( "
+//	        + "                    :isAdmin = 'Y' "
+//	        + "                    OR t.assignedTo = :userId "
+//	        + "                    OR t.addedBy = :userId "
+//	        + "                    OR ( "
+//	        + "                         :isAdmin <> 'Y' "
+//	        + "                         AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+//	        + "                         AND EXISTS ( "
+//	        + "                              SELECT 1 FROM UserLoginEntity ul "
+//	        + "                              WHERE ul.userId = :userId "
+//	        + "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
+//	        + "                                  LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+//	        + "                         ) "
+//	        + "                    ) "
+//	        + "               ) "
+//	        + "          ) "
+//	        + "     ) "
+//	        + ") "
+//	        + "ORDER BY u.firstName ASC")
+//	List<UserActiveDTO> findActiveUsersForIndex(
+//	        @Param("userId") Integer userId,
+//	        @Param("loginType") String loginType,
+//	        @Param("isAdmin") String isAdmin,
+//	        String isHod);
+	
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	        + "FROM UserLoginEntity u "
-//	        + "WHERE u.status = 1 AND "
-+ "WHERE "
+	        + "WHERE "
 	        + " EXISTS ( "
 	        + "     SELECT 1 FROM TaskEntity t "
 	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-//	        + "     WHERE (t.assignedTo = u.userId OR t.addedBy = u.userId) "
-			+ "     WHERE (t.assignedTo = u.userId) "
+	        + "     WHERE (t.assignedTo = u.userId) "
 	        + "     AND ( "
+
+	        // ---- HOD: tasks of own task categories ----
 	        + "          ( "
+	        + "               :isHod = 'Y' "
+	        + "               AND EXISTS ( "
+	        + "                    SELECT 1 FROM UserLoginEntity h "
+	        + "                    WHERE h.userId = :userId "
+	        + "                    AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+	        + "                        LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+	        + "               ) "
+	        + "          ) "
+
+	        // ---- MANAGER ----
+	        + "          OR ( "
 	        + "               :loginType = 'manager' "
 	        + "               AND ( "
 	        + "                    t.assignedTo = :userId "
@@ -218,8 +275,9 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	        + "                    OR c.managerId = :userId "
 	        + "               ) "
 	        + "          ) "
-	        + "          OR "
-	        + "          ( "
+
+	        // ---- ADMIN / OTHERS ----
+	        + "          OR ( "
 	        + "               :loginType <> 'manager' "
 	        + "               AND ( "
 	        + "                    :isAdmin = 'Y' "
@@ -243,7 +301,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	List<UserActiveDTO> findActiveUsersForIndex(
 	        @Param("userId") Integer userId,
 	        @Param("loginType") String loginType,
-	        @Param("isAdmin") String isAdmin);
+	        @Param("isAdmin") String isAdmin,
+	        @Param("isHod") String isHod);
 
 	@Query("SELECT COUNT(t) "
 		     + "FROM TaskEntity t "

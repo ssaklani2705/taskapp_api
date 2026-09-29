@@ -450,6 +450,46 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 //	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
 //			@Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
 
+//	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser", "assignedByUser" })
+//	@Query("SELECT t "
+//	        + "FROM TaskEntity t "
+//	        + "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) "
+//	        + "AND ("
+//
+//	        // ADMIN LOGIN
+//	        + "    :isAdmin = 'Y' "
+//
+//	        + "    OR "
+//
+//	        // NON-MANAGER LOGIN
+//	        + "    ("
+//	        + "        :loginType <> 'manager' "
+//	        + "        AND ("
+//	        + "            t.assignedTo = :userId "
+//	        + "            OR t.addedBy = :userId "
+//	        + "            OR ("
+//	        + "                :isAdmin <> 'Y' AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
+//	        + "                AND EXISTS ("
+//	        + "                    SELECT 1 "
+//	        + "                    FROM TaskCategoryEntity tc2 "
+//	        + "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
+//	        // ===== CHANGED: was "AND tc2.departmentId IN (SELECT ul.departmentId ...)" =====
+//	        + "                    AND EXISTS ("
+//	        + "                        SELECT 1 "
+//	        + "                        FROM UserLoginEntity ul "
+//	        + "                        WHERE ul.userId = :userId "
+//	        + "                        AND CONCAT(',', ul.departmentIdsCsv, ',') "
+//	        + "                            LIKE CONCAT('%,', tc2.departmentId, ',%') "
+//	        + "                    )"
+//	        // ===== END CHANGE =====
+//	        + "                )"
+//	        + "            )"
+//	        + "        )"
+//	        + "    )"
+//	        + ")")
+//	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
+//	        @Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId,String isHod);
+	
 	@EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser", "assignedByUser" })
 	@Query("SELECT t "
 	        + "FROM TaskEntity t "
@@ -458,6 +498,20 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 	        // ADMIN LOGIN
 	        + "    :isAdmin = 'Y' "
+
+	        + "    OR "
+
+	        // HOD: all tasks of own task categories
+	        + "    ("
+	        + "        :isHod = 'Y' "
+	        + "        AND EXISTS ("
+	        + "            SELECT 1 "
+	        + "            FROM UserLoginEntity h "
+	        + "            WHERE h.userId = :userId "
+	        + "            AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+	        + "                LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+	        + "        )"
+	        + "    )"
 
 	        + "    OR "
 
@@ -473,7 +527,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "                    SELECT 1 "
 	        + "                    FROM TaskCategoryEntity tc2 "
 	        + "                    WHERE tc2.taskcategoryId = t.taskCategoryId "
-	        // ===== CHANGED: was "AND tc2.departmentId IN (SELECT ul.departmentId ...)" =====
 	        + "                    AND EXISTS ("
 	        + "                        SELECT 1 "
 	        + "                        FROM UserLoginEntity ul "
@@ -481,14 +534,17 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "                        AND CONCAT(',', ul.departmentIdsCsv, ',') "
 	        + "                            LIKE CONCAT('%,', tc2.departmentId, ',%') "
 	        + "                    )"
-	        // ===== END CHANGE =====
 	        + "                )"
 	        + "            )"
 	        + "        )"
 	        + "    )"
 	        + ")")
-	List<TaskEntity> findDashboardTasks(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
-	        @Param("loginType") String loginType, @Param("selectedClientId") Integer selectedClientId);
+	List<TaskEntity> findDashboardTasks(
+	        @Param("userId") Integer userId,
+	        @Param("isAdmin") String isAdmin,
+	        @Param("loginType") String loginType,
+	        @Param("selectedClientId") Integer selectedClientId,
+	        @Param("isHod") String isHod);
 	
 	// NEW
 	@Query("SELECT COUNT(t) " +
