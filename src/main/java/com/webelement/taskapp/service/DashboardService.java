@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.dto.ClientDashboardDTO;
+import com.webelement.taskapp.dto.DashboardMetricDTO;
 import com.webelement.taskapp.dto.StatusCountsResponse;
 import com.webelement.taskapp.dto.TaskDashboardItem;
 import com.webelement.taskapp.dto.TaskDashboardResponse;
@@ -68,84 +70,102 @@ public class DashboardService {
 		return task.getAssignedUser().getFirstName();
 	}
 
-	public TaskDashboardResponse getDashboard(Integer userId, String isAdmin, Integer selectedClientId,String isHod) {
+	public TaskDashboardResponse getDashboard(Integer userId, String isAdmin, Integer selectedClientId, String isHod) {
+
 		LocalDate today = LocalDate.now();
+
 		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+
 		LocalDateTime startOfToday = today.atStartOfDay();
 		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+
 		LocalDateTime now = LocalDateTime.now();
-		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId, isAdmin, "other", selectedClientId,isHod);
+
+		List<TaskEntity> tasks = taskRepository.findDashboardTasks(userId, isAdmin, "other", selectedClientId, isHod);
+
 		if (tasks == null || tasks.isEmpty()) {
-			return TaskDashboardResponse.builder().myTasksToday(0).dueThisWeek(0).overdue(0)
+
+			return TaskDashboardResponse.builder()
+
+					.myTasksToday(DashboardMetricDTO.builder().count(0).taskStatusIds(Collections.emptyList()).build())
+
+					.dueThisWeek(DashboardMetricDTO.builder().count(0).taskStatusIds(Collections.emptyList()).build())
+
+					.overdue(DashboardMetricDTO.builder().count(0).taskStatusIds(Collections.emptyList()).build())
+
 					.todo(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+
 					.inProgress(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+
 					.done(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
-					.statusCounts(new StatusCountsResponse())   // add this line
-					.build();
+
+					.statusCounts(new StatusCountsResponse()).build();
 		}
-		
+
 		List<TaskEntity> tasksToday = tasks.stream().filter(task -> {
 			LocalDateTime taskDate = task.getDate();
-			if (taskDate == null) {
+
+			return taskDate != null && !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
+		}).collect(Collectors.toList());
+
+		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
+
+			LocalDateTime taskStartDate = task.getDate();
+
+			if (taskStartDate == null) {
 				return false;
 			}
-			return !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
-		}).collect(Collectors.toList());
 
-//		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
-//			LocalDateTime taskStartDate = task.getDate();
-//			if (taskStartDate == null) {
-//				return false;
-//			}
-//			return task.getTaskStatus() != null && task.getTaskStatus() != 5 && !taskStartDate.isBefore(startOfWeek)
-//					&& !taskStartDate.isAfter(endOfWeek);
-//		}).collect(Collectors.toList());
-		
-		List<TaskEntity> dueThisWeek = tasks.stream().filter(task -> {
-		    LocalDateTime taskStartDate = task.getDate();
-		    if (taskStartDate == null) {
-		        return false;
-		    }
-		    boolean notClosed = task.getTaskStatus() == null || task.getTaskStatus() != 5;
-		    return notClosed && !taskStartDate.isBefore(startOfWeek) && !taskStartDate.isAfter(endOfWeek);
+			boolean notClosed = task.getTaskStatus() == null || task.getTaskStatus() != 5;
+
+			return notClosed && !taskStartDate.isBefore(startOfWeek) && !taskStartDate.isAfter(endOfWeek);
+
 		}).collect(Collectors.toList());
-		
 
 		List<TaskEntity> overdueTasks = tasks.stream().filter(task -> {
+
 			LocalDateTime dueDateTime = getDueDateTime(task);
+
 			return dueDateTime != null && dueDateTime.isBefore(now) && !isDone(task);
+
 		}).collect(Collectors.toList());
 
-//		List<TaskEntity> todoTasks = tasks.stream()
-//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == TODO)
-//				.collect(Collectors.toList());
-		
 		List<TaskEntity> todoTasks = tasks.stream()
-		        .filter(task -> task.getTaskStatus() == null || task.getTaskStatus() == TODO)
-		        .collect(Collectors.toList());
+				.filter(task -> task.getTaskStatus() == null || task.getTaskStatus() == TODO)
+				.collect(Collectors.toList());
 
-//		List<TaskEntity> inProgressTasks = tasks.stream()
-//				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == IN_PROGRESS)
-//				.collect(Collectors.toList());
 		List<TaskEntity> inProgressTasks = tasks.stream()
-		        .filter(task -> task.getTaskStatus() != null
-		                && Arrays.asList((short) 2, (short) 3, (short) 4)
-		                          .contains(task.getTaskStatus()))
-		        .collect(Collectors.toList());
-
+				.filter(task -> task.getTaskStatus() != null
+						&& Arrays.asList((short) 2, (short) 3, (short) 4).contains(task.getTaskStatus()))
+				.collect(Collectors.toList());
 
 		List<TaskEntity> doneTasks = tasks.stream()
 				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)
 				.collect(Collectors.toList());
 
+		DashboardMetricDTO myTasksTodayMetric = DashboardMetricDTO.builder().count(tasksToday.size())
+				.taskStatusIds(tasksToday.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
+						.sorted().collect(Collectors.toList()))
+				.build();
+
+		DashboardMetricDTO dueThisWeekMetric = DashboardMetricDTO.builder().count(dueThisWeek.size())
+				.taskStatusIds(dueThisWeek.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
+						.sorted().collect(Collectors.toList()))
+				.build();
+
+		DashboardMetricDTO overdueMetric = DashboardMetricDTO.builder().count(overdueTasks.size())
+				.taskStatusIds(overdueTasks.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
+						.sorted().collect(Collectors.toList()))
+				.build();
+
 		return TaskDashboardResponse.builder()
 
-				.myTasksToday(tasksToday.size())
+				.myTasksToday(myTasksTodayMetric)
 
-				.dueThisWeek(dueThisWeek.size())
+				.dueThisWeek(dueThisWeekMetric)
 
-				.overdue(overdueTasks.size())
+				.overdue(overdueMetric)
 
 				.todo(TaskGroupResponse.builder().count(todoTasks.size()).tasks(toDashboardItems(todoTasks)).build())
 
@@ -154,8 +174,8 @@ public class DashboardService {
 
 				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
 
-				.statusCounts(buildStatusCounts(tasks))     
-				
+				.statusCounts(buildStatusCounts(tasks))
+
 				.build();
 	}
 	
@@ -230,7 +250,9 @@ public class DashboardService {
 				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
 				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
 				.title(task.getTitle()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
-				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
+				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy())
+				.taskStatus(task.getTaskStatus())
+				.build();
 
 	}
 

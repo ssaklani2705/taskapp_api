@@ -53,4 +53,6 @@ public class TaskDashboardItem {
 	private String fileName4;
 
 	private String closeRemarks;
+	
+	private Short taskStatus;
 }

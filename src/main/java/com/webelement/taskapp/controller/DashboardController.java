@@ -28,7 +28,7 @@ import com.webelement.taskapp.service.TaskService;
 @RequestMapping("/admin/dashboard")
 @CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
 public class DashboardController {
-	
+
 	@Autowired
 	private DashboardService taskService;
 	@Autowired
@@ -40,164 +40,161 @@ public class DashboardController {
 	@RequestMapping("/api/task")
 	public class TaskController {
 
-	    @Autowired
-	    private TaskService taskService;
-	    @Autowired
-	    private DashboardService dashboardService;
-	    
-	    @GetMapping("/client/check-assignment/{managerId}")
-	    public ClientAssignmentCheckDTO checkClientAssignment(
-	            @PathVariable Integer managerId) {
+		@Autowired
+		private TaskService taskService;
+		@Autowired
+		private DashboardService dashboardService;
 
-	        return taskService.checkClientAssigned(managerId);
-	    }
+		@GetMapping("/client/check-assignment/{managerId}")
+		public ClientAssignmentCheckDTO checkClientAssignment(@PathVariable Integer managerId) {
 
-	    @GetMapping("/dashboard-clients")
-	    public ResponseEntity<List<ClientDashboardDTO>> getDashboardClients(
-	            @RequestParam Integer userId,
-	            @RequestParam String isAdmin,
-	            @RequestParam String loginType) {
+			return taskService.checkClientAssigned(managerId);
+		}
 
-	        List<ClientDashboardDTO> clients =
-	        		dashboardService.findDashboardClients(
-	                        userId,
-	                        isAdmin,
-	                        loginType
-	                );
+		@GetMapping("/dashboard-clients")
+		public ResponseEntity<List<ClientDashboardDTO>> getDashboardClients(@RequestParam Integer userId,
+				@RequestParam String isAdmin, @RequestParam String loginType) {
 
-	        return ResponseEntity.ok(clients);
-	    }
+			List<ClientDashboardDTO> clients = dashboardService.findDashboardClients(userId, isAdmin, loginType);
+
+			return ResponseEntity.ok(clients);
+		}
 	}
 
-	
-	// For Employee dashboard
-	 @GetMapping("/dashboard")
-	    public ResponseEntity<TaskDashboardResponse> getDashboard( @RequestParam(defaultValue = "0") Integer userId,@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId,
-	    		@RequestParam(required = false) String isHod) {
-	        TaskDashboardResponse response = taskService.getDashboard(userId,isAdmin,selectedClientId,isHod);
-	        return ResponseEntity.ok(response);
-	    }
-	
-	// For manager dashboard
-	 @GetMapping("/getTasksByStatus")
-	    public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
-	            @RequestParam(defaultValue = "20") int size,
-	            @RequestParam(required = false, defaultValue = "0") Integer clientId,
-	            @RequestParam("userId") Integer userId) {
-	        Map<String, Object> map = new HashMap<>();
-	        size = Math.min(size, 20);
-	        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
-	        Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
-	        Double totalOutstanding = taskService.getTotalOutstanding(clientId, userId);
-	        map.put("taskList", taskList.getContent());
-	        map.put("totalTasks", taskList.getTotalElements());
-	        map.put("totalOutstanding", totalOutstanding);
-	        return ResponseEntity.ok(map);
-	    }
+	@GetMapping("/dashboard")
+	public ResponseEntity<TaskDashboardResponse> getDashboard(@RequestParam(defaultValue = "0") Integer userId,
+			@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId,
+			@RequestParam(required = false) String isHod) {
+		TaskDashboardResponse response = taskService.getDashboard(userId, isAdmin, selectedClientId, isHod);
+		return ResponseEntity.ok(response);
+	}
 
-    @GetMapping("/countOfActiveTask")
-    public ResponseEntity<Map<String, Object>> countOfActiveTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+	@GetMapping("/getTasksByStatus")
+	public ResponseEntity<Map<String, Object>> getTasksByStatus(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size,
+			@RequestParam(required = false, defaultValue = "0") Integer clientId,
+			@RequestParam("userId") Integer userId) {
+		Map<String, Object> map = new HashMap<>();
+		size = Math.min(size, 20);
+		String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
+		Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
+		Double totalOutstanding = taskService.getTotalOutstanding(clientId, userId);
+		map.put("taskList", taskList.getContent());
+		map.put("totalTasks", taskList.getTotalElements());
+		map.put("totalOutstanding", totalOutstanding);
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfActiveTask")
+	public ResponseEntity<Map<String, Object>> countOfActiveTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfActiveTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfActiveTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfCompletedTask")
-    public ResponseEntity<Map<String, Object>> countOfCompletedTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfCompletedTask")
+	public ResponseEntity<Map<String, Object>> countOfCompletedTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfCompletedTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfCompletedTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfPendingTask")
-    public ResponseEntity<Map<String, Object>> countOfPendingTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfPendingTask")
+	public ResponseEntity<Map<String, Object>> countOfPendingTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfPendingTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfPendingTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfAssignedTask")
-    public ResponseEntity<Map<String, Object>> countOfAssignedTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfAssignedTask")
+	public ResponseEntity<Map<String, Object>> countOfAssignedTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfAssignedTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfAssignedTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfAssigneeClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfAssigneeClosureTask")
+	public ResponseEntity<Map<String, Object>> countOfAssigneeClosureTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfAssigneeClosureTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfAssigneeClosureTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfReOpenTask")
-    public ResponseEntity<Map<String, Object>> countOfReOpenTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfReOpenTask")
+	public ResponseEntity<Map<String, Object>> countOfReOpenTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfReOpenTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfReOpenTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
+		map.put("count", count);
 
-    @GetMapping("/countOfAssigneeReClosureTask")
-    public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId,@RequestParam("userId") Integer userId) {
+		return ResponseEntity.ok(map);
+	}
 
-        Map<String, Object> map = new HashMap<>();
+	@GetMapping("/countOfAssigneeReClosureTask")
+	public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
 
-        int count = taskService.countOfAssigneeReClosureTask(clientId,userId);
+		Map<String, Object> map = new HashMap<>();
 
-        map.put("count", count);
+		int count = taskService.countOfAssigneeReClosureTask(clientId, userId);
 
-        return ResponseEntity.ok(map);
-    }
-    
-    @GetMapping("/getTaskClient")
-    public Map<String, Object> getTaskClient(@RequestParam("userId") Integer userId) {
+		map.put("count", count);
 
-        Map<String, Object> response = new HashMap<>();
+		return ResponseEntity.ok(map);
+	}
 
-        String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
+	@GetMapping("/getTaskClient")
+	public Map<String, Object> getTaskClient(@RequestParam("userId") Integer userId) {
 
-        List<ClientEntity> clients;
+		Map<String, Object> response = new HashMap<>();
 
-        if ("Y".equalsIgnoreCase(permission)) {
-            // Admin -> all active societies
-            clients = clientRepository.findAllActiveClients();
-        } else {
-            // Society Manager -> only societies managed by logged-in user
-            clients = clientRepository.findAllActiveClientsByManagerId(userId);
-        }
+		String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
 
-        response.put("clients", clients);
+		List<ClientEntity> clients;
 
-        return response;
-    }
+		if ("Y".equalsIgnoreCase(permission)) {
+			// Admin -> all active societies
+			clients = clientRepository.findAllActiveClients();
+		} else {
+			// Society Manager -> only societies managed by logged-in user
+			clients = clientRepository.findAllActiveClientsByManagerId(userId);
+		}
+
+		response.put("clients", clients);
+
+		return response;
+	}
 }
