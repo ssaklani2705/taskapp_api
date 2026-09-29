@@ -18,4 +18,6 @@ public class TaskDashboardResponse {
     private TaskGroupResponse todo;
     private TaskGroupResponse inProgress;
     private TaskGroupResponse done;
+    
+    private StatusCountsResponse statusCounts;
 }

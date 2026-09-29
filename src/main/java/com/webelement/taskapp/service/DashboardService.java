@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.dto.ClientDashboardDTO;
+import com.webelement.taskapp.dto.StatusCountsResponse;
 import com.webelement.taskapp.dto.TaskDashboardItem;
 import com.webelement.taskapp.dto.TaskDashboardResponse;
 import com.webelement.taskapp.dto.TaskEditDTO;
@@ -29,6 +30,14 @@ public class DashboardService {
 	private static final short TODO = 1;
 	private static final short IN_PROGRESS = 2;
 	private static final short DONE = 5;
+	
+	
+	private static final short ST_UNASSIGNED         = 0;  // also null
+	private static final short ST_ASSIGNED           = 1;  // TODO: confirm
+	private static final short ST_ASSIGNEE_CLOSURE   = 2;  // TODO: confirm
+	private static final short ST_REOPEN             = 3;  // TODO: confirm
+	private static final short ST_ASSIGNEE_RECLOSURE = 4;  // TODO: confirm
+	private static final short ST_ASSIGNOR_CLOSURE   = 5;  // TODO: confirm
 	
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	@Autowired
@@ -72,6 +81,7 @@ public class DashboardService {
 					.todo(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
 					.inProgress(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
 					.done(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
+					.statusCounts(new StatusCountsResponse())   // add this line
 					.build();
 		}
 		
@@ -144,7 +154,32 @@ public class DashboardService {
 
 				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
 
+				.statusCounts(buildStatusCounts(tasks))     
+				
 				.build();
+	}
+	
+	private StatusCountsResponse buildStatusCounts(List<TaskEntity> tasks) {
+	    return StatusCountsResponse.builder()
+	            .unassigned((int) countUnassigned(tasks))
+	            .assigned((int) countByStatus(tasks, ST_ASSIGNED))
+	            .assigneeClosure((int) countByStatus(tasks, ST_ASSIGNEE_CLOSURE))
+	            .reOpen((int) countByStatus(tasks, ST_REOPEN))
+	            .assigneeReClosure((int) countByStatus(tasks, ST_ASSIGNEE_RECLOSURE))
+	            .assignorClosure((int) countByStatus(tasks, ST_ASSIGNOR_CLOSURE))
+	            .build();
+	}
+	
+	private long countByStatus(List<TaskEntity> tasks, short status) {
+	    return tasks.stream()
+	            .filter(t -> t.getTaskStatus() != null && t.getTaskStatus() == status)
+	            .count();
+	}
+
+	private long countUnassigned(List<TaskEntity> tasks) {
+	    return tasks.stream()
+	            .filter(t -> t.getTaskStatus() == null || t.getTaskStatus() == ST_UNASSIGNED)
+	            .count();
 	}
 
 	private LocalDateTime getDueDateTime(TaskEntity task) {

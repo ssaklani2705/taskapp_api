@@ -100,6 +100,10 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "AND (:designationId = 0 OR u.designationId = :designationId) " +
 		       "AND (:selectedCategoryId = 0 OR " +
 		       "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) " +
+
+			   "AND (:weeklyOff = 0 OR " +
+			   "     FIND_IN_SET(CAST(:weeklyOff AS string), u.weeklyOff) > 0) " +      // NEW
+		       
 		       "AND (:search IS NULL OR :search = '' " +
 		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
 		       "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -114,7 +118,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		        @Param("search") String search,
 		        @Param("departmentId") int departmentId,
 		        @Param("designationId") int designationId,
-		        @Param("selectedCategoryId") int selectedCategoryId
+		        @Param("selectedCategoryId") int selectedCategoryId,
+		        @Param("weeklyOff") int weeklyOff 
 		);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")

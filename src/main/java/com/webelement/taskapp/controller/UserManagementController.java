@@ -34,15 +34,18 @@ public class UserManagementController {
 
 	@GetMapping("/getUserManagementDetails")
 	public Map<String, Object> findBasicUserInfo(@RequestParam() int page, @RequestParam() int size,
-			@RequestParam() int statusIndex, @RequestParam() String search,
-			@RequestParam() int departmentId,@RequestParam() int designationId,@RequestParam() int selectedCategoryId) {
-		
-		Page<UserInfo> userPage = userService.findBasicUserInfo(page, size, statusIndex, search,departmentId,
-				designationId,selectedCategoryId);
-		Map<String, Object> response = new HashMap<>();
-		response.put("data", userPage.getContent());
-		response.put("totalElements", userPage.getTotalElements());
-		return response;
+	        @RequestParam() int statusIndex, @RequestParam() String search,
+	        @RequestParam() int departmentId, @RequestParam() int designationId,
+	        @RequestParam() int selectedCategoryId,
+	        @RequestParam(defaultValue = "0") int weeklyOff) {
+
+	    Page<UserInfo> userPage = userService.findBasicUserInfo(page, size, statusIndex, search, departmentId,
+	            designationId, selectedCategoryId, weeklyOff);
+
+	    Map<String, Object> response = new HashMap<>();
+	    response.put("data", userPage.getContent());
+	    response.put("totalElements", userPage.getTotalElements());
+	    return response;
 	}
 	
 	@GetMapping("/getUserManagementDetails/{userId}")
@@ -58,7 +61,7 @@ public class UserManagementController {
 	@PostMapping("/saveUserDetail")
 	public ResponseEntity<?> saveUserDetail(@RequestBody UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-		System.out.println("desigmationId: "+userRequest.getDesignationId());
+//		System.out.println("desigmationId: "+userRequest.getDesignationId());
 		return userService.saveUserDetail(userRequest, httpRequest);
 	}
 
