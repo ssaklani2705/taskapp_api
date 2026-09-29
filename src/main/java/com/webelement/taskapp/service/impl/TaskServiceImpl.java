@@ -107,6 +107,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setTaskStatus((short) 1);
 		task.setDate(LocalDateTime.now());
 		task.setModificationDate(LocalDateTime.now());
+		task.setCloseRemarks(remark);
 		TaskEntity savedTask = taskRepository.save(task);
 		String assignedUserName = "Unknown";
 		if (savedTask.getAssignedTo() != null) {

@@ -126,7 +126,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		}
 //		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
 		TaskMailDTO taskMailDTO = TaskMailDTO.builder().name(recipientName).taskName(task.getTitle())
-				.clientName(societyManager.getFirstName()).assignedBy(assignedBy).previousStatus(oldStatus)
+				.clientName(client.getName()).assignedBy(assignedBy).previousStatus(oldStatus)
 				.currentStatus(newStatus).reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
 				.priority(getPriorityName(task.getPriority())).reClosedBy(reClosedBy).dueDate(calculateDueDate(task))
 				.closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
@@ -181,7 +181,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		}
 		String mailBody = commonFunction.getTaskReAssignedMailTemplate(recipientName, task.getTitle(),
 				assignor != null ? assignor.getFirstName() : "", client != null ? client.getName() : "",
-				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getDescription());
+				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getCloseRemarks());
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
@@ -230,6 +230,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String mailBody = commonFunction.getTaskAssignedMailTemplate(recipientName, task.getTitle(),
 				addedByUser != null ? addedByUser.getFirstName() : "", client != null ? client.getName() : "",
 				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getDescription());
+
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		String subject = "Task App :: New Task Assigned";
