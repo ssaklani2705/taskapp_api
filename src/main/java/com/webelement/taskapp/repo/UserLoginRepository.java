@@ -90,7 +90,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "u.status, " +
 		       "u.permission, " +
 		       "u.departmentIdsCsv, " +
-		       "de.name,u.isHod) " +
+		       "de.name,u.isHod,u.weeklyOff) " +
 		       "FROM UserLoginEntity u " +
 		       "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " +
 		       "WHERE u.userId > 0 " +

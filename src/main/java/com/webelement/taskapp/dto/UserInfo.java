@@ -39,8 +39,9 @@ public class UserInfo {
 	private String designationName;
 	private String taskCategoryNames;
 	private String isHod;
+	private String weeklyOffNames;
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
-			String departmentName,String designationName,String isHod) {
+			String departmentName,String designationName,String isHod,String weeklyOffNames) {
 		super();
 		this.userId = userId;
 		this.firstName = firstName;
@@ -51,6 +52,7 @@ public class UserInfo {
 		this.departmentName = departmentName;
 		this.designationName = designationName;
 		this.isHod =isHod;
+		this.weeklyOffNames = weeklyOffNames;
 	}
 	
 	

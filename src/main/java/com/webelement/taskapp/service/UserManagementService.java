@@ -89,6 +89,21 @@ public class UserManagementService {
 
 	// ============================================================
 
+	private static final String[] DAY_NAMES = {
+		    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+		};
+
+		private String toWeeklyOffNames(String csv) {
+		    if (csv == null || csv.trim().isEmpty()) {
+		        return "";
+		    }
+		    return Arrays.stream(csv.split(","))
+		            .map(String::trim)
+		            .filter(v -> v.matches("[1-7]"))
+		            .map(v -> DAY_NAMES[Integer.parseInt(v) - 1])
+		            .collect(Collectors.joining(", "));
+		}
+		
 	public List<UserActiveDTO> getActiveUsers() {
 		return loginRepository.findActiveManager();
 	}
@@ -131,6 +146,10 @@ public class UserManagementService {
 
 	            List<Integer> categoryIds = toIdList(userEntity.getTaskcategoryIds());
 
+	            // ---------------- Weekly Off ----------------
+	            user.setWeeklyOffNames(userEntity != null ? toWeeklyOffNames(userEntity.getWeeklyOff()) : "");
+
+	            
 	            List<String> categoryNames =
 	                    taskCategoryRepository.findNamesByIds(categoryIds);
 
