@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskDashboardResponse {
 
-    private int myTasksToday;
-    private int dueThisWeek;
-    private int overdue;
+	  private DashboardMetricDTO myTasksToday;
+	    private DashboardMetricDTO dueThisWeek;
+	    private DashboardMetricDTO overdue;
 
     private TaskGroupResponse todo;
     private TaskGroupResponse inProgress;
