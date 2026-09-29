@@ -100,7 +100,8 @@ public class UserManagementService {
 	        String search,
 	        int departmentId,
 	        int designationId,
-	        int selectedCategoryId) {
+	        int selectedCategoryId,
+	        int weeklyOff) {
 
 	    Page<UserInfo> pageData = loginRepository.findBasicUserInfo(
 	            PageRequest.of(page, size),
@@ -108,7 +109,8 @@ public class UserManagementService {
 	            search,
 	            departmentId,
 	            designationId,
-	            selectedCategoryId
+	            selectedCategoryId,
+	            weeklyOff
 	    );
 
 	    // Load all department names once (id -> name)
@@ -353,7 +355,7 @@ public class UserManagementService {
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
 			user.setDesignationId(info.getDesignationId());
-			
+			user.setWeeklyOff(normalizeWeeklyOff(info.getWeeklyOff()));   // replaces the setWeeklyOffIds line
 			
 
 			// Departments stored as CSV, e.g. "1,2,3"
@@ -372,6 +374,19 @@ public class UserManagementService {
 			return 0;
 		}
 	}
+	
+	private String normalizeWeeklyOff(String value) {
+	    if (value == null || value.trim().isEmpty()) {
+	        return null;
+	    }
+	    String result = Arrays.stream(value.split(","))
+	            .map(String::trim)
+	            .filter(v -> v.matches("[1-7]"))
+	            .distinct()
+	            .sorted()
+	            .collect(Collectors.joining(","));
+	    return result.isEmpty() ? null : result;
+	}
 
 	// Update User
 	private int updateUser(UserLoginEntity request) throws Exception {
@@ -385,6 +400,7 @@ public class UserManagementService {
 		existing.setPermission(request.getPermission());
 		existing.setTelephone(request.getTelephone());
 		existing.setDesignationId(request.getDesignationId());
+		existing.setWeeklyOff(normalizeWeeklyOff(request.getWeeklyOff()));   // replaces setWeeklyOffIds line
 
 		// Departments stored as CSV, e.g. "1,2,3"
 		existing.setDepartmentIdsCsv(toCsv(request.getDepartmentIds()));
