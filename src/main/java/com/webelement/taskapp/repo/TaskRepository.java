@@ -381,46 +381,19 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
 	int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO("
-	        + "t.taskId, "
-	        + "t.assignedTo, "
-	        + "COALESCE(NULLIF(u.firstName,''),'-'), "
-	        + "COALESCE(NULLIF(t.title,''),'-'), "
-	        + "t.taskStatus, "
-	        + "t.addedBy, "
-	        + "COALESCE(NULLIF(a.firstName,''),'-'), "
-	        + "t.date, "
-	        + "tc.duedatetime, "
-	        + "t.priority, "
-	        + "COALESCE(NULLIF(c.name, ''), '-')"
-	        + ") "
-	        + "FROM TaskEntity t "
-	        + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-	        + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
-	        + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
-	        + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy "
-	        + "WHERE t.status = 1 "
-	        + "AND (:clientId = 0 OR t.clientId = :clientId) "
-	        + "AND ("
-	        + "    t.assignedTo = :userId "
-	        + "    OR t.addedBy = :userId "
-	        + "    OR c.managerId = :userId "
-	        + "    OR c.userId = :userId"
-	        + ") "
-	        
-//	        + "AND ("
-//	        + "    :permission = 'Y' "
-//	        + "    OR t.assignedTo = :userId "
-//	        + "    OR t.addedBy = :userId "
-//	        + "    OR c.managerId = :userId "
-//	        + "    OR c.userId = :userId"
-//	        + ") "
-	        + "ORDER BY t.status ASC")
-	Page<TaskEditDTO> findTasksByStatus(
-	        Pageable pageable,
-	        @Param("clientId") Integer clientId,
-	        @Param("userId") Integer userId
-	        );
+	@Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.assignedTo, "
+            + "COALESCE(NULLIF(u.firstName,''),'-'), " + "COALESCE(NULLIF(t.title,''),'-'), " + "t.taskStatus, "
+            + "t.addedBy, " + "COALESCE(NULLIF(a.firstName,''),'-'), " + "t.date, " + "tc.duedatetime, "
+            + "t.priority, " + "t.clientId, " + "COALESCE(NULLIF(c.name, ''), '-')" + ") " + "FROM TaskEntity t "
+            + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
+            + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
+            + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
+            + "LEFT JOIN UserLoginEntity a ON a.userId = t.addedBy " + "WHERE t.status = 1 "
+            + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + "    t.assignedTo = :userId "
+            + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId " + "    OR c.userId = :userId" + ") "
+            + "ORDER BY t.date DESC, t.status ASC")
+    Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
+            @Param("userId") Integer userId);
 	
 //	@Param("permission") String permission
 
@@ -538,7 +511,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        + "            )"
 	        + "        )"
 	        + "    )"
-	        + ")")
+	        + ") ORDER BY t.date DESC")
 	List<TaskEntity> findDashboardTasks(
 	        @Param("userId") Integer userId,
 	        @Param("isAdmin") String isAdmin,
@@ -664,27 +637,13 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 		        @Param("clientId") Integer clientId,
 		        @Param("userId") Integer userId);
 	
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfActiveTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 5 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfCompletedTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus IN (1, 2, 3, 4) AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfPendingTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 1 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfAssignedTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 2 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfAssigneeClosureTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 3 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfReOpenTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) FROM TaskEntity t WHERE t.taskStatus = 4 AND t.status = 1 AND (:clientId = 0 OR t.clientId = :clientId)")
-//	int countOfAssigneeReClosureTask(@Param("clientId") Integer clientId,@Param("userId") Integer userId);
+		@Query("SELECT COUNT(t) " + "FROM TaskEntity t " + "JOIN t.client c "
+	            + "WHERE (t.taskStatus = 0 OR t.taskStatus IS NULL) " + "AND t.status = 1 "
+	            + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + "    t.assignedTo = :userId "
+	            + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId " + "    OR c.userId = :userId" + ")")
+	    int countOfUnassignedTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
 
+		
 	// For CREATE: any task with same title for this client
 	boolean existsByTitleIgnoreCaseAndClientId(String title, Integer clientId);
 

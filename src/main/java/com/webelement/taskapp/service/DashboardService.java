@@ -229,7 +229,7 @@ public class DashboardService {
 						: null)
 				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
 				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
-				.title(task.getTitle()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
+				.title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
 				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
 
 	}
@@ -356,5 +356,9 @@ public class DashboardService {
 	public int countOfAssigneeReClosureTask(Integer clientId,Integer userId) {
 		return taskRepository.countOfAssigneeReClosureTask(clientId,userId);
 	}
+	
+	public int countOfUnAssigneeTask(Integer clientId, Integer userId) {
+        return taskRepository.countOfUnassignedTask(clientId, userId);
+    }
 
 }
