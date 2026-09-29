@@ -67,27 +67,24 @@ public class TaskServiceImpl implements TaskService {
 	private final ClientRepository clientRepository;
 
 	@Autowired
-	private UserLoginRepository userLoginRepository; 
+	private UserLoginRepository userLoginRepository;
 
 	@Value("${task.upload-dir}")
 	private String uploadDir;
-	
-    private static final short ACTIVE_STATUS = 1;
-	
+
+	private static final short ACTIVE_STATUS = 1;
+
 	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId) {
 
-        boolean hasActiveClient =
-                clientRepository.existsByManagerIdAndStatus(managerId, ACTIVE_STATUS);
+		boolean hasActiveClient = clientRepository.existsByManagerIdAndStatus(managerId, ACTIVE_STATUS);
 
-        if (!hasActiveClient) {
-            return new ClientAssignmentCheckDTO(
-                    false,
-                    "No client is currently assigned. Please assign a client to proceed."
-            );
-        }
+		if (!hasActiveClient) {
+			return new ClientAssignmentCheckDTO(false,
+					"No client is currently assigned. Please assign a client to proceed.");
+		}
 
-        return new ClientAssignmentCheckDTO(true, "");
-    }
+		return new ClientAssignmentCheckDTO(true, "");
+	}
 
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
@@ -132,7 +129,7 @@ public class TaskServiceImpl implements TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter,String isHod) {
+			String dashboardFilter, String isHod) {
 		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 
@@ -144,7 +141,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
-				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime,isHod);
+				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod);
 
 	}
 
@@ -196,19 +193,19 @@ public class TaskServiceImpl implements TaskService {
 			}
 			task.setModificationDate(LocalDateTime.now());
 		}
-		 // ---------- CHANGED: File - 1 (was pdfFile / validatePdf) ----------
-	    if (pdfFile != null && !pdfFile.isEmpty()) {
-	        validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
-	        String fileName = saveFile(pdfFile, getExtension(pdfFile));
-	        task.setFileName1(fileName);
-	    }
+		// ---------- CHANGED: File - 1 (was pdfFile / validatePdf) ----------
+		if (pdfFile != null && !pdfFile.isEmpty()) {
+			validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
+			String fileName = saveFile(pdfFile, getExtension(pdfFile));
+			task.setFileName1(fileName);
+		}
 
-	    // ---------- CHANGED: File - 2 (was zipFile / validateZip) ----------
-	    if (zipFile != null && !zipFile.isEmpty()) {
-	        validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
-	        String fileName = saveFile(zipFile, getExtension(zipFile));
-	        task.setFileName2(fileName);
-	    }
+		// ---------- CHANGED: File - 2 (was zipFile / validateZip) ----------
+		if (zipFile != null && !zipFile.isEmpty()) {
+			validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
+			String fileName = saveFile(zipFile, getExtension(zipFile));
+			task.setFileName2(fileName);
+		}
 //		if (pdfFile != null && !pdfFile.isEmpty()) {
 //			validatePdf(pdfFile);
 //			String fileName = saveFile(pdfFile, "pdf");
@@ -276,77 +273,93 @@ public class TaskServiceImpl implements TaskService {
 			throw new FileValidationException("Invalid ZIP file");
 		}
 	}
-	
-	
+
 	private void validateFile(MultipartFile file, Set<String> allowedExtensions) throws IOException {
 
-	    // -------- Size check --------
-	    if (file.getSize() > MAX_FILE_SIZE) {
-	        throw new FileValidationException("File size must not exceed 10 MB");
-	    }
+		// -------- Size check --------
+		if (file.getSize() > MAX_FILE_SIZE) {
+			throw new FileValidationException("File size must not exceed 10 MB");
+		}
 
-	    // -------- Extension check --------
-	    String originalFilename = file.getOriginalFilename();
+		// -------- Extension check --------
+		String originalFilename = file.getOriginalFilename();
 
-	    if (originalFilename == null || !originalFilename.contains(".")) {
-	        throw new FileValidationException("Invalid file name");
-	    }
+		if (originalFilename == null || !originalFilename.contains(".")) {
+			throw new FileValidationException("Invalid file name");
+		}
 
-	    String extension = originalFilename
-	            .substring(originalFilename.lastIndexOf('.') + 1)
-	            .toLowerCase();
+		String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
 
-	    if (!allowedExtensions.contains(extension)) {
-	        throw new FileValidationException(
-	                "Invalid file type. Allowed types: " + String.join(", ", allowedExtensions));
-	    }
+		if (!allowedExtensions.contains(extension)) {
+			throw new FileValidationException(
+					"Invalid file type. Allowed types: " + String.join(", ", allowedExtensions));
+		}
 
-	    // -------- Signature (magic-byte) check --------
-	    // Note: .docx, .xlsx and .zip all share the same ZIP (PK) container
-	    // signature, so this can only reliably distinguish ZIP-family vs
-	    // OLE2-family (.doc/.xls) vs PDF — not docx-vs-plain-zip specifically.
-	    byte[] header = new byte[8];
-	    int bytesRead;
+		// -------- Signature (magic-byte) check --------
+		// Note: .docx, .xlsx and .zip all share the same ZIP (PK) container
+		// signature, so this can only reliably distinguish ZIP-family vs
+		// OLE2-family (.doc/.xls) vs PDF — not docx-vs-plain-zip specifically.
+		byte[] header = new byte[8];
+		int bytesRead;
 
-	    InputStream is = file.getInputStream();
-	    try {
-	        bytesRead = is.read(header);
-	    } finally {
-	        is.close();
-	    }
+		InputStream is = file.getInputStream();
+		try {
+			bytesRead = is.read(header);
+		} finally {
+			is.close();
+		}
 
-	    if (bytesRead < 4) {
-	        throw new FileValidationException("Corrupted or empty file");
-	    }
+		if (bytesRead < 4) {
+			throw new FileValidationException("Corrupted or empty file");
+		}
 
-	    if ("pdf".equals(extension)) {
+		if ("pdf".equals(extension)) {
 
-	        String magic = new String(header, 0, 4);
-	        if (!magic.startsWith("%PDF")) {
-	            throw new FileValidationException("Corrupted PDF file");
-	        }
+			String magic = new String(header, 0, 4);
+			if (!magic.startsWith("%PDF")) {
+				throw new FileValidationException("Corrupted PDF file");
+			}
 
-	    } else if ("zip".equals(extension) || "docx".equals(extension) || "xlsx".equals(extension)) {
+		} else if ("zip".equals(extension) || "docx".equals(extension) || "xlsx".equals(extension)) {
 
-	        // ZIP-family signature: 'P' 'K'
-	        if (header[0] != 'P' || header[1] != 'K') {
-	            throw new FileValidationException("Corrupted " + extension.toUpperCase() + " file");
-	        }
+			// ZIP-family signature: 'P' 'K'
+			if (header[0] != 'P' || header[1] != 'K') {
+				throw new FileValidationException("Corrupted " + extension.toUpperCase() + " file");
+			}
 
-	    } else if ("doc".equals(extension) || "xls".equals(extension)) {
+		} else if ("doc".equals(extension)) {
+			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
+					&& (header[3] & 0xFF) == 0xE0;
 
-	        // Legacy OLE2 compound file signature: D0 CF 11 E0 A1 B1 1A E1
-	        int[] ole2Signature = { 0xD0, 0xCF, 0x11, 0xE0 };
+			String headerText = new String(header).toLowerCase();
 
-	        for (int i = 0; i < ole2Signature.length; i++) {
-	            if ((header[i] & 0xFF) != ole2Signature[i]) {
-	                throw new FileValidationException("Corrupted " + extension.toUpperCase() + " file");
-	            }
-	        }
+			boolean isHtmlDoc = headerText.contains("<html") || headerText.contains("<head");
 
-	    } else {
-	        throw new FileValidationException("Unsupported file type: " + extension);
-	    }
+			boolean isRtfDoc = headerText.startsWith("{\\rtf");
+
+			if (!isOle2 && !isHtmlDoc && !isRtfDoc) {
+				throw new FileValidationException("Corrupted DOC file");
+			}
+
+		} else if ("xls".equals(extension)) {
+
+			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
+					&& (header[3] & 0xFF) == 0xE0;
+
+			String headerText = new String(header).toLowerCase();
+
+			boolean isHtmlExcel = headerText.contains("<html") || headerText.contains("<!doctyp")
+					|| headerText.contains("<head");
+
+			if (!isOle2 && !isHtmlExcel) {
+				throw new FileValidationException("Corrupted XLS file");
+			}
+
+		}
+
+		else {
+			throw new FileValidationException("Unsupported file type: " + extension);
+		}
 	}
 
 	// =========================================================
@@ -381,10 +394,9 @@ public class TaskServiceImpl implements TaskService {
 
 //		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + "_" + fileNameWithoutExtension
 //				+ extension;
-		String newFileName = statusPrefix + "_" + System.currentTimeMillis()+ extension;
+		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + extension;
 
 		Path target = directory.resolve(newFileName);
-
 
 		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
@@ -449,110 +461,108 @@ public class TaskServiceImpl implements TaskService {
 
 	private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10 MB
 
-	// Allowed for the "document only" field (File - 1 per your HTML: .pdf, .xls, .xlsx, .doc, .docx)
-	private static final Set<String> ALLOWED_EXTENSIONS_DOC_ONLY =
-	        Set.of("pdf", "xls", "xlsx", "doc", "docx");
+	// Allowed for the "document only" field (File - 1 per your HTML: .pdf, .xls,
+	// .xlsx, .doc, .docx)
+	private static final Set<String> ALLOWED_EXTENSIONS_DOC_ONLY = Set.of("pdf", "xls", "xlsx", "doc", "docx");
 
 	// Allowed for the "document + zip" field (File - 2 per your HTML: adds .zip)
-	private static final Set<String> ALLOWED_EXTENSIONS_DOC_OR_ZIP =
-	        Set.of("pdf", "xls", "xlsx", "doc", "docx", "zip");
+	private static final Set<String> ALLOWED_EXTENSIONS_DOC_OR_ZIP = Set.of("pdf", "xls", "xlsx", "doc", "docx", "zip");
+
 	@Transactional
 	@Override
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO dto) throws Exception {
 
-	    TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
+		TaskEntity task = taskRepository.findByIdForUpdate(dto.getTaskId())
+				.orElseThrow(() -> new RuntimeException("Task not found"));
 
-	    Short currentStatus = task.getTaskStatus();
-	    Short nextStatus;
-	    boolean isReopen = false;
+		Short currentStatus = task.getTaskStatus();
+		Short nextStatus;
+		boolean isReopen = false;
 
-	    if (currentStatus == 2 || currentStatus == 4) {
+		if (currentStatus == 2 || currentStatus == 4) {
 
-	        Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
+			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
 
-	        if (selectedStatus == 3) {
-	            isReopen = true;
+			if (selectedStatus == 3) {
+				isReopen = true;
 
-	            Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
+				Integer reopenCount = task.getReopenCount() == null ? 1 : task.getReopenCount();
 
-	            if (reopenCount >= 3) {
-	                throw new RuntimeException("Task can only be reopened 3 times.");
-	            }
+				if (reopenCount >= 3) {
+					throw new RuntimeException("Task can only be reopened 3 times.");
+				}
 
-	            task.setReopenCount(reopenCount + 1);
-	        }
+				task.setReopenCount(reopenCount + 1);
+			}
 
-	        nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
+			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
 
-	        if (nextStatus == null) {
-	            throw new RuntimeException("Please select a valid task status.");
-	        }
+			if (nextStatus == null) {
+				throw new RuntimeException("Please select a valid task status.");
+			}
 
-	    } else {
+		} else {
 
-	        nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
+			nextStatus = TaskConstants.STATUS_FLOW.get(currentStatus);
 
-	        if (nextStatus == null) {
-	            if (currentStatus == 5) {
-	                throw new RuntimeException("This task is already closed and cannot be updated.");
-	            }
-	            throw new RuntimeException("Invalid task status: " + currentStatus);
-	        }
-	    }
+			if (nextStatus == null) {
+				if (currentStatus == 5) {
+					throw new RuntimeException("This task is already closed and cannot be updated.");
+				}
+				throw new RuntimeException("Invalid task status: " + currentStatus);
+			}
+		}
 
-	    String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
-	    String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
+		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
+		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
 
-	    // Convert status name into filename format
-	    String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
+		// Convert status name into filename format
+		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
 
-	    // Build the action message per scenario
-	    String actionMessage = buildActionMessage(dto, currentStatus, nextStatus, newStatus, isReopen);
+		// Build the action message per scenario
+		String actionMessage = buildActionMessage(dto, currentStatus, nextStatus, newStatus, isReopen);
 
-	    task.setTaskStatus(nextStatus);
-	    task.setCloseRemarks(dto.getDescription());
-	    task.setModificationDate(LocalDateTime.now());
+		task.setTaskStatus(nextStatus);
+		task.setCloseRemarks(dto.getDescription());
+		task.setModificationDate(LocalDateTime.now());
 
-	    // File Upload - 1 (doc-only: .pdf, .xls, .xlsx, .doc, .docx)
-	    if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-	        validateFile(dto.getFileName3(), ALLOWED_EXTENSIONS_DOC_ONLY);
-	        String fileName = saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()), statusPrefix);
-	        task.setFileName3(fileName);
-	    }
+		// File Upload - 1 (doc-only: .pdf, .xls, .xlsx, .doc, .docx)
+		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
+			validateFile(dto.getFileName3(), ALLOWED_EXTENSIONS_DOC_ONLY);
+			String fileName = saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()), statusPrefix);
+			task.setFileName3(fileName);
+		}
 
-	    // File Upload - 2 (doc + zip: .pdf, .xls, .xlsx, .doc, .docx, .zip)
-	    if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-	        validateFile(dto.getFileName4(), ALLOWED_EXTENSIONS_DOC_OR_ZIP);
-	        String fileName = saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()), statusPrefix);
-	        task.setFileName4(fileName);
-	    }
+		// File Upload - 2 (doc + zip: .pdf, .xls, .xlsx, .doc, .docx, .zip)
+		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
+			validateFile(dto.getFileName4(), ALLOWED_EXTENSIONS_DOC_OR_ZIP);
+			String fileName = saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()), statusPrefix);
+			task.setFileName4(fileName);
+		}
 
-	    TaskEntity savedTask = taskRepository.save(task);
-	    commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-	            commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
-	    logger.debug("Sending mail over here {}", savedTask.toString());
-	    taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
-	    return savedTask;
+		TaskEntity savedTask = taskRepository.save(task);
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
+		logger.debug("Sending mail over here {}", savedTask.toString());
+		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
+		return savedTask;
 	}
 
-
 	/**
-	 * Extracts the lowercase file extension from a MultipartFile's original filename.
+	 * Extracts the lowercase file extension from a MultipartFile's original
+	 * filename.
 	 */
 	private String getExtension(MultipartFile file) {
 
-	    String originalFilename = file.getOriginalFilename();
+		String originalFilename = file.getOriginalFilename();
 
-	    if (originalFilename == null || !originalFilename.contains(".")) {
-	        return "";
-	    }
+		if (originalFilename == null || !originalFilename.contains(".")) {
+			return "";
+		}
 
-	    return originalFilename
-	            .substring(originalFilename.lastIndexOf('.') + 1)
-	            .toLowerCase();
+		return originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
 	}
-	
+
 	/**
 	 * Builds a human-readable action message depending on what actually happened to
 	 * the task (added+assigned, added by system, closed, reopened, or a generic
