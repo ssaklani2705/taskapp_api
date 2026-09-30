@@ -171,7 +171,24 @@ public class DashboardController {
 
 		int count = taskService.countOfAssigneeReClosureTask(clientId, userId);
 
+<<<<<<< HEAD
+        return ResponseEntity.ok(map);
+    }
+    
+    @GetMapping("/countOfUnAssigneeTask")
+    public ResponseEntity<Map<String, Object>> countOfUnAssigneeTask(@RequestParam Integer clientId,
+            @RequestParam("userId") Integer userId) {
+        Map<String, Object> map = new HashMap<>();
+        int count = taskService.countOfUnAssigneeTask(clientId, userId);
+        map.put("count", count);
+        return ResponseEntity.ok(map);
+    }
+    
+    @GetMapping("/getTaskClient")
+    public Map<String, Object> getTaskClient(@RequestParam("userId") Integer userId) {
+=======
 		map.put("count", count);
+>>>>>>> f1ea9980b4c3692abf3d12fbe28ac3a91bd88eef
 
 		return ResponseEntity.ok(map);
 	}
