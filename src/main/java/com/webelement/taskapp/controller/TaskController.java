@@ -259,16 +259,15 @@ public class TaskController {
 		}
 	}
 	
-	
-	
-<<<<<<< HEAD
-=======
 	@GetMapping("/assignee_workload")
-	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId, @RequestParam String date) {
-		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId,date);
-		String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
-		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
-	}
->>>>>>> 02d8aa8aefab855a576d66e28c4d8be792e84189
+    public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId, @RequestParam String date) {
+        List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId,date);
+        String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
+        return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
+    }
+	
+	
+	
+
 
 }

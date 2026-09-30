@@ -130,7 +130,7 @@ public class TaskEditDTO {
     }
 
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
-<<<<<<< HEAD
+
 			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTimeHours, Short priority,
 			String clientName) {
 		this.taskId = taskId;
@@ -141,38 +141,27 @@ public class TaskEditDTO {
 		this.addedBy = addedBy;
 		this.addedByName = addedByName;
 		this.date = date;
-
-		
-			this.dueDateTime = dueDateTimeHours;
-		
+		this.dueDateTime = dueDateTimeHours;
 		this.priority = priority;
 		this.clientName = clientName;
 	}
-=======
-            Integer addedBy, String addedByName, LocalDateTime date, String dueDateTimeHours, Short priority,
-            Integer clientId, String clientName) {
-        this.taskId = taskId;
-        this.assignedTo = assignedTo;
-        this.assignedUserName = assignedUserName;
-        this.title = title;
-        this.taskStatus = taskStatus;
-        this.addedBy = addedBy;
-        this.addedByName = addedByName;
-        this.date = date;
-        if (date != null && dueDateTimeHours != null && !dueDateTimeHours.isBlank()) {
-            try {
-                long hours = Long.parseLong(dueDateTimeHours.trim());
-                this.dueDateTime = date.plusHours(hours).format(DATE_TIME_FORMATTER);
-            } catch (NumberFormatException e) {
-                this.dueDateTime = null;
-            }
-        } else {
-            this.dueDateTime = null;
-        }
-        this.priority = priority;
-        this.clientId = clientId;
-        this.clientName = clientName;
-    }
->>>>>>> 1e1265ac13c21312870001731baef3a80337c1e5
+	
+	// Used by TaskRepository.findTasksByStatus
+	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
+			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTime, Short priority,
+			Integer clientId, String clientName) {
+		this.taskId = taskId;
+		this.assignedTo = assignedTo;
+		this.assignedUserName = assignedUserName;
+		this.title = title;
+		this.taskStatus = taskStatus;
+		this.addedBy = addedBy;
+		this.addedByName = addedByName;
+		this.date = date;
+		this.dueDateTime = dueDateTime;
+		this.priority = priority;
+		this.clientId = clientId;
+		this.clientName = clientName;
+	}
 	
 }
