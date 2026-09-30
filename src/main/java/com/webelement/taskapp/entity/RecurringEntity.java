@@ -1,6 +1,7 @@
 package com.webelement.taskapp.entity;
 
 import java.sql.Timestamp;
+import java.time.LocalTime;
 
 import javax.persistence.*;
 
@@ -55,5 +56,8 @@ public class RecurringEntity {
 
 	@Column(name = "ts_moddate")
 	private Timestamp modDate;
+	
+	@Column(name = "t_time")
+	private LocalTime time;   // java.time.LocalTime, parses "10:30:00"
 
 }

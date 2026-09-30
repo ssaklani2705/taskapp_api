@@ -93,16 +93,16 @@ public class UserManagementService {
 		    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 		};
 
-		private String toWeeklyOffNames(String csv) {
-		    if (csv == null || csv.trim().isEmpty()) {
-		        return "";
-		    }
-		    return Arrays.stream(csv.split(","))
-		            .map(String::trim)
-		            .filter(v -> v.matches("[1-7]"))
-		            .map(v -> DAY_NAMES[Integer.parseInt(v) - 1])
-		            .collect(Collectors.joining(", "));
-		}
+//		private String toWeeklyOffNames(String csv) {
+//		    if (csv == null || csv.trim().isEmpty()) {
+//		        return "";
+//		    }
+//		    return Arrays.stream(csv.split(","))
+//		            .map(String::trim)
+//		            .filter(v -> v.matches("[1-7]"))
+//		            .map(v -> DAY_NAMES[Integer.parseInt(v) - 1])
+//		            .collect(Collectors.joining(", "));
+//		}
 		
 	public List<UserActiveDTO> getActiveUsers() {
 		return loginRepository.findActiveManager();
@@ -147,8 +147,9 @@ public class UserManagementService {
 	            List<Integer> categoryIds = toIdList(userEntity.getTaskcategoryIds());
 
 	            // ---------------- Weekly Off ----------------
-	            user.setWeeklyOffNames(userEntity != null ? toWeeklyOffNames(userEntity.getWeeklyOff()) : "");
-
+//	            user.setWeeklyOffNames(userEntity != null ? toWeeklyOffNames(userEntity.getWeeklyOff()) : "");
+	            // ---------------- Weekly Off ----------------
+	            user.setWeeklyOffNames(toWeeklyOffName(userEntity.getWeeklyOff()));
 	            
 	            List<String> categoryNames =
 	                    taskCategoryRepository.findNamesByIds(categoryIds);
@@ -174,6 +175,17 @@ public class UserManagementService {
 	    });
 
 	    return pageData;
+	}
+	
+	private static final String[] WEEK_DAYS = {
+	        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+	};
+
+	private String toWeeklyOffName(Short weeklyOff) {
+	    if (weeklyOff == null || weeklyOff < 1 || weeklyOff > 7) {
+	        return "";
+	    }
+	    return WEEK_DAYS[weeklyOff - 1];
 	}
 
 	public ResponseEntity<ResponseApi<String>> deleteUser(int userId, int createdBy, HttpServletRequest httpRequest) {
@@ -233,113 +245,109 @@ public class UserManagementService {
 	}
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
-			throws Exception {
-		System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
-		boolean isEdit = userRequest.getUserId() > 0;
-		
-		boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
+            throws Exception {
+        System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
+        boolean isEdit = userRequest.getUserId() > 0;
 
-		if (!hod && userRequest.getDepartmentIds() != null
-		        && userRequest.getDepartmentIds().size() > 1) {
-		    return ResponseEntity.badRequest()
-		            .body(new ResponseApi<>(false, "Only HOD can have multiple departments", "Invalid"));
-		}
+        boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
 
-		if (!isEdit) {
-			// ADD logic - check for duplicate email
-			int isDuplicateEmail = loginRepository.checkDuplicacy(0, userRequest.getEmail());
-			if (isDuplicateEmail == 1) {
-				return ResponseEntity.status(HttpStatus.CONFLICT)
-						.body(new ResponseApi<>(false, "User already exists", "Exist"));
-			}
-		} else {
-			// EDIT logic - check if email belongs to another user
-			int isDuplicateEmail = loginRepository.checkDuplicacy(userRequest.getUserId(), userRequest.getEmail());
-			if (isDuplicateEmail == 1) {
-				return ResponseEntity.status(HttpStatus.CONFLICT)
-						.body(new ResponseApi<>(false, "Email already used by another user", "Exist"));
-			}
-		}
+        if (!hod && userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().size() > 1) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseApi<>(false, "Only HOD can have multiple departments", "Invalid"));
+        }
 
-		int uid;
-		if (!isEdit) {
-			// Add new user
-			uid = createUser(userRequest, userRequest.getPassword(), 0);
+        if (!isEdit) {
+            int isDuplicateEmail = loginRepository.checkDuplicacy(0, userRequest.getEmail());
 
-			commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
-					commonFunction.getLocalIp(), "Add User", 1, uid, -1);
-		} else {
-			// Update existing user
-			uid = updateUser(userRequest);
-			commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
-					commonFunction.getLocalIp(), "Update User", 1, uid, -1);
-		}
+            if (isDuplicateEmail == 1) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ResponseApi<>(false, "User already exists", "Exist"));
+            }
+        } else {
+            int isDuplicateEmail = loginRepository.checkDuplicacy(userRequest.getUserId(), userRequest.getEmail());
 
-		// Update permissions for both add & edit
-		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
+            if (isDuplicateEmail == 1) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ResponseApi<>(false, "Email already used by another user", "Exist"));
+            }
+        }
 
-		    permissionRepo.deleteByUserId(uid);
+        int uid;
+        if (!isEdit) {
+            uid = createUser(userRequest, userRequest.getPassword(), 0);
 
-		    // ============================================================
-		    // DEPARTMENT 1 (among selected departments) — AUTO-ASSIGN
-		    // FIXED PERMISSIONS
-		    // Rights & Permissions UI is hidden in this case, so module
-		    // IDs 10 and 11 are granted automatically.
-		    // ============================================================
-		    if (userRequest.getDepartmentIds() != null
-		            && userRequest.getDepartmentIds().contains(1)) {
+            commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
+                    commonFunction.getLocalIp(), "Add User", 1, uid, -1);
+        } else {
+            uid = updateUser(userRequest);
+            commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
+                    commonFunction.getLocalIp(), "Update User", 1, uid, -1);
+        }
 
-		        int[] autoModuleIds = { 10, 11 };
+        if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
 
-		        for (int moduleId : autoModuleIds) {
+            permissionRepo.deleteByUserId(uid);
 
-		            PermissionEntity entity = new PermissionEntity();
-		            entity.setUserId(uid);
-		            entity.setModuleId(moduleId);
-		            entity.setAdd("Y");
-		            entity.setEdit("Y");
-		            entity.setDelete("Y");
-		            entity.setApprove("Y");
-		            entity.setAdminApprove("Y");
-		            entity.setView("Y");
-		            entity.setExportExcel("Y");
+            if (userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().contains(1)) {
 
-		            permissionRepo.save(entity);
-		        }
+                int[] autoModuleIds = { 10, 11 };
 
-		    }
-		    // ============================================================
-		    // ALL OTHER DEPARTMENTS — USE MODULES SENT FROM FRONTEND
-		    // ============================================================
-		    else if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
+                for (int moduleId : autoModuleIds) {
 
-		        for (ModulePermissionDTO m : userRequest.getModule()) {
+                    PermissionEntity entity = new PermissionEntity();
+                    entity.setUserId(uid);
+                    entity.setModuleId(moduleId);
+                    entity.setAdd("Y");
+                    entity.setEdit("Y");
+                    entity.setDelete("Y");
+                    entity.setApprove("Y");
+                    entity.setAdminApprove("Y");
+                    entity.setView("Y");
+                    entity.setExportExcel("Y");
 
-		            if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
-		                    || "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
-		                    || "Y".equalsIgnoreCase(m.getApprovePer())
-		                    || "Y".equalsIgnoreCase(m.getAdminApprovePer()) || "Y".equalsIgnoreCase(m.getExportExcel())) {
+                    permissionRepo.save(entity);
+                }
 
-		                PermissionEntity entity = new PermissionEntity();
-		                entity.setUserId(uid);
-		                entity.setModuleId(m.getModuleId());
-		                entity.setAdd(defaultIfNull(m.getAddPer()));
-		                entity.setEdit(defaultIfNull(m.getEditPer()));
-		                entity.setDelete(defaultIfNull(m.getDeletePer()));
-		                entity.setApprove(defaultIfNull(m.getApprovePer()));
-		                entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
-		                entity.setView(defaultIfNull(m.getViewPer()));
-		                entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+            } else if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
 
-		                permissionRepo.save(entity);
-		            }
-		        }
-		    }
-		}
+                for (ModulePermissionDTO m : userRequest.getModule()) {
 
-		return ResponseEntity.ok(
-				new ResponseApi<>(true, "Success", isEdit ? "User updated successfully" : "User added successfully"));
-	}
+                    if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
+                            || "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
+                            || "Y".equalsIgnoreCase(m.getApprovePer()) || "Y".equalsIgnoreCase(m.getAdminApprovePer())
+                            || "Y".equalsIgnoreCase(m.getExportExcel())) {
+
+                        PermissionEntity entity = new PermissionEntity();
+                        entity.setUserId(uid);
+                        entity.setModuleId(m.getModuleId());
+                        entity.setAdd(defaultIfNull(m.getAddPer()));
+                        entity.setEdit(defaultIfNull(m.getEditPer()));
+                        entity.setDelete(defaultIfNull(m.getDeletePer()));
+                        entity.setApprove(defaultIfNull(m.getApprovePer()));
+                        entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
+                        entity.setView(defaultIfNull(m.getViewPer()));
+                        entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+
+                        permissionRepo.save(entity);
+                    }
+                }
+            }
+        }
+
+        return ResponseEntity.ok(
+                new ResponseApi<>(true, "Success", isEdit ? "User updated successfully" : "User added successfully"));
+    }
+
+private String normalizeWeeklyOff(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String weeklyOff = value.trim();
+        if (!weeklyOff.matches("[1-7]")) {
+            return null;
+        }
+        return weeklyOff;
+    }
 
 	// Small helper to avoid null values
 	private String defaultIfNull(String value) {
@@ -374,7 +382,7 @@ public class UserManagementService {
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
 			user.setDesignationId(info.getDesignationId());
-			user.setWeeklyOff(normalizeWeeklyOff(info.getWeeklyOff()));   // replaces the setWeeklyOffIds line
+			user.setWeeklyOff(info.getWeeklyOff());   // replaces the setWeeklyOffIds line
 			
 
 			// Departments stored as CSV, e.g. "1,2,3"
@@ -394,18 +402,18 @@ public class UserManagementService {
 		}
 	}
 	
-	private String normalizeWeeklyOff(String value) {
-	    if (value == null || value.trim().isEmpty()) {
-	        return null;
-	    }
-	    String result = Arrays.stream(value.split(","))
-	            .map(String::trim)
-	            .filter(v -> v.matches("[1-7]"))
-	            .distinct()
-	            .sorted()
-	            .collect(Collectors.joining(","));
-	    return result.isEmpty() ? null : result;
-	}
+//	private String normalizeWeeklyOff(String value) {
+//	    if (value == null || value.trim().isEmpty()) {
+//	        return null;
+//	    }
+//	    String result = Arrays.stream(value.split(","))
+//	            .map(String::trim)
+//	            .filter(v -> v.matches("[1-7]"))
+//	            .distinct()
+//	            .sorted()
+//	            .collect(Collectors.joining(","));
+//	    return result.isEmpty() ? null : result;
+//	}
 
 	// Update User
 	private int updateUser(UserLoginEntity request) throws Exception {
@@ -419,7 +427,7 @@ public class UserManagementService {
 		existing.setPermission(request.getPermission());
 		existing.setTelephone(request.getTelephone());
 		existing.setDesignationId(request.getDesignationId());
-		existing.setWeeklyOff(normalizeWeeklyOff(request.getWeeklyOff()));   // replaces setWeeklyOffIds line
+		existing.setWeeklyOff(request.getWeeklyOff());   // replaces setWeeklyOffIds line
 
 		// Departments stored as CSV, e.g. "1,2,3"
 		existing.setDepartmentIdsCsv(toCsv(request.getDepartmentIds()));

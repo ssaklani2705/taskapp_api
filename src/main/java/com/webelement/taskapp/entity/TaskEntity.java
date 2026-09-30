@@ -82,8 +82,7 @@ public class TaskEntity {
 	private LocalDateTime modificationDate;
 	@Column(name = "s_title", length = 100)
 	private String title;
-//    @Column(name = "i_taskgroupid")
-//    private Integer taskGroupId;
+
 	@Column(name = "i_taskstatus")
 	private Short taskStatus;
 	@Column(name = "i_reopencounts")

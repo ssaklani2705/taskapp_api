@@ -249,15 +249,9 @@ public class DashboardService {
 						: null)
 				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
 				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
-<<<<<<< HEAD
 				.title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
 				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
-=======
-				.title(task.getTitle()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
-				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy())
-				.taskStatus(task.getTaskStatus())
-				.build();
->>>>>>> f1ea9980b4c3692abf3d12fbe28ac3a91bd88eef
+
 
 	}
 

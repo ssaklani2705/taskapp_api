@@ -118,8 +118,8 @@ public class UserLoginEntity {
 	@Column(name = "s_ishod")
 	private String isHod;   // "Y" / "N"
 	
-	@Column(name = "s_weekly_off")
-	private String weeklyOff;   // e.g. "1,7"
+	@Column(name = "i_weekly_off")
+	private Short weeklyOff;   // e.g. "1,7"
 
 	@Transient
 	private List<Integer> weeklyOffIds;   // for the edit form

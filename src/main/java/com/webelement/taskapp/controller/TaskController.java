@@ -141,7 +141,7 @@ public class TaskController {
 			@RequestParam String loginType, @RequestParam Integer clientId,@RequestParam String isHod) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories(isHod,userId));
+		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
 
 		return response;
@@ -165,7 +165,7 @@ public class TaskController {
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
 				.supplyAsync(() -> clientRepository.findAllActiveClients(userId, loginType));
 		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
-				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories(isHod,userId));//New Changes
+				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());//New Changes
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
 			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsers());
 			users.add(0, new UserActiveDTO(0, "Unassigned User"));
@@ -182,6 +182,8 @@ public class TaskController {
 
 		return response;
 	}
+	
+	
 	
 	
 	@GetMapping("/getTaskFilterDataForIndex")
@@ -308,5 +310,8 @@ public class TaskController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 	}
+	
+	
+	
 
 }

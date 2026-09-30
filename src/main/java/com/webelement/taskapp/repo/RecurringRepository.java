@@ -102,7 +102,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	        + "r.month, "
 	        + "r.taskCatId, "
 	        + "tc.name, "
-	        + "r.status,r.priority) "
+	        + "r.status,r.priority,r.time) "
 
 	        + "FROM RecurringEntity r "
 
@@ -168,7 +168,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 	// For View
 	@Query("SELECT new com.webelement.taskapp.dto.RecurringDTO(" + "r.recurringId, " + "r.clientId, " + "c.name, "
 			+ "r.title, " + "r.description, " + "r.type, " + "r.date, " + "r.day, " + "r.month, " + "r.taskCatId, "
-			+ "tc.name, " + "r.status,r.priority) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
+			+ "tc.name, " + "r.status,r.priority,r.time) " + "FROM RecurringEntity r " + "LEFT JOIN ClientEntity c "
 			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
 			+ "WHERE r.recurringId = :recurringId")
 	RecurringDTO getRecurringById(@Param("recurringId") Integer recurringId);
