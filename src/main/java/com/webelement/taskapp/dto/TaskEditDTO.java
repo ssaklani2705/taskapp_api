@@ -141,14 +141,32 @@ public class TaskEditDTO {
 		this.addedBy = addedBy;
 		this.addedByName = addedByName;
 		this.date = date;
-
-		
-			this.dueDateTime = dueDateTimeHours;
-		
+		this.dueDateTime = dueDateTimeHours;
 		this.priority = priority;
 		this.clientName = clientName;
 	}
+<<<<<<< HEAD
 
            
+=======
+	
+	// Used by TaskRepository.findTasksByStatus
+	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
+			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTime, Short priority,
+			Integer clientId, String clientName) {
+		this.taskId = taskId;
+		this.assignedTo = assignedTo;
+		this.assignedUserName = assignedUserName;
+		this.title = title;
+		this.taskStatus = taskStatus;
+		this.addedBy = addedBy;
+		this.addedByName = addedByName;
+		this.date = date;
+		this.dueDateTime = dueDateTime;
+		this.priority = priority;
+		this.clientId = clientId;
+		this.clientName = clientName;
+	}
+>>>>>>> 9c5d9f08d9d79b6be9257fc7ea9f8e1b22f9f9f5
 	
 }
