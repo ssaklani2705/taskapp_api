@@ -53,6 +53,8 @@ public class RecurringService {
 
 			throw new RuntimeException("Please select a client.");
 		}
+		
+		
 
 //		Optional<ClientEntity> clientOptional = clientRepository.findByClientIdAndManagerIdAndStatus(dto.getClientId(),
 //				userId, (short) 1);
@@ -70,6 +72,10 @@ public class RecurringService {
 		if (dto.getPriority() == null || dto.getPriority() < 1 || dto.getPriority() > 3) {
             throw new RuntimeException("Invalid priority.");
         }
+		
+		if (dto.getTime() == null) {
+		    throw new RuntimeException("Please select a time.");
+		}
 
 		validateRecurringType(dto);
 
@@ -121,6 +127,7 @@ public class RecurringService {
 		recurring.setDate(dto.getDate());
 		recurring.setDay(dto.getDay());
 		recurring.setMonth(dto.getMonth());
+		recurring.setTime(dto.getTime());          // <-- new
 		recurring.setTaskCatId(dto.getTaskCatId());
 
 		RecurringEntity recurringEntity = recurringRepository.save(recurring);
@@ -193,7 +200,7 @@ public class RecurringService {
 
 		return new RecurringDTO(recurring.getRecurringId(), recurring.getClientId(), recurring.getTitle(),
 				recurring.getDescription(), recurring.getType(), recurring.getDate(), recurring.getDay(),
-				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus(),recurring.getPriority());
+				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus(),recurring.getPriority(),recurring.getTime());
 	}
 
 	// For Index

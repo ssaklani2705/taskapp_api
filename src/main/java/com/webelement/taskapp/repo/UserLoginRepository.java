@@ -101,8 +101,10 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		       "AND (:selectedCategoryId = 0 OR " +
 		       "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) " +
 
-			   "AND (:weeklyOff = 0 OR " +
-			   "     FIND_IN_SET(CAST(:weeklyOff AS string), u.weeklyOff) > 0) " +      // NEW
+//			   "AND (:weeklyOff = 0 OR " +
+//			   "     FIND_IN_SET(CAST(:weeklyOff AS string), u.weeklyOff) > 0) " +      // NEW
+
+				"AND (:weeklyOff = 0 OR u.weeklyOff = :weeklyOff) " +
 		       
 		       "AND (:search IS NULL OR :search = '' " +
 		       "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +

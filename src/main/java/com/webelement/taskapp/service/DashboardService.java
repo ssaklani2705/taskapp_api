@@ -240,21 +240,20 @@ public class DashboardService {
 
 	private TaskDashboardItem toDashboardItem(TaskEntity task) {
 
-		return TaskDashboardItem.builder().taskId(task.getTaskId()).clientId(task.getClientId())
-				.clientName(task.getClient() != null ? task.getClient().getName() : null)
-				.taskCategoryId(task.getTaskCategoryId())
-				.taskCategoryName(task.getTaskCategory() != null ? task.getTaskCategory().getName() : null)
-				.dueDateTime(task.getTaskCategory() != null
-						? calculateDueDateTime(task.getDate(), task.getTaskCategory().getDuedatetime())
-						: null)
-				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
-				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
+        return TaskDashboardItem.builder().taskId(task.getTaskId()).clientId(task.getClientId())
+                .clientName(task.getClient() != null ? task.getClient().getName() : null)
+                .taskCategoryId(task.getTaskCategoryId())
+                .taskCategoryName(task.getTaskCategory() != null ? task.getTaskCategory().getName() : null)
+                .dueDateTime(task.getTaskCategory() != null
+                        ? calculateDueDateTime(task.getDate(), task.getTaskCategory().getDuedatetime())
+                        : null)
+                .assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
+                .assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
+                .title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
+                .assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
 
-				.title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
-				.assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
 
-
-	}
+    }
 
 	private String getPriorityName(Short priority) {
 

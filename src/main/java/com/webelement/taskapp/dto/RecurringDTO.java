@@ -1,5 +1,6 @@
 package com.webelement.taskapp.dto;
 
+import java.time.LocalTime;
 import java.util.List;
 
 import com.webelement.taskapp.entity.TransactionEntity;
@@ -26,12 +27,14 @@ public class RecurringDTO {
 	private String taskCatName;
 	private Short status;
 	private Short priority;
-	
+	private LocalTime time;
+
 	private List<TransactionEntity> transactionHistory;
 
 	// For edit
 	public RecurringDTO(Integer recurringId, Integer clientId, String title, String description, Short type,
-			Integer date, Short day, Integer month, Integer taskCatId, Short status,Short priority) {
+			Integer date, Short day, Integer month, Integer taskCatId, Short status, Short priority,
+			LocalTime time) {
 		super();
 		this.recurringId = recurringId;
 		this.clientId = clientId;
@@ -44,11 +47,13 @@ public class RecurringDTO {
 		this.taskCatId = taskCatId;
 		this.status = status;
 		this.priority = priority;
+		this.time = time;
 	}
 
 	// For view
 	public RecurringDTO(Integer recurringId, Integer clientId, String clientName, String title, String description,
-			Short type, Integer date, Short day, Integer month, Integer taskCatId, String taskCatName, Short status,Short priority) {
+			Short type, Integer date, Short day, Integer month, Integer taskCatId, String taskCatName, Short status,
+			Short priority, LocalTime time) {
 		super();
 		this.recurringId = recurringId;
 		this.clientId = clientId;
@@ -63,6 +68,7 @@ public class RecurringDTO {
 		this.taskCatName = taskCatName;
 		this.status = status;
 		this.priority = priority;
+		this.time = time;
 	}
-	
+
 }
