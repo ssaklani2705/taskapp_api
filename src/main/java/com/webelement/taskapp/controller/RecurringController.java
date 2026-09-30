@@ -44,11 +44,12 @@ public class RecurringController {
 	@GetMapping("/getRecurringClients")
 	public ResponseEntity<?> getRecurringClients(@RequestParam("userId") Integer userId,
 			@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType
+			@RequestParam("loginType") String loginType,
+			@RequestParam("isHod") String isHod
 			) {
 		try {
 			System.out.println("getRecurringClients userId = " + userId);
-			List<ClientDTO> clients = clientService.getClientsForRecurring(userId,isAdmin,loginType);
+			List<ClientDTO> clients = clientService.getClientsForRecurring(userId,isAdmin,loginType,isHod);
 			System.out.println("clients found = " + clients.size());
 
 			return ResponseEntity.ok(clients);

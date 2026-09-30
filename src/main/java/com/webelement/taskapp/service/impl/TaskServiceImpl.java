@@ -96,47 +96,113 @@ public class TaskServiceImpl implements TaskService {
 
 		return new ClientAssignmentCheckDTO(true, "");
 	}
-
+	
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
-			String remark) {
+			String remark, LocalDateTime date, LocalDateTime endDate) {
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 
 		if (optionalTask.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
 		}
+
+		// Validate dates
+		if (date == null) {
+			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Start Date & Time is required", null));
+		}
+
+		if (endDate == null) {
+			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "End Date & Time is required", null));
+		}
+
+		if (endDate.isBefore(date)) {
+			return ResponseEntity.badRequest()
+					.body(new ApiResponse<>(false, "End Date & Time cannot be before Start Date & Time", null));
+		}
+
 		TaskEntity task = optionalTask.get();
 		Integer oldAssigneeId = task.getAssignedTo();
 		String actorName = resolveUserName(userId);
-		// Update only assigned user
+
 		task.setAssignedTo(assignedTo);
-//		task.setAddedBy(userId);
-		// Only set addedBy if it isn't already populated
+
 		if (task.getAddedBy() == null || task.getAddedBy() == 0) {
 			task.setAddedBy(userId);
 		}
+
 		task.setTaskStatus((short) 1);
-		task.setDate(LocalDateTime.now());
+		task.setDate(date);
+		task.setEndDate(endDate);
 		task.setModificationDate(LocalDateTime.now());
 		task.setCloseRemarks(remark);
+
 		TaskEntity savedTask = taskRepository.save(task);
+
 		String assignedUserName = "Unknown";
+
 		if (savedTask.getAssignedTo() != null) {
 			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
 					.map(UserLoginEntity::getFirstName).orElse("Unknown");
 		}
+
 		String action = "Task reassigned to " + assignedUserName
 				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+
 		try {
 			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);
 		} catch (Exception e) {
 			logger.debug("{} ERROR FOUND ", e.getMessage());
+
 			e.printStackTrace();
 		}
+
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
+
+
+//	@Override
+//	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
+//			String remark) {
+//		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
+//
+//		if (optionalTask.isEmpty()) {
+//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
+//		}
+//		TaskEntity task = optionalTask.get();
+//		Integer oldAssigneeId = task.getAssignedTo();
+//		String actorName = resolveUserName(userId);
+//		// Update only assigned user
+//		task.setAssignedTo(assignedTo);
+////		task.setAddedBy(userId);
+//		// Only set addedBy if it isn't already populated
+//		if (task.getAddedBy() == null || task.getAddedBy() == 0) {
+//			task.setAddedBy(userId);
+//		}
+//		task.setTaskStatus((short) 1);
+//		task.setDate(LocalDateTime.now());
+//		task.setModificationDate(LocalDateTime.now());
+//		task.setCloseRemarks(remark);
+//		TaskEntity savedTask = taskRepository.save(task);
+//		String assignedUserName = "Unknown";
+//		if (savedTask.getAssignedTo() != null) {
+//			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
+//					.map(UserLoginEntity::getFirstName).orElse("Unknown");
+//		}
+//		String action = "Task reassigned to " + assignedUserName
+//				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+//		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+//				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+//		try {
+//			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);
+//		} catch (Exception e) {
+//			logger.debug("{} ERROR FOUND ", e.getMessage());
+//			e.printStackTrace();
+//		}
+//		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
+//	}
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,

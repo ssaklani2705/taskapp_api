@@ -34,14 +34,11 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "                    :isAdmin <> 'Y' " + "                    AND EXISTS ("
 			+ "                        SELECT 1 " + "                        FROM TaskCategoryEntity tc2 "
 			+ "                        WHERE tc2.taskcategoryId = t.taskCategoryId "
-			// ===== CHANGED: was "AND tc2.departmentId IN (SELECT ul.departmentId ...)"
-			// =====
 			+ "                        AND EXISTS (" + "                            SELECT 1 "
 			+ "                            FROM UserLoginEntity ul "
 			+ "                            WHERE ul.userId = :userId "
 			+ "                            AND CONCAT(',', ul.departmentIdsCsv, ',') "
 			+ "                                LIKE CONCAT('%,', tc2.departmentId, ',%') " + "                        )"
-			// ===== END CHANGE =====
 			+ "                    )" + "                )" + "            )" + "        )" + "    )" + ")")
 	List<Object[]> findDashboardClients(@Param("userId") Integer userId, @Param("isAdmin") String isAdmin,
 			@Param("loginType") String loginType);
@@ -218,26 +215,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "    OR c.userId = :userId" + ")")
 	int countOfAssignedTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
 
-//	@Query("SELECT COUNT(t) " + "FROM TaskEntity t " + "JOIN t.client c " + "WHERE t.taskStatus = 2 "
-//			+ "AND t.status = 1 " + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND ("
-//			+ "    t.assignedTo = :userId " + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId "
-//			+ "    OR c.userId = :userId" + ")")
-//	int countOfAssigneeClosureTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) " + "FROM TaskEntity t " + "JOIN t.client c " + "WHERE t.taskStatus = 3 "
-//			+ "AND t.status = 1 " + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND ("
-//			+ "    t.assignedTo = :userId " + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId "
-//			+ "    OR c.userId = :userId" + ")")
-//	int countOfReOpenTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
-//
-//	@Query("SELECT COUNT(t) " + "FROM TaskEntity t " + "JOIN t.client c " + "WHERE t.taskStatus = 4 "
-//			+ "AND t.status = 1 " + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND ("
-//			+ "    t.assignedTo = :userId " + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId "
-//			+ "    OR c.userId = :userId" + ")")
-//	int countOfAssigneeReClosureTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
-
-
-
 		@Query("SELECT COUNT(t) " +
 		       "FROM TaskEntity t " +
 		       "JOIN t.client c " +
@@ -306,15 +283,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("SELECT t FROM TaskEntity t WHERE t.taskId = :taskId")
 	Optional<TaskEntity> findByIdForUpdate(@Param("taskId") Integer taskId);
 
-//	@Query(value = "SELECT t.i_assignedto AS assignedTo, "
-//			+ "COALESCE(SUM(TIMESTAMPDIFF(HOUR, t.d_date, t.d_enddate)), 0) AS hours " + "FROM t_task t "
-//			+ "WHERE t.i_assignedto IN ( " + "    SELECT u.i_userid " + "    FROM t_userlogin u "
-//			+ "    WHERE FIND_IN_SET(:categoryId, u.i_taskcategoryid) " + "      AND u.i_status = 1 "
-//			+ "      AND u.i_weekly_off != 3 " + ") " + "AND ((NOW() >= t.d_date AND NOW() <= t.d_enddate) "
-//			+ "     OR DATE(t.d_date) = CURRENT_DATE()) " + "AND t.i_taskcategoryid = :categoryId "
-//			+ "AND t.i_taskstatus IN (1,3) " + "GROUP BY t.i_assignedto " + "ORDER BY hours ", nativeQuery = true)
-//	List<AssigneeWorkloadDTO> findAssigneeWorkload(@Param("categoryId") Integer categoryId);
-	
 	
 	@Query(value = "SELECT i_assignedto, SUM(TIMESTAMPDIFF(HOUR, d_date, d_enddate)) AS hours FROM t_task "
             + "WHERE i_assignedto IN (SELECT i_userid FROM t_userlogin "

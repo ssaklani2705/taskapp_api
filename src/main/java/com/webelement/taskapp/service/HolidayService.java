@@ -48,6 +48,7 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class HolidayService {
@@ -60,6 +61,10 @@ public class HolidayService {
 
 	@Value("${holiday_file_path}")
 	private String uploadBasePath;
+	
+	@Value("${app.frontend.base-url:}")
+	private String frontendBaseUrl;
+
 
 	public ApiResponse<HolidayDTO> addOrUpdate(HolidayDTO dto, HttpServletRequest httpRequest) {
 		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
@@ -391,16 +396,29 @@ public class HolidayService {
 
 				exportFailedHolidayRecordsToExcel(failedRecords, fullPath);
 
-				downloadPath = ServletUriComponentsBuilder.fromCurrentContextPath().path("/uploads/").path(fileName)
-						.toUriString();
-
+//				downloadPath = ServletUriComponentsBuilder.fromCurrentContextPath().path("/uploads/").path(fileName)
+//						.toUriString();
+				
+				downloadPath = buildDownloadPath(fileName);   // <-- changed
+				
 				message += ". Failed records exported.";
 			} catch (Exception e) {
 				message += ". Failed to export failed records: " + e.getMessage();
 			}
 		}
 
+		System.err.println("File Path = " + uploadBasePath);
+		System.err.println("downloadPath = " + downloadPath);
 		return new ApiResponse<>(true, message, savedHolidays, downloadPath);
+	}
+	
+	private String buildDownloadPath(String fileName) {
+
+		UriComponentsBuilder builder = (frontendBaseUrl != null && !frontendBaseUrl.trim().isEmpty())
+				? UriComponentsBuilder.fromHttpUrl(frontendBaseUrl.trim())   // frontend host
+				: ServletUriComponentsBuilder.fromCurrentContextPath();       // fallback: API host
+
+		return builder.path("/uploads/").path(fileName).build().encode().toUriString();
 	}
 
 	private void addFailedHolidayRecord(List<Map<String, String>> failedRecords, HolidayEntity holiday, String reason) {
