@@ -391,8 +391,7 @@ public class HolidayService {
 
 				exportFailedHolidayRecordsToExcel(failedRecords, fullPath);
 
-				downloadPath = ServletUriComponentsBuilder.fromCurrentContextPath().path("/uploads/").path(fileName)
-						.toUriString();
+				downloadPath = ServletUriComponentsBuilder.fromCurrentContextPath().path("/uploads/").path(fileName).toUriString();
 
 				message += ". Failed records exported.";
 			} catch (Exception e) {
