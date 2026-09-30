@@ -256,6 +256,7 @@ public class TaskController {
 		}
 	}
 	
+
 	@GetMapping("/assignee_workload")
     public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId, @RequestParam String date) {
         List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId,date);
@@ -265,6 +266,7 @@ public class TaskController {
 	
 	
 	
+
 
 
 }
