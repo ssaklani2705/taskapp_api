@@ -54,9 +54,7 @@ public class TaskDashboardItem {
 
 	private String closeRemarks;
 	
-<<<<<<< HEAD
-	private Short taskStatus; 
-=======
+
 	private Short taskStatus;
->>>>>>> f1ea9980b4c3692abf3d12fbe28ac3a91bd88eef
+
 }
