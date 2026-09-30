@@ -23,7 +23,7 @@ public class TaskEditDTO {
 	private Integer clientId;
 	private String closeRemarks;
 	private LocalDateTime date;
-	  private String dueDateTime;
+	  private LocalDateTime dueDateTime;
 	private String description;
 	private String fileName1;
 	private String fileName2;
@@ -65,7 +65,7 @@ public class TaskEditDTO {
 	        String assignedUserName,
 	        String addedByName,
 	        Short taskStatus,
-	        String dueDatetime) {
+	        LocalDateTime dueDatetime) {
 
 	    super();
 
@@ -129,7 +129,7 @@ public class TaskEditDTO {
     }
 
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
-			Integer addedBy, String addedByName, LocalDateTime date, String dueDateTimeHours, Short priority,
+			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTimeHours, Short priority,
 			String clientName) {
 		this.taskId = taskId;
 		this.assignedTo = assignedTo;
@@ -140,16 +140,9 @@ public class TaskEditDTO {
 		this.addedByName = addedByName;
 		this.date = date;
 
-		if (date != null && dueDateTimeHours != null && !dueDateTimeHours.isBlank()) {
-			try {
-				long hours = Long.parseLong(dueDateTimeHours.trim());
-				this.dueDateTime = date.plusHours(hours).format(DATE_TIME_FORMATTER);
-			} catch (NumberFormatException e) {
-				this.dueDateTime = null; // or log a warning
-			}
-		} else {
-			this.dueDateTime = null;
-		}
+		
+			this.dueDateTime = dueDateTimeHours;
+		
 		this.priority = priority;
 		this.clientName = clientName;
 	}

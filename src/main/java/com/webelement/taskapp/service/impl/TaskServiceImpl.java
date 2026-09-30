@@ -11,9 +11,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,10 +40,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.webelement.taskapp.Exceptions.DuplicateTaskTitleException;
 import com.webelement.taskapp.Exceptions.FileValidationException;
+import com.webelement.taskapp.Exceptions.InvalidRequestException;
+import com.webelement.taskapp.Exceptions.WorkloadFetchException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.dto.ApiResponse;
+import com.webelement.taskapp.dto.AssigneeWorkloadDTO;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
@@ -65,6 +73,9 @@ public class TaskServiceImpl implements TaskService {
 	private final HttpServletRequest httpRequest;
 	private final TaskMailService taskMailService;
 	private final ClientRepository clientRepository;
+	
+	private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private final Random random = new Random();
 
 	@Autowired
 	private UserLoginRepository userLoginRepository;
@@ -150,7 +161,7 @@ public class TaskServiceImpl implements TaskService {
 	@Override
 	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-			MultipartFile pdfFile, MultipartFile zipFile) throws Exception {
+			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception {
 		boolean isUpdate = taskId != null;
 		if (title != null) {
 			String trimmedTitle = title.trim();
@@ -188,35 +199,26 @@ public class TaskServiceImpl implements TaskService {
 		task.setDescription(description);
 		task.setAssignedTo(assignedTo);
 		task.setPriority(priority);
+		task.setEndDate(endDate);
 		if (isUpdate) {
 			if (status != null) {
 				task.setStatus(status);
 			}
 			task.setModificationDate(LocalDateTime.now());
 		}
-		// ---------- CHANGED: File - 1 (was pdfFile / validatePdf) ----------
+
 		if (pdfFile != null && !pdfFile.isEmpty()) {
 			validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
 			String fileName = saveFile(pdfFile, getExtension(pdfFile));
 			task.setFileName1(fileName);
 		}
 
-		// ---------- CHANGED: File - 2 (was zipFile / validateZip) ----------
 		if (zipFile != null && !zipFile.isEmpty()) {
 			validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
 			String fileName = saveFile(zipFile, getExtension(zipFile));
 			task.setFileName2(fileName);
 		}
-//		if (pdfFile != null && !pdfFile.isEmpty()) {
-//			validatePdf(pdfFile);
-//			String fileName = saveFile(pdfFile, "pdf");
-//			task.setFileName1(fileName);
-//		}
-//		if (zipFile != null && !zipFile.isEmpty()) {
-//			validateZip(zipFile);
-//			String fileName = saveFile(zipFile, "zip");
-//			task.setFileName2(fileName);
-//		}
+
 		TaskEntity savedTask = taskRepository.save(task);
 
 		String action;
@@ -629,5 +631,79 @@ public class TaskServiceImpl implements TaskService {
 				&& (task.getTaskStatus() == 2 || task.getTaskStatus() == 4);
 
 		return addedByMatch || assignedToMatch;
+	}
+
+	
+
+	@Override
+	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime) {
+		if (categoryId == null || categoryId <= 0) {
+			throw new InvalidRequestException("Invalid category id");
+		}
+
+		LocalDateTime start = parseStartDateTime(startDateTime);
+		String startDate = start.toLocalDate().toString();
+		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
+
+		Integer pickedUserId = null;
+		Double pickedHours = null;
+
+		try {
+			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
+
+			if (rows != null && !rows.isEmpty()) {
+				double min = Double.MAX_VALUE;
+				List<Integer> candidates = new ArrayList<Integer>();
+
+				for (Object[] row : rows) {
+					int userId = ((Number) row[0]).intValue();
+					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
+
+					if (hours < min) {
+						min = hours;
+						candidates.clear();
+						candidates.add(userId);
+					} else if (hours == min) {
+						candidates.add(userId);
+					}
+				}
+				pickedUserId = candidates.get(random.nextInt(candidates.size()));
+				pickedHours = min;
+			} else {
+				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
+			}
+		} catch (Exception e) {
+			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
+		}
+
+		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+		if (pickedUserId == null || pickedUserId == 0) {
+			return result;
+		}
+
+		Map<String, Object> item = new LinkedHashMap<String, Object>();
+		item.put("assignedTo", pickedUserId);
+		item.put("hours", pickedHours);
+		result.add(item);
+		return result;
+	}
+
+
+	private LocalDateTime parseStartDateTime(String value) {
+	    if (value == null || value.trim().isEmpty()) {
+	        return LocalDateTime.now();
+	    }
+	    String v = value.trim();
+	    try {
+	        return v.length() == 10
+	                ? LocalDate.parse(v).atStartOfDay()
+	                : LocalDateTime.parse(v, DATE_TIME_FMT);
+	    } catch (DateTimeParseException e) {
+	        throw new InvalidRequestException("Invalid start date. Use yyyy-MM-dd HH:mm:ss");
+	    }
+	}
+
+	private int toWeeklyOffDay(LocalDate date) {
+	    return (date.getDayOfWeek().getValue() % 7) + 1;
 	}
 }
