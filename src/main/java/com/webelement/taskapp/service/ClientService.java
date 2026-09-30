@@ -1080,7 +1080,7 @@ public class ClientService {
 	}
 
 	// For Recurring
-	public List<ClientDTO> getClientsForRecurring(Integer userId, String isAdmin, String loginType) {
+	public List<ClientDTO> getClientsForRecurring(Integer userId, String isAdmin, String loginType,String isHod) {
 
 		Short activeStatus = 1;
 		List<ClientEntity> clients;
@@ -1093,7 +1093,7 @@ public class ClientService {
 
 		}
 		// NON-MANAGER + ADMIN
-		else if ("Y".equalsIgnoreCase(isAdmin)) {
+		else if ("Y".equalsIgnoreCase(isAdmin) || "Y".equalsIgnoreCase(isHod)) {
 
 			clients = clientRepository.findByStatus(activeStatus);
 

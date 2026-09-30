@@ -83,9 +83,10 @@ public class TaskCategoryController {
 
 	@GetMapping("recurring/active")
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
+			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId,
+			@RequestParam("isHod") String isHod) {
 
-		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType);
+		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType,isHod);
 	}
 
 

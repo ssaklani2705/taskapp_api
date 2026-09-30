@@ -237,7 +237,7 @@ public class TaskCategoryService {
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(
 	        Integer userId,
 	        String isAdmin,
-	        String loginType) {
+	        String loginType,String isHod) {
 
 	    // Get all active categories
 	    List<TaskCategoryEntity> list =
@@ -246,7 +246,7 @@ public class TaskCategoryService {
 	    /*
 	     * ADMIN
 	     * -----
-	     * Admin can see all active task categories.
+	     * Admin can see all active task categories. "Y".equalsIgnoreCase(isHod) ||
 	     */
 	    if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
 
