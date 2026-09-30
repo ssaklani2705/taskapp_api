@@ -145,10 +145,7 @@ public class TaskEditDTO {
 		this.priority = priority;
 		this.clientName = clientName;
 	}
-<<<<<<< HEAD
 
-           
-=======
 	
 	// Used by TaskRepository.findTasksByStatus
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
@@ -167,6 +164,6 @@ public class TaskEditDTO {
 		this.clientId = clientId;
 		this.clientName = clientName;
 	}
->>>>>>> 9c5d9f08d9d79b6be9257fc7ea9f8e1b22f9f9f5
+
 	
 }
