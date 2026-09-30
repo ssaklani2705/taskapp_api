@@ -112,4 +112,8 @@ public class TaskEntity {
 
 	@Transient
 	private Integer ManagerId;
+	
+	@Column(name = "d_enddate")
+	private LocalDateTime endDate;
+
 }

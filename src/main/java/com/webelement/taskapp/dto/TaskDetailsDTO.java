@@ -16,7 +16,7 @@ public class TaskDetailsDTO {
 		private Integer managerId;
 	    private String clientName;
 	    private LocalDateTime date;
-	    private String dueDateTime;
+	    private LocalDateTime dueDateTime;
 	    private String taskCategoryName;
 	    private String assignedToName;
 	    private Short priority;
@@ -32,29 +32,22 @@ public class TaskDetailsDTO {
 	    private Integer taskCategoryId;
 	    
 
-		public TaskDetailsDTO(int taskId,Integer managerId, String clientName, LocalDateTime date, String dueDateTimeHours, // e.g. "50"
-																											// -> hours
-																											// to add on
-																											// top of
-																											// `date`
+		public TaskDetailsDTO(int taskId, Integer managerId, String clientName, LocalDateTime date,
+				LocalDateTime dueDateTimeHours, // e.g. "50"
+				// -> hours
+				// to add on
+				// top of
+				// `date`
 				String taskCategoryName, String assignedToName, short priority, short status, String title,
-				short taskStatus, int assignedTo, int addedBy,String assignedbyName,String description,int clientId,int taskCategoryId) {
+				short taskStatus, int assignedTo, int addedBy, String assignedbyName, String description, int clientId,
+				int taskCategoryId) {
 
 			this.taskId = taskId;
-				this.managerId =managerId;
+			this.managerId = managerId;
 			this.clientName = clientName;
 			this.date = date;
 
-			if (date != null && dueDateTimeHours != null && !dueDateTimeHours.isBlank()) {
-				try {
-					long hours = Long.parseLong(dueDateTimeHours.trim());
-					this.dueDateTime = date.plusHours(hours).format(DATE_TIME_FORMATTER);
-				} catch (NumberFormatException e) {
-					this.dueDateTime = null; // or log a warning
-				}
-			} else {
-				this.dueDateTime = null;
-			}
+			this.dueDateTime = dueDateTimeHours;
 
 			this.taskCategoryName = taskCategoryName;
 			this.assignedToName = assignedToName;
@@ -66,7 +59,7 @@ public class TaskDetailsDTO {
 			this.addedBy = addedBy;
 			this.assignedbyName = assignedbyName;
 			this.description = description;
-			
+
 			this.clientId = clientId;
 			this.taskCategoryId = taskCategoryId;
 		}

@@ -23,7 +23,7 @@ public class TaskEditDTO {
 	private Integer clientId;
 	private String closeRemarks;
 	private LocalDateTime date;
-	  private String dueDateTime;
+	  private LocalDateTime dueDateTime;
 	private String description;
 	private String fileName1;
 	private String fileName2;
@@ -66,7 +66,7 @@ public class TaskEditDTO {
 	        String assignedUserName,
 	        String addedByName,
 	        Short taskStatus,
-	        String dueDatetime) {
+	        LocalDateTime dueDatetime) {
 
 	    super();
 
@@ -130,6 +130,25 @@ public class TaskEditDTO {
     }
 
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
+<<<<<<< HEAD
+			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTimeHours, Short priority,
+			String clientName) {
+		this.taskId = taskId;
+		this.assignedTo = assignedTo;
+		this.assignedUserName = assignedUserName;
+		this.title = title;
+		this.taskStatus = taskStatus;
+		this.addedBy = addedBy;
+		this.addedByName = addedByName;
+		this.date = date;
+
+		
+			this.dueDateTime = dueDateTimeHours;
+		
+		this.priority = priority;
+		this.clientName = clientName;
+	}
+=======
             Integer addedBy, String addedByName, LocalDateTime date, String dueDateTimeHours, Short priority,
             Integer clientId, String clientName) {
         this.taskId = taskId;
@@ -154,5 +173,6 @@ public class TaskEditDTO {
         this.clientId = clientId;
         this.clientName = clientName;
     }
+>>>>>>> 1e1265ac13c21312870001731baef3a80337c1e5
 	
 }

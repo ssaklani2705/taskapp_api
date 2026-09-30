@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
+import com.webelement.taskapp.dto.AssigneeWorkloadDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
@@ -204,89 +206,35 @@ public class TaskController {
 		});
 		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
 		Map<String, Object> response = new HashMap<>();
-
 		response.put("clients", clientsFuture.join());
 		response.put("taskCategories", taskCategoriesFuture.join());
 		response.put("assignedUsers", assignedUsersFuture.join());
-
-//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-	
 		return response;
 	}
 
 	@PostMapping(value = "/saveTask", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> saveTask(
-
-			@RequestParam(required = false) Integer taskId,
-
-			@RequestParam Integer clientId,
-
-			@RequestParam String date,
-
-			@RequestParam Integer taskCategoryId,
-
-			@RequestParam String description,
-
-			@RequestParam Integer assignedTo,
-
-			@RequestParam Short priority,
-
-			@RequestParam String title,
-
-			@RequestParam Integer addedBy,
-
-			@RequestParam(required = false) Short status,
-
+	public ResponseEntity<?> saveTask(@RequestParam(required = false) Integer taskId, @RequestParam Integer clientId,
+			@RequestParam String startDate, @RequestParam Integer taskCategoryId, @RequestParam String description,
+			@RequestParam Integer assignedTo, @RequestParam Short priority, @RequestParam String title,
+			@RequestParam Integer addedBy, @RequestParam(required = false) Short status,
 			@RequestParam(required = false, name = "fileName1") MultipartFile fileName1,
-
-			@RequestParam(required = false, name = "fileName2") MultipartFile fileName2) {
-
+			@RequestParam(required = false, name = "fileName2") MultipartFile fileName2, @RequestParam String endDate) {
 		Map<String, Object> response = new HashMap<>();
-
 		try {
-
-			// -----------------------------------------
-			// CREATE / UPDATE
-			// -----------------------------------------
-
 			boolean isUpdate = taskId != null;
-
-			// -----------------------------------------
-			// DATE
-			// -----------------------------------------
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//			LocalDateTime taskDate = LocalDateTime.parse(date);
-			LocalDateTime taskDate = LocalDateTime.parse(date, formatter);
-
-			// -----------------------------------------
-			// SAVE / UPDATE
-			// -----------------------------------------
-
-			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskDate, taskCategoryId, description,
-					assignedTo, priority, title, addedBy, status, fileName1, fileName2);
-
-			// -----------------------------------------
-			// RESPONSE
-			// -----------------------------------------
-
+			LocalDateTime taskStartDate = LocalDateTime.parse(startDate, formatter);
+			LocalDateTime taskEndDate = LocalDateTime.parse(endDate, formatter);
+			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskStartDate, taskCategoryId, description,assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate);
 			response.put("success", true);
-
 			response.put("message", isUpdate ? "Task updated successfully" : "Task created successfully");
-
 			response.put("data", savedTask);
-
 			return ResponseEntity.ok(response);
-
 		} catch (Exception e) {
-
 			e.printStackTrace();
-
 			response.put("success", false);
-
 			response.put("message", e.getMessage());
-
 			response.put("data", null);
-
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 	}
@@ -313,5 +261,14 @@ public class TaskController {
 	
 	
 	
+<<<<<<< HEAD
+=======
+	@GetMapping("/assignee_workload")
+	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId, @RequestParam String date) {
+		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId,date);
+		String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
+		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
+	}
+>>>>>>> 02d8aa8aefab855a576d66e28c4d8be792e84189
 
 }
