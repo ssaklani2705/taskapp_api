@@ -204,22 +204,18 @@ public class TaskServiceImpl implements TaskService {
 //		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 //	}
 
-	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
-			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
-			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter, String isHod) {
+	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,String dashboardFilter, String isHod,boolean ignoreTaskStatusFilter) {
+		
 		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
-
+		
 		LocalDate today = LocalDate.now();
 		LocalDateTime currentTime = LocalDateTime.now();
 		LocalDateTime startOfToday = today.atStartOfDay();
 		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
 		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
-		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
-				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
-				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod);
+		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod);
 
 	}
 

@@ -340,8 +340,7 @@ public class DepartmentService {
 						PageRequest.of(
 								page,
 								size),
-						statusIndex,
-						search);
+						statusIndex, search);
 	}
 
 	// =========================================================
