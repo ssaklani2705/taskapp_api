@@ -21,10 +21,6 @@ public class DesignationController {
 	@Autowired
 	private DesignationService desigmationService;
 
-	// ----------------------------------------------------
-	// PAGINATION + SEARCH
-	// ----------------------------------------------------
-
 	@GetMapping("/getDesignationDetails")
 	public Map<String, Object> findDesigmationDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex, @RequestParam(required = false) String search) {

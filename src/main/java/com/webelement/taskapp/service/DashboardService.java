@@ -102,7 +102,7 @@ public class DashboardService {
 
 					.statusCounts(new StatusCountsResponse()).build();
 		}
-
+		
 		List<TaskEntity> tasksToday = tasks.stream().filter(task -> {
 			LocalDateTime taskDate = task.getDate();
 
@@ -145,18 +145,15 @@ public class DashboardService {
 				.collect(Collectors.toList());
 
 		DashboardMetricDTO myTasksTodayMetric = DashboardMetricDTO.builder().count(tasksToday.size())
-				.taskStatusIds(tasksToday.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
-						.sorted().collect(Collectors.toList()))
+				.taskStatusIds(getStatusIds(tasksToday))
 				.build();
 
 		DashboardMetricDTO dueThisWeekMetric = DashboardMetricDTO.builder().count(dueThisWeek.size())
-				.taskStatusIds(dueThisWeek.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
-						.sorted().collect(Collectors.toList()))
+				.taskStatusIds(getStatusIds(dueThisWeek))
 				.build();
 
 		DashboardMetricDTO overdueMetric = DashboardMetricDTO.builder().count(overdueTasks.size())
-				.taskStatusIds(overdueTasks.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct()
-						.sorted().collect(Collectors.toList()))
+				.taskStatusIds(getStatusIds(overdueTasks))
 				.build();
 
 		return TaskDashboardResponse.builder()
@@ -382,4 +379,11 @@ public class DashboardService {
         return taskRepository.countOfUnassignedTask(clientId, userId);
     }
 
+	private List<Short> getStatusIds(List<TaskEntity> tasks) {
+	    return tasks.stream()
+	            .map(task -> task.getTaskStatus() == null ? (short) -1 : task.getTaskStatus())
+	            .distinct()
+	            .sorted()
+	            .collect(Collectors.toList());
+	}
 }
