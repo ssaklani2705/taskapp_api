@@ -140,6 +140,7 @@ public class TaskController {
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 //		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId));
+		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}
 
