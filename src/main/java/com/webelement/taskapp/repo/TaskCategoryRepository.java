@@ -214,4 +214,8 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 		       "ORDER BY tc.name")
 		List<String> findNamesByIds(
 		        @Param("categoryIds") List<Integer> categoryIds);
+	
+	
+	@Query("SELECT t.duedatetime FROM TaskCategoryEntity t " + "WHERE t.taskcategoryId = :categoryId")
+	String findDueTimeByCategoryId(@Param("categoryId") Integer categoryId);
 }
