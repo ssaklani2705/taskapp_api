@@ -120,13 +120,24 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	        @Param("isAdmin") String isAdmin,
 	        @Param("isHod") String isHod);
 	
-//	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
-//	List<TaskCategoryEntity> findAllActiveTaskCategories();
-	
-	@Query("SELECT tc FROM TaskCategoryEntity tc "
-	        + "WHERE tc.status = 1 OR LOWER(TRIM(tc.name)) = 'admin task' "
-	        + "ORDER BY tc.name ASC")
+	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
 	List<TaskCategoryEntity> findAllActiveTaskCategories();
+	
+//	@Query("SELECT tc FROM TaskCategoryEntity tc "
+//	        + "WHERE tc.status = 1 "
+//	        + "AND ( "
+//	        + "     :isHod <> 'Y' "
+//	        + "     OR EXISTS ( "
+//	        + "          SELECT 1 FROM UserLoginEntity h "
+//	        + "          WHERE h.userId = :userId "
+//	        + "          AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+//	        + "              LIKE CONCAT('%,', tc.taskcategoryId, ',%') "
+//	        + "     ) "
+//	        + ") "
+//	        + "ORDER BY tc.name ASC")
+//	List<TaskCategoryEntity> findAllActiveTaskCategories(
+//	        @Param("isHod") String isHod,
+//	        @Param("userId") Integer userId);
 	
 	// ===== CHANGED: user's departments are now a CSV (ul.departmentIdsCsv) =====
 	// OLD: AND tc.departmentId = (SELECT ul.departmentId FROM UserLoginEntity ul WHERE ...)
