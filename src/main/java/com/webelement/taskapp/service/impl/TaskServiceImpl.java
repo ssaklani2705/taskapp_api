@@ -708,30 +708,30 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime start = parseStartDateTime(startDateTime);
 		String startDate = start.toLocalDate().toString();
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
-
+		
 		Integer pickedUserId = null;
 		Double pickedHours = null;
 		
 		
 		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(),start.toLocalDate());
-		System.err.println(holidayCount + " holidayCount =");
+	
 		if (holidayCount > 0) {
-		    throw new InvalidRequestException(
-		            "Selected date range falls on a holiday.");
+		    throw new InvalidRequestException("Selected date range falls on a holiday.");
 		}
 
 		try {
 			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
-//			 System.out.println("rows is null = " + (rows == null));
+			 System.out.println("rows is null = " + rows.toString());
 
-			  
-				
+		
 			
 			if (rows != null && !rows.isEmpty()) {
 				double min = Double.MAX_VALUE;
 				List<Integer> candidates = new ArrayList<Integer>();
 				
 				for (Object[] row : rows) {
+					
+					
 					  System.out.println(Arrays.toString(row) + " Arrays Are Here ");
 					
 
@@ -757,7 +757,8 @@ public class TaskServiceImpl implements TaskService {
 		} catch (Exception e) {
 			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
 		}
-
+		
+	
 		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 		if (pickedUserId == null || pickedUserId == 0) {
 			return result;

@@ -71,13 +71,13 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 		}
 		Set<String> toEmails = new LinkedHashSet<>();
 		Set<String> ccEmails = new LinkedHashSet<>();
-		addEmail(toEmails, assignedUser);
+		commonFunction.addEmail(toEmails, assignedUser);
 		boolean isAdminUser = "Y".equalsIgnoreCase(request.getIsAdmin());
 		if (isAdminUser) {
-			addEmail(toEmails, addedByUser);
-			addEmail(ccEmails, actionUser);
+			commonFunction.addEmail(toEmails, addedByUser);
+			commonFunction.addEmail(ccEmails, actionUser);
 		} else {
-			addEmail(ccEmails, addedByUser);
+			commonFunction.addEmail(ccEmails, addedByUser);
 		}
 		ccEmails.removeAll(toEmails);
 
@@ -86,8 +86,8 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 			return;
 		}
 
-		String recipientName = assignedUser.getFirstName() != null ? assignedUser.getFirstName() : "";
-		String actionUserName = actionUser != null && actionUser.getFirstName() != null ? actionUser.getFirstName() : "";
+		String recipientName =  commonFunction.getFirstName(assignedUser);
+		String actionUserName = commonFunction.getFirstName(actionUser);
 		String mailBody = commonFunction.getTaskNotesMailTemplate(recipientName, task.getTitle(), request.getNote(),actionUserName, "");
 
 		String[] to = toEmails.toArray(new String[0]);
@@ -110,17 +110,6 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 				subject, filePath + "/" + fname, ip, iplocal, 1);
 	}
 
-	private void addEmail(Set<String> emails, UserLoginEntity user) {
 
-		if (user == null || user.getEmail() == null) {
-			return;
-		}
-
-		String email = user.getEmail().trim().toLowerCase();
-
-		if (!email.isEmpty()) {
-			emails.add(email);
-		}
-	}
 
 }

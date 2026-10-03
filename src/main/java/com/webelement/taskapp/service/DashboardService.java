@@ -241,9 +241,7 @@ public class DashboardService {
                 .clientName(task.getClient() != null ? task.getClient().getName() : null)
                 .taskCategoryId(task.getTaskCategoryId())
                 .taskCategoryName(task.getTaskCategory() != null ? task.getTaskCategory().getName() : null)
-                .dueDateTime(task.getTaskCategory() != null
-                        ? calculateDueDateTime(task.getDate(), task.getTaskCategory().getDuedatetime())
-                        : null)
+                .dueDateTime(task.getEndDate())
                 .assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
                 .assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
                 .title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))

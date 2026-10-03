@@ -1,5 +1,7 @@
 package com.webelement.taskapp.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +26,7 @@ public class TaskMailDTO {
 	private String reopendBy;
 	private String submittedOn;
 	private String priority;
-	private String dueDate;
+	private LocalDateTime dueDate;
 	private String remark;
 	private String url;
 	private String reClosedBy;

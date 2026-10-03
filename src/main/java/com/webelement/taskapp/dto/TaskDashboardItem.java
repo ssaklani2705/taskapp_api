@@ -21,7 +21,7 @@ public class TaskDashboardItem {
 	private String clientName;
 
 	private String taskCategoryName;
-	private String dueDateTime;
+	private LocalDateTime dueDateTime;
 	private String assignedUser;
 	
 	private String assignedByUser;

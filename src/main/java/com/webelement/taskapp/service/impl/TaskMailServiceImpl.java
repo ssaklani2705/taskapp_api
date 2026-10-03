@@ -83,42 +83,31 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String reClosedBy = "";
 		String closedBy = "";
 		if (isClose) {
-			addEmail(toSet, assignedUser);
-			addEmail(ccSet, addedByUser);
-			addEmail(ccSet, societyManager);
-			recipientName = assignedUser.getFirstName();
-			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
-			submittedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+			commonFunction.addEmail(toSet, assignedUser);
+			commonFunction.addEmail(ccSet, addedByUser);
+			commonFunction.addEmail(ccSet, societyManager);
+			recipientName = commonFunction.getFirstName(assignedUser);
+			assignedBy = commonFunction.getFirstName(addedByUser);
+			submittedOn = commonFunction.formatNow();
 
 			if ("Re-Open".equalsIgnoreCase(newStatus)) {
-				reopenedBy = addedByUser != null ? addedByUser.getFirstName() : "";
-				reopenedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+				reopenedBy = commonFunction.getFirstName(addedByUser);
+				reopenedOn = commonFunction.formatNow();
 			}
 
 		} else {
 
-			addEmail(toSet, addedByUser); // addBy user
-			addEmail(ccSet, assignedUser); // assignee user
-			addEmail(ccSet, societyManager);
-			recipientName = addedByUser.getFirstName();
-			System.err.println("assignedUser = " + assignedUser.getFirstName() + " " + "addedByUser = "
-					+ societyManager.getFirstName() + " " + "societyManager = " + societyManager.getFirstName());
-			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
+			commonFunction.addEmail(toSet, addedByUser); // addBy user
+			commonFunction.addEmail(ccSet, assignedUser); // assignee user
+			commonFunction.addEmail(ccSet, societyManager);
+			assignedBy = recipientName = commonFunction.getFirstName(addedByUser);
 
-			reClosedBy = closedBy = assignedUser != null ? assignedUser.getFirstName() : "";
+//			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
 
-			submittedOn = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+			reClosedBy = closedBy = commonFunction.getFirstName(assignedUser);
+			submittedOn = commonFunction.formatNow();
 		}
 
-//		if (isClose) {
-//			addEmail(toSet, addedByUser);
-//			addEmail(ccSet, assignedUser);
-//			addEmail(ccSet, societyManager);
-//		} else {
-//			addEmail(toSet, assignedUser);
-//			addEmail(ccSet, addedByUser);
-//			addEmail(ccSet, societyManager);
-//		}
 		ccSet.removeAll(toSet);
 		if (toSet.isEmpty()) {
 			logger.warn("No recipient found for task {}", task.getTaskId());
@@ -126,10 +115,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 		}
 //		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
 		TaskMailDTO taskMailDTO = TaskMailDTO.builder().name(recipientName).taskName(task.getTitle())
-				.clientName(client.getName()).assignedBy(assignedBy).previousStatus(oldStatus)
-				.currentStatus(newStatus).reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
-				.priority(getPriorityName(task.getPriority())).reClosedBy(reClosedBy).dueDate(calculateDueDate(task))
-				.closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
+				.clientName(client.getName()).assignedBy(assignedBy).previousStatus(oldStatus).currentStatus(newStatus)
+				.reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
+				.priority(commonFunction.getPriorityName(task.getPriority())).reClosedBy(reClosedBy)
+				.dueDate(task.getEndDate()).closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
 
 		String mailBody = commonFunction.getTaskStatusMailTemplate(taskMailDTO);
 		String[] to = toSet.toArray(new String[0]);
@@ -164,24 +153,22 @@ public class TaskMailServiceImpl implements TaskMailService {
 		UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
 		Set<String> toSet = new LinkedHashSet<>();
 		Set<String> ccSet = new LinkedHashSet<>();
-		addEmail(toSet, newAssignee);
-		addEmail(ccSet, assignor);
-		addEmail(ccSet, societyManager);
-		addEmail(ccSet, oldAssignee);
+		commonFunction.addEmail(toSet, newAssignee);
+		commonFunction.addEmail(ccSet, assignor);
+		commonFunction.addEmail(ccSet, societyManager);
+		commonFunction.addEmail(ccSet, oldAssignee);
 		ccSet.removeAll(toSet);
 		if (toSet.isEmpty()) {
 			logger.warn("No recipient found for task {}", task.getTaskId());
 			return;
 		}
-		String recipientName = newAssignee != null ? newAssignee.getFirstName() : "";
-		String startDate = "";
+		String recipientName = commonFunction.getFirstName(newAssignee);
 
-		if (task.getDate() != null) {
-			startDate = task.getDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
-		}
 		String mailBody = commonFunction.getTaskReAssignedMailTemplate(recipientName, task.getTitle(),
-				assignor != null ? assignor.getFirstName() : "", client != null ? client.getName() : "",
-				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getCloseRemarks());
+				commonFunction.getFirstName(assignor), client != null ? client.getName() : "",
+				commonFunction.getPriorityName(task.getPriority()), commonFunction.formatDate(task.getDate()),
+				commonFunction.formatDate(task.getEndDate()), task.getCloseRemarks());
+
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
@@ -217,19 +204,16 @@ public class TaskMailServiceImpl implements TaskMailService {
 		}
 		Set<String> toSet = new LinkedHashSet<>();
 		Set<String> ccSet = new LinkedHashSet<>();
-		addEmail(toSet, assignedUser);
-		addEmail(ccSet, addedByUser);
-		addEmail(ccSet, societyManager);
+		commonFunction.addEmail(toSet, assignedUser);
+		commonFunction.addEmail(ccSet, addedByUser);
+		commonFunction.addEmail(ccSet, societyManager);
 		ccSet.removeAll(toSet);
-		String recipientName = assignedUser.getFirstName();
-		String startDate = "";
+		String recipientName = commonFunction.getFirstName(assignedUser);
 
-		if (task.getDate() != null) {
-			startDate = task.getDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
-		}
 		String mailBody = commonFunction.getTaskAssignedMailTemplate(recipientName, task.getTitle(),
-				addedByUser != null ? addedByUser.getFirstName() : "", client != null ? client.getName() : "",
-				getPriorityName(task.getPriority()), startDate, calculateDueDate(task), task.getDescription());
+				commonFunction.getFirstName(addedByUser), client != null ? client.getName() : "",
+				commonFunction.getPriorityName(task.getPriority()), commonFunction.formatDate(task.getDate()),
+				commonFunction.formatDate(task.getEndDate()), task.getDescription());
 
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
@@ -244,58 +228,4 @@ public class TaskMailServiceImpl implements TaskMailService {
 				subject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 
-	private void addEmail(Set<String> emails, UserLoginEntity user) {
-		
-		if (user != null && user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
-
-			emails.add(user.getEmail().trim());
-		}
-	}
-
-	private String getPriorityName(Short priority) {
-
-		if (priority == null) {
-			return "";
-		}
-
-		switch (priority) {
-		case 1:
-			return "High";
-
-		case 2:
-			return "Medium";
-
-		case 3:
-			return "Low";
-
-		default:
-			return "";
-		}
-	}
-
-	private String calculateDueDate(TaskEntity task) {
-
-		if (task == null || task.getTaskCategoryId() == null || task.getDate() == null) {
-			return "";
-		}
-
-		TaskCategoryEntity taskCategory = TaskCategoryRepository.findById(task.getTaskCategoryId()).orElse(null);
-
-		if (taskCategory == null || taskCategory.getDuedatetime() == null || taskCategory.getDuedatetime().isBlank()) {
-			return "";
-		}
-
-		try {
-
-			long hours = Long.parseLong(taskCategory.getDuedatetime().trim());
-
-			return task.getDate().plusHours(hours).format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
-
-		} catch (Exception e) {
-
-			logger.error("Error calculating due date for task {}", task.getTaskId(), e);
-
-			return "";
-		}
-	}
 }

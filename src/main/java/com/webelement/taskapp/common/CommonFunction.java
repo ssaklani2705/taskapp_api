@@ -11,11 +11,13 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,7 @@ import org.springframework.stereotype.Component;
 import com.webelement.taskapp.dto.TaskMailDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
+import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.TaskRepository;
@@ -436,7 +439,7 @@ public class CommonFunction {
 		}
 
 		rows.put("Priority", param.getPriority());
-		rows.put("Due Date", param.getDueDate());
+		rows.put("Due Date", formatDate(param.getDueDate()));
 		rows.put("Remark", param.getRemark());
 
 		StringBuilder statusRows = new StringBuilder();
@@ -452,5 +455,50 @@ public class CommonFunction {
 
 	private String nvl(String value) {
 		return value == null ? "" : value;
+	}
+	
+	public String formatDate(LocalDateTime dateTime) {
+	    if (dateTime == null) {
+	        return "";
+	    }
+	    return dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+	}
+	
+	public String getPriorityName(Short priority) {
+
+		if (priority == null) {
+			return "";
+		}
+
+		switch (priority) {
+		case 1:
+			return "High";
+
+		case 2:
+			return "Medium";
+
+		case 3:
+			return "Low";
+
+		default:
+			return "";
+		}
+	}
+	
+	public void addEmail(Set<String> emails, UserLoginEntity user) {
+
+		if (user != null && user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+
+			emails.add(user.getEmail().trim());
+		}
+	}
+	
+	public String getFirstName(UserLoginEntity user) {
+	    return user != null ? user.getFirstName() : "";
+	}
+
+	public String formatNow() {
+	    return LocalDateTime.now()
+	            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
 	}
 }
