@@ -185,7 +185,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		    "SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
 		    "FROM UserLoginEntity u " +
 		    "WHERE u.status = 1 " +
-		    "AND (u.isHod IS NULL OR u.isHod <> 'Y') " +
+//		    "AND (u.isHod IS NULL OR u.isHod <> 'Y') " +
 		    "AND ( " +
 		    "    u.userId = ( " +
 		    "        SELECT c.managerId " +

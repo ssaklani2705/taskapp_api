@@ -282,23 +282,50 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     Optional<TaskEntity> findByIdForUpdate(@Param("taskId") Integer taskId);
 
     
-    @Query(value = "SELECT i_assignedto, SUM(TIMESTAMPDIFF(HOUR, d_date, d_enddate)) AS hours FROM t_task "
-            + "WHERE i_assignedto IN (SELECT i_userid FROM t_userlogin "
-            + "     WHERE FIND_IN_SET(:taskCatId, s_taskcategoryIds) AND i_status = 1 "
-            + "     AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek)) "
-            + "AND ((:startDateTime >= d_date AND :startDateTime <= d_enddate) "
-            + "     OR DATE_FORMAT(d_date, '%Y-%m-%d') = :startDate) "
-//            + "AND i_assignedto IN (SELECT i_userid FROM t_attendance "
-//            + "     WHERE DATE_FORMAT(ts_intime, '%Y-%m-%d') = :startDate) "
-            + "AND i_taskcategoryid = :taskCatId AND i_taskstatus IN (1,3) "
-            + "GROUP BY i_assignedto ORDER BY hours", nativeQuery = true)
+//    @Query(value = "SELECT i_assignedto, SUM(TIMESTAMPDIFF(HOUR, d_date, d_enddate)) AS hours FROM t_task "
+//            + "WHERE i_assignedto IN (SELECT i_userid FROM t_userlogin "
+//            + "     WHERE FIND_IN_SET(:taskCatId, s_taskcategoryIds) AND i_status = 1 "
+//            + "     AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek)) "
+//            + "AND ((:startDateTime >= d_date AND :startDateTime <= d_enddate) "
+//            + "     OR DATE_FORMAT(d_date, '%Y-%m-%d') = :startDate) "
+////            + "AND i_assignedto IN (SELECT i_userid FROM t_attendance "
+////            + "     WHERE DATE_FORMAT(ts_intime, '%Y-%m-%d') = :startDate) "
+//            + "AND i_taskcategoryid = :taskCatId AND i_taskstatus IN (1,3) "
+//            + "GROUP BY i_assignedto ORDER BY hours", nativeQuery = true)
+//    List<Object[]> findWorkloadByCategory(@Param("taskCatId") int taskCatId,
+//                                          @Param("dayOfWeek") int dayOfWeek,
+//                                          @Param("startDateTime") LocalDateTime startDateTime,
+//                                          @Param("startDate") String startDate);
+//    
+//    // Fallback: random eligible user
+//    @Query(value = "SELECT i_userid FROM t_userlogin WHERE i_status = 1 "
+//            + "AND FIND_IN_SET(:taskCatId, s_taskcategoryIds) "
+//            + "AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek) "
+//            + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
+//    Optional<Integer> findRandomEligibleUser(@Param("taskCatId") int taskCatId,
+//                                             @Param("dayOfWeek") int dayOfWeek);
+    
+    @Query(value = "SELECT u.i_userid, COALESCE(SUM(TIMESTAMPDIFF(HOUR, t.d_date, t.d_enddate)), 0) AS hours "
+            + "FROM t_userlogin u "
+            + "LEFT JOIN t_task t ON t.i_assignedto = u.i_userid "
+            + "     AND t.i_taskcategoryid = :taskCatId "
+            + "     AND t.i_taskstatus IN (1,3) "
+            + "     AND ((:startDateTime >= t.d_date AND :startDateTime <= t.d_enddate) "
+            + "          OR DATE_FORMAT(t.d_date, '%Y-%m-%d') = :startDate) "
+            + "WHERE u.i_status = 1 "
+            + "AND u.s_ishod = 'N' "
+            + "AND FIND_IN_SET(:taskCatId, u.s_taskcategoryIds) "
+            + "AND (u.i_weekly_off IS NULL OR u.i_weekly_off != :dayOfWeek) "
+            + "GROUP BY u.i_userid "
+            + "ORDER BY hours", nativeQuery = true)
     List<Object[]> findWorkloadByCategory(@Param("taskCatId") int taskCatId,
                                           @Param("dayOfWeek") int dayOfWeek,
                                           @Param("startDateTime") LocalDateTime startDateTime,
                                           @Param("startDate") String startDate);
-    
+
     // Fallback: random eligible user
     @Query(value = "SELECT i_userid FROM t_userlogin WHERE i_status = 1 "
+            + "AND s_ishod = 'N' "
             + "AND FIND_IN_SET(:taskCatId, s_taskcategoryIds) "
             + "AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek) "
             + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
