@@ -170,7 +170,12 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	Page<TaskCategoryDTO> findTaskCategoryDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("departmentId") int departmentId);
 
-	List<TaskCategoryEntity> findByStatus(Integer status);
+//	List<TaskCategoryEntity> findByStatus(Integer status);
+	
+	@Query("SELECT tc FROM TaskCategoryEntity tc "
+	        + "WHERE tc.status = :status "
+	        + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
+	List<TaskCategoryEntity> findByStatus(@Param("status") Integer status);
 	
 	@Query("SELECT tc FROM TaskCategoryEntity tc "
 	        + "WHERE tc.status = :status "
