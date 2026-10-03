@@ -13,5 +13,5 @@ import lombok.ToString;
 @NoArgsConstructor
 public class AssigneeWorkloadDTO {
 	   private Integer assignedTo;
-	    private Long hours;
+	    private Integer hours;
 }
