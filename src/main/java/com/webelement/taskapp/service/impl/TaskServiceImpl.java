@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,6 +56,7 @@ import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
+import com.webelement.taskapp.repo.HolidayRepo;
 import com.webelement.taskapp.repo.StateRepo;
 import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -73,6 +75,7 @@ public class TaskServiceImpl implements TaskService {
 	private final HttpServletRequest httpRequest;
 	private final TaskMailService taskMailService;
 	private final ClientRepository clientRepository;
+	private final HolidayRepo holidayRepository;
 	
 	private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private final Random random = new Random();
@@ -702,23 +705,38 @@ public class TaskServiceImpl implements TaskService {
 		if (categoryId == null || categoryId <= 0) {
 			throw new InvalidRequestException("Invalid category id");
 		}
-
 		LocalDateTime start = parseStartDateTime(startDateTime);
 		String startDate = start.toLocalDate().toString();
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
 
 		Integer pickedUserId = null;
 		Double pickedHours = null;
+		
+		
+		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(),start.toLocalDate());
+		System.err.println(holidayCount + " holidayCount =");
+		if (holidayCount > 0) {
+		    throw new InvalidRequestException(
+		            "Selected date range falls on a holiday.");
+		}
 
 		try {
 			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
+//			 System.out.println("rows is null = " + (rows == null));
 
+			  
+				
+			
 			if (rows != null && !rows.isEmpty()) {
 				double min = Double.MAX_VALUE;
 				List<Integer> candidates = new ArrayList<Integer>();
-
+				
 				for (Object[] row : rows) {
+					  System.out.println(Arrays.toString(row) + " Arrays Are Here ");
+					
+
 					int userId = ((Number) row[0]).intValue();
+				
 					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
 
 					if (hours < min) {
@@ -734,6 +752,8 @@ public class TaskServiceImpl implements TaskService {
 			} else {
 				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
 			}
+			
+			//System.err.println(pickedHours + " checking here ");
 		} catch (Exception e) {
 			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
 		}
