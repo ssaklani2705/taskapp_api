@@ -29,6 +29,6 @@ public interface TaskService {
 			
 			public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId);
 				
-			List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime);
+			List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime,String endDateTime);
 
 }

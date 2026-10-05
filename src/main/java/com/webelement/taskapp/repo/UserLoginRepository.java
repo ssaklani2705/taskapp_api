@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -181,28 +182,15 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers(int clientId);
 
-	@Query(
-		    "SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
-		    "FROM UserLoginEntity u " +
-		    "WHERE u.status = 1 " +
-//		    "AND (u.isHod IS NULL OR u.isHod <> 'Y') " +
-		    "AND ( " +
-		    "    u.userId = ( " +
-		    "        SELECT c.managerId " +
-		    "        FROM ClientEntity c " +
-		    "        WHERE c.clientId = :clientId " +
-		    "    ) " +
-		    "    OR " +
-		    "    ( " +
-		    "        FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 " +
-		    "        AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 " +
-		    "    ) " +
-		    ") " +
-		    "ORDER BY u.firstName ASC"
-		)
-	List<UserActiveDTO> findActiveUsers(
-	        @Param("clientId") int clientId,
-	        @Param("categoryId") int categoryId);
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " + "FROM UserLoginEntity u "
+			+ "WHERE u.status = 1 " + "AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) " + "AND ( "
+			+ "    u.userId = ( " + "        SELECT c.managerId " + "        FROM ClientEntity c "
+			+ "        WHERE c.clientId = :clientId " + "    ) " + "    OR ( "
+			+ "        FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
+			+ "        AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 " + "    ) " + ") "
+			+ "ORDER BY u.firstName ASC")
+	List<UserActiveDTO> findActiveUsers(@Param("clientId") int clientId, @Param("categoryId") int categoryId,
+			@Param("weeklyOffDays") Set<Short> weeklyOffDays);
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
