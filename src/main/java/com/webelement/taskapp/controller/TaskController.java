@@ -135,8 +135,7 @@ public class TaskController {
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
 			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
-<<<<<<< HEAD
-			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate) {
+			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate,int systemFlag) {
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -147,14 +146,7 @@ public class TaskController {
 			weeklyOffDays = getWeeklyOffDays(start, end);
 			System.err.println("Weekly Off Days : " + weeklyOffDays);
 		}
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays));
-=======
-			@RequestParam Integer categoryId,@RequestParam(defaultValue = "0") Integer systemFlag) {
-		Map<String, Object> response = new HashMap<>();
-//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId,systemFlag));
->>>>>>> 3c4f7579c5a557322a6d8fbe799793ecb2a4ff37
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays,systemFlag));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}

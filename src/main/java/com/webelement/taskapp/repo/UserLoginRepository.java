@@ -182,41 +182,18 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers(int clientId);
 
-<<<<<<< HEAD
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " + "FROM UserLoginEntity u "
-			+ "WHERE u.status = 1 " + "AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) " + "AND ( "
+			+ "WHERE u.status = 1 " 
+			+ "AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') " 
+			+ "AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) " + "AND ( "
 			+ "    u.userId = ( " + "        SELECT c.managerId " + "        FROM ClientEntity c "
 			+ "        WHERE c.clientId = :clientId " + "    ) " + "    OR ( "
 			+ "        FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
 			+ "        AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 " + "    ) " + ") "
 			+ "ORDER BY u.firstName ASC")
 	List<UserActiveDTO> findActiveUsers(@Param("clientId") int clientId, @Param("categoryId") int categoryId,
-			@Param("weeklyOffDays") Set<Short> weeklyOffDays);
-=======
-	@Query(
-		    "SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) " +
-		    "FROM UserLoginEntity u " +
-		    "WHERE u.status = 1 " +
-//		    "AND (u.isHod IS NULL OR u.isHod <> 'Y') " +
-"AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') " +
-		    "AND ( " +
-		    "    u.userId = ( " +
-		    "        SELECT c.managerId " +
-		    "        FROM ClientEntity c " +
-		    "        WHERE c.clientId = :clientId " +
-		    "    ) " +
-		    "    OR " +
-		    "    ( " +
-		    "        FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 " +
-		    "        AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 " +
-		    "    ) " +
-		    ") " +
-		    "ORDER BY u.firstName ASC"
-		)
-	List<UserActiveDTO> findActiveUsers(
-	        @Param("clientId") int clientId,
-	        @Param("categoryId") int categoryId,@Param("systemFlag") int systemFlag);
->>>>>>> 3c4f7579c5a557322a6d8fbe799793ecb2a4ff37
+			@Param("weeklyOffDays") Set<Short> weeklyOffDays,@Param("systemFlag") int systemFlag);
+
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
