@@ -218,6 +218,12 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
 		LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
+		
+		
+		
+		
+		
+		
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod);
 
 	}

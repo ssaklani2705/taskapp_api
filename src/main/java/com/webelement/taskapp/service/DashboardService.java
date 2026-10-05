@@ -378,10 +378,7 @@ public class DashboardService {
     }
 
 	private List<Short> getStatusIds(List<TaskEntity> tasks) {
-	    return tasks.stream()
-	            .map(task -> task.getTaskStatus() == null ? (short) -1 : task.getTaskStatus())
-	            .distinct()
-	            .sorted()
-	            .collect(Collectors.toList());
+		return tasks.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct().sorted()
+				.collect(Collectors.toList());
 	}
 }
