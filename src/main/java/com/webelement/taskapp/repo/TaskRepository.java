@@ -62,7 +62,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     @Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, c.managerId, " + "c.name, " + "t.date, "
             + "t.endDate, " + "tc.name, " + "COALESCE(u.firstName, '0'), " + "COALESCE(t.priority, 0), " + "t.status, "
             + "t.title, " + "COALESCE(t.taskStatus, 0), " + "COALESCE(t.assignedTo, 0), " + "COALESCE(t.addedBy, 0), "
-            + "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId" + ") " + "FROM TaskEntity t "
+            + "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId,t.systemFlag" + ") " + "FROM TaskEntity t "
             + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
             + "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
             + "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "

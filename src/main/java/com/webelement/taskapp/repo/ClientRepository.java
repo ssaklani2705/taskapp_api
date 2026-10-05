@@ -19,6 +19,8 @@ import com.webelement.taskapp.entity.ClientEntity;
 @Repository
 public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	
+	boolean existsByManagerId(Integer managerId);
+	
     boolean existsByManagerIdAndStatus(Integer managerId, Short status);
 
 	boolean existsByCode(String code);

@@ -115,5 +115,8 @@ public class TaskEntity {
 	
 	@Column(name = "d_enddate")
 	private LocalDateTime endDate;
+	
+	@Column(name = "i_systemflag")
+	private Integer systemFlag;
 
 }

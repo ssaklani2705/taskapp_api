@@ -225,6 +225,9 @@ public class ClientService {
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteClient(Integer clientId, Integer userId,
 			HttpServletRequest httpRequest) {
+		
+		
+
 
 		int updatedRows = clientRepository.deleteClient((short) 3, clientId);
 

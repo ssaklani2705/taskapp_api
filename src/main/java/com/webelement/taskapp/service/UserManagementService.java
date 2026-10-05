@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +36,7 @@ import com.webelement.taskapp.entity.PermissionEntity;
 import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
+import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.PermissionRepo;
@@ -59,6 +62,9 @@ public class UserManagementService {
 
 	@Value("${file_maillog:}")
 	private String file_maillog;
+	
+	@Autowired
+	private ClientRepository clientRepository;
 
 	// ============================================================
 	// CSV HELPERS  (List<Integer>  <->  "1,2,3")
@@ -191,6 +197,12 @@ public class UserManagementService {
 	public ResponseEntity<ResponseApi<String>> deleteUser(int userId, int createdBy, HttpServletRequest httpRequest) {
 		Optional<UserLoginEntity> existingUser = loginRepository.findById(userId);
 
+		boolean isManagerAssigned = clientRepository.existsByManagerId(userId);
+        if (isManagerAssigned) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false,
+                    "User cannot be deleted because the user is assigned as a manager to one or more clients.", null));
+        }
+		
 		if (!existingUser.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, "User not found", null));
 		}

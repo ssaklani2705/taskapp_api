@@ -135,11 +135,11 @@ public class TaskController {
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
 			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
-			@RequestParam Integer categoryId) {
+			@RequestParam Integer categoryId,@RequestParam(defaultValue = "0") Integer systemFlag) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 //		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId));
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId,systemFlag));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}

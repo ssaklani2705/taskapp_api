@@ -186,6 +186,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		    "FROM UserLoginEntity u " +
 		    "WHERE u.status = 1 " +
 //		    "AND (u.isHod IS NULL OR u.isHod <> 'Y') " +
+"AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') " +
 		    "AND ( " +
 		    "    u.userId = ( " +
 		    "        SELECT c.managerId " +
@@ -202,7 +203,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 		)
 	List<UserActiveDTO> findActiveUsers(
 	        @Param("clientId") int clientId,
-	        @Param("categoryId") int categoryId);
+	        @Param("categoryId") int categoryId,@Param("systemFlag") int systemFlag);
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 	+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
