@@ -707,19 +707,29 @@ public class TaskServiceImpl implements TaskService {
 	
 
 	@Override
-	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime) {
+	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime,String endDateTime) {
 		if (categoryId == null || categoryId <= 0) {
 			throw new InvalidRequestException("Invalid category id");
 		}
 		LocalDateTime start = parseStartDateTime(startDateTime);
+		LocalDateTime end = parseStartDateTime(endDateTime);
 		String startDate = start.toLocalDate().toString();
+		String endDate = end.toLocalDate().toString();
+		
+		
+		System.err.println("startDate  " + startDate);
+		System.err.println("endDate  " + endDate);
+		
+		
+		
+		
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
 		
 		Integer pickedUserId = null;
 		Double pickedHours = null;
 		
 		
-		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(),start.toLocalDate());
+		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(),end.toLocalDate());
 	
 		if (holidayCount > 0) {
 		    throw new InvalidRequestException("Selected date range falls on a holiday.");
@@ -736,15 +746,8 @@ public class TaskServiceImpl implements TaskService {
 				List<Integer> candidates = new ArrayList<Integer>();
 				
 				for (Object[] row : rows) {
-					
-					
-					  System.out.println(Arrays.toString(row) + " Arrays Are Here ");
-					
-
 					int userId = ((Number) row[0]).intValue();
-				
 					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
-
 					if (hours < min) {
 						min = hours;
 						candidates.clear();
@@ -758,18 +761,14 @@ public class TaskServiceImpl implements TaskService {
 			} else {
 				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
 			}
-			
-			//System.err.println(pickedHours + " checking here ");
 		} catch (Exception e) {
 			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
 		}
 		
-	
 		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
 		if (pickedUserId == null || pickedUserId == 0) {
 			return result;
 		}
-
 		Map<String, Object> item = new LinkedHashMap<String, Object>();
 		item.put("assignedTo", pickedUserId);
 		item.put("hours", pickedHours);

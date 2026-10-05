@@ -1,5 +1,6 @@
 package com.webelement.taskapp.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -107,14 +108,13 @@ public class TaskController {
 		boolean ignoreTaskStatusFilter = false;
 		LinkedHashSet<Short> taskStatusSet = new LinkedHashSet<>();
 		if (taskStatusIds != null && !taskStatusIds.trim().isEmpty()) {
-			taskStatusSet = Arrays.stream(taskStatusIds.split(",")).map(String::trim).filter(s -> !s.isEmpty()).map(Short::valueOf).collect(Collectors.toCollection(LinkedHashSet::new));
+			taskStatusSet = Arrays.stream(taskStatusIds.split(",")).map(String::trim).filter(s -> !s.isEmpty())
+					.map(Short::valueOf).collect(Collectors.toCollection(LinkedHashSet::new));
 		}
 
-		
-	
 		Page<TaskDetailsDTO> pageData = taskService.findTaskDetails(page, size, statusIndex, search, clientId,
 				taskCategoryId, assignedTo, priority, fromDate, toDate, isAdmin, userId, taskStatusSet, loginType,
-				dashboardFilter,isHod,ignoreTaskStatusFilter);
+				dashboardFilter, isHod, ignoreTaskStatusFilter);
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", pageData.getContent());
 		response.put("totalElements", pageData.getTotalElements());
@@ -123,7 +123,7 @@ public class TaskController {
 
 	@GetMapping("/getTaskFilterDataOnChange")
 	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType, @RequestParam Integer clientId,@RequestParam String isHod) {
+			@RequestParam String loginType, @RequestParam Integer clientId, @RequestParam String isHod) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
@@ -135,23 +135,38 @@ public class TaskController {
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
 			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
+<<<<<<< HEAD
+			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		Set<Short> weeklyOffDays = Collections.emptySet();
+		if (startDate != null && !startDate.trim().isEmpty() && endDate != null && !endDate.trim().isEmpty()) {
+			LocalDate start = LocalDate.parse(startDate.substring(0, 10));
+			LocalDate end = LocalDate.parse(endDate.substring(0, 10));
+			weeklyOffDays = getWeeklyOffDays(start, end);
+			System.err.println("Weekly Off Days : " + weeklyOffDays);
+		}
+		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays));
+=======
 			@RequestParam Integer categoryId,@RequestParam(defaultValue = "0") Integer systemFlag) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 //		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId,systemFlag));
+>>>>>>> 3c4f7579c5a557322a6d8fbe799793ecb2a4ff37
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}
 
 	@GetMapping("/getTaskFilterData")
 	public Map<String, Object> getTaskFilterData(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType,@RequestParam String isHod) {
+			@RequestParam String loginType, @RequestParam String isHod) {
 
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
 				.supplyAsync(() -> clientRepository.findAllActiveClients(userId, loginType));
 		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
-				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());//New Changes
+				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategories());// New Changes
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
 			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsers());
 			users.add(0, new UserActiveDTO(0, "Unassigned User"));
@@ -168,24 +183,22 @@ public class TaskController {
 
 		return response;
 	}
-	
-	
-	
-	
+
 	@GetMapping("/getTaskFilterDataForIndex")
 	public Map<String, Object> getTaskFilterDataForIndex(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType,@RequestParam String isHod) {
+			@RequestParam String loginType, @RequestParam String isHod) {
 
 		CompletableFuture<List<?>> clientsFuture = CompletableFuture
-				.supplyAsync(() -> clientRepository.findAllActiveClientsForIndex(userId,loginType,isAdmin,isHod));
-		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture
-				.supplyAsync(() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId,loginType,isAdmin,isHod));
+				.supplyAsync(() -> clientRepository.findAllActiveClientsForIndex(userId, loginType, isAdmin, isHod));
+		CompletableFuture<List<?>> taskCategoriesFuture = CompletableFuture.supplyAsync(
+				() -> taskCategoryRepository.findAllActiveTaskCategoriesForIndex(userId, loginType, isAdmin, isHod));
 		CompletableFuture<List<UserActiveDTO>> assignedUsersFuture = CompletableFuture.supplyAsync(() -> {
-			List<UserActiveDTO> users = new ArrayList<>(userLoginRepository.findActiveUsersForIndex(userId,loginType,isAdmin,isHod));
+			List<UserActiveDTO> users = new ArrayList<>(
+					userLoginRepository.findActiveUsersForIndex(userId, loginType, isAdmin, isHod));
 //			users.add(0, new UserActiveDTO(0, "Unassigned User"));
 			if (userLoginRepository.countUnassignedTasksForIndex(userId, loginType, isAdmin) > 0) {
-		        users.add(0, new UserActiveDTO(0, "Unassigned User"));
-		    }
+				users.add(0, new UserActiveDTO(0, "Unassigned User"));
+			}
 			return users;
 		});
 		CompletableFuture.allOf(clientsFuture, taskCategoriesFuture, assignedUsersFuture).join();
@@ -209,7 +222,8 @@ public class TaskController {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			LocalDateTime taskStartDate = LocalDateTime.parse(startDate, formatter);
 			LocalDateTime taskEndDate = LocalDateTime.parse(endDate, formatter);
-			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskStartDate, taskCategoryId, description,assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate);
+			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskStartDate, taskCategoryId, description,
+					assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate);
 			response.put("success", true);
 			response.put("message", isUpdate ? "Task updated successfully" : "Task created successfully");
 			response.put("data", savedTask);
@@ -241,12 +255,32 @@ public class TaskController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 	}
-	
+
 	@GetMapping("/assignee_workload")
-    public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId, @RequestParam String date) {
-        List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId,date);
-        String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
-        return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
-    }
-	
+	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId,
+			@RequestParam String startDate,@RequestParam String endDate) {
+		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId, startDate,endDate);
+		String message = data.isEmpty() ? "No workload found for this category"
+				: "Assignee workload fetched successfully";
+		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
+	}
+
+	private Set<Short> getWeeklyOffDays(LocalDate start, LocalDate end) {
+
+		Set<Short> weeklyOffDays = new HashSet<>();
+
+		for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+
+			Short dayOfWeek = (short) date.getDayOfWeek().getValue();
+
+			// Java: Mon=1 ... Sun=7
+			// DB : Sun=1 ... Sat=7
+			Short dbDay = (short) ((dayOfWeek == 7) ? 1 : dayOfWeek + 1);
+
+			weeklyOffDays.add(dbDay);
+		}
+
+		return weeklyOffDays;
+	}
+
 }
