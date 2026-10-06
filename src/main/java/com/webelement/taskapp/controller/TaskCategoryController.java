@@ -86,9 +86,13 @@ public class TaskCategoryController {
 			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId,
 			@RequestParam("isHod") String isHod) {
 
-		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType,isHod);
+		return taskCategoryService.getActiveTaskCategoriesForRecurring(userId, isAdmin, loginType, isHod);
 	}
 
+	@GetMapping("recurring/category/employee-available")
+	public boolean isEmployeeAvailableForTaskCategory(@RequestParam("taskCategoryId") Integer taskCategoryId) {
+		return taskCategoryService.isEmployeeAvailableForTaskCategory(taskCategoryId);
+	}
 
 	@GetMapping("recurringForindex/active")
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,
@@ -103,11 +107,10 @@ public class TaskCategoryController {
 		return taskCategoryService.getCategoriesByDepartmentId(departmentId);
 	}
 
-    
-    @GetMapping("/departments")
-    public List<TaskCategoryDTO> getCategoriesByDepartmentIds(
-            @RequestParam("departmentIds") List<Integer> departmentIds) {
+	@GetMapping("/departments")
+	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(
+			@RequestParam("departmentIds") List<Integer> departmentIds) {
 
-        return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
-    }
+		return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
+	}
 }
