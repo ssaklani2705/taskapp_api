@@ -40,6 +40,11 @@ public class TaskCategoryController {
 
 		return response;
 	}
+	
+	@GetMapping("task/category/employee-available")
+    public boolean isEmployeeAvailableForTaskCategoryForTask(@RequestParam("taskCategoryId") Integer taskCategoryId) {
+        return taskCategoryService.isEmployeeAvailableForTaskCategoryForTask(taskCategoryId);
+    }
 
 	@PostMapping("/saveTaskCategory")
 	public ResponseEntity<ApiResponse<TaskCategoryDTO>> saveTaskCategory(@RequestBody TaskCategoryDTO dto,

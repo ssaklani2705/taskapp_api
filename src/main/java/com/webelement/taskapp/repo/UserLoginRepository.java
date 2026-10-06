@@ -277,8 +277,24 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')", nativeQuery = true)
 	Integer countActiveUsersUsingTaskCategory(@Param("taskcategoryId") Integer taskcategoryId);
 
+//	@Query(value = "SELECT COUNT(*) FROM t_userlogin u WHERE u.i_status = 1 AND u.s_taskcategoryIds IS NOT NULL "
+//            + "AND ( u.s_taskcategoryIds = :taskCategoryId OR u.s_taskcategoryIds LIKE CONCAT(:taskCategoryId, ',%') "
+//            + "OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId) OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId, ',%') )", nativeQuery = true)
+//    long countEmployeesByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
+	
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin u WHERE u.i_status = 1 AND u.s_taskcategoryIds IS NOT NULL "
             + "AND ( u.s_taskcategoryIds = :taskCategoryId OR u.s_taskcategoryIds LIKE CONCAT(:taskCategoryId, ',%') "
             + "OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId) OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId, ',%') )", nativeQuery = true)
+    long countEmployeesByTaskCategoryIdForTask(@Param("taskCategoryId") Integer taskCategoryId);
+   
+	@Query(value = "SELECT COUNT(*) FROM t_userlogin u " + "WHERE u.i_status = 1 "
+            + "AND (u.s_ishod IS NULL OR u.s_ishod <> 'Y') " + "AND u.s_taskcategoryIds IS NOT NULL " + "AND ( "
+            + "    u.s_taskcategoryIds = CAST(:taskCategoryId AS CHAR) "
+            + "    OR u.s_taskcategoryIds LIKE CONCAT(CAST(:taskCategoryId AS CHAR), ',%') "
+            + "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR)) "
+            + "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR), ',%') "
+            + ")", nativeQuery = true)
     long countEmployeesByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
+	
+	
 }

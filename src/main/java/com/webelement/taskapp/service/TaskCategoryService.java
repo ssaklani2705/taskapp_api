@@ -234,13 +234,7 @@ public class TaskCategoryService {
 //		.collect(Collectors.toList());
 //	}
 
-	public boolean isEmployeeAvailableForTaskCategory(Integer taskCategoryId) {
-		if (taskCategoryId == null) {
-			return false;
-		}
-		long count = userLoginRepository.countEmployeesByTaskCategoryId(taskCategoryId);
-		return count > 0;
-	}
+	
 
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId, String isAdmin, String loginType,
 			String isHod) {
@@ -353,5 +347,21 @@ public class TaskCategoryService {
 		}
 		return taskCategoryRepository.findCategoriesByDepartmentIds(departmentIds);
 	}
+	
+	public boolean isEmployeeAvailableForTaskCategory(Integer taskCategoryId) {
+        if (taskCategoryId == null) {
+            return false;
+        }
+        long count = userLoginRepository.countEmployeesByTaskCategoryId(taskCategoryId);
+        return count > 0;
+    }
+	
+    public boolean isEmployeeAvailableForTaskCategoryForTask(Integer taskCategoryId) {
+        if (taskCategoryId == null) {
+            return false;
+        }
+        long count = userLoginRepository.countEmployeesByTaskCategoryIdForTask(taskCategoryId);
+        return count > 0;
+    }
 
 }
