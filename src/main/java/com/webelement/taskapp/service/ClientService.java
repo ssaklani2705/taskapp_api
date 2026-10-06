@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,15 +82,131 @@ public class ClientService {
 	@Value("${client_file_path}")
 	private String uploadBasePath;
 
+//	public ApiResponse<ClientEntity> addOrUpdateClient(ClientEntity client, HttpServletRequest httpRequest) {
+//
+//		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
+//		
+//		String location = client.getLocation() != null ? client.getLocation().trim() : "";
+//        if (location.isEmpty()) {
+//            throw new ClientValidationException("Location is required.");
+//        }
+//        client.setLocation(location);
+//
+//		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
+//			throw new RuntimeException("Invalid stateId: " + client.getStateId());
+//		}
+//
+//		if (client.getManagerId() != null && !userLoginRepository.existsById(client.getManagerId())) {
+//			throw new RuntimeException("Invalid managerId: " + client.getManagerId());
+//		}
+//
+//		if (client.getPlanId() != null && !planRepo.existsById(client.getPlanId())) {
+//			throw new RuntimeException("Invalid planId: " + client.getPlanId());
+//		}
+//
+//		if (client.getOutstanding() != null && client.getOutstanding() < 0) {
+//			throw new ClientValidationException("Outstanding amount cannot be negative.");
+//		}
+//
+//		if (client.getPan() != null) {
+//			client.setPan(client.getPan().trim());
+//		}
+//
+//		if (client.getGstNo() != null) {
+//			client.setGstNo(client.getGstNo().trim());
+//		}
+//
+//		if (client.getCode() != null) {
+//			client.setCode(client.getCode().trim());
+//		}
+//
+//		if (isNew) {
+//			if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
+//				throw new ClientValidationException("Client code already exists: " + client.getCode());
+//			}
+//
+//			if (client.getPan() != null && !client.getPan().isEmpty()
+//					&& clientRepository.existsByPan(client.getPan())) {
+//
+//				throw new ClientValidationException("PAN already exists: " + client.getPan());
+//			}
+//
+//			if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+//					&& clientRepository.existsByGstNo(client.getGstNo())) {
+//
+//				throw new ClientValidationException("GST number already exists: " + client.getGstNo());
+//			}
+//
+//			Timestamp now = new Timestamp(System.currentTimeMillis());
+//
+//			client.setStatus((short) 1);
+//
+//			if (client.getGstFlag() == null) {
+//				client.setGstFlag((short) 0);
+//			}
+//
+//			if (client.getTaxFlag() == null) {
+//				client.setTaxFlag((short) 0);
+//			}
+//
+//			client.setRegdate(now);
+//			client.setModdate(now);
+//		} else {
+//
+//			ClientEntity existingClient = clientRepository.findById(client.getClientId())
+//					.orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
+//
+//			if (client.getCode() != null
+//					&& clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
+//
+//				throw new ClientValidationException("Client code already exists: " + client.getCode());
+//			}
+//
+//			if (client.getPan() != null && !client.getPan().isEmpty()
+//					&& clientRepository.existsByPanAndClientIdNot(client.getPan(), client.getClientId())) {
+//
+//				throw new ClientValidationException("PAN already exists: " + client.getPan());
+//			}
+//
+//			if (client.getGstNo() != null && !client.getGstNo().isEmpty()
+//					&& clientRepository.existsByGstNoAndClientIdNot(client.getGstNo(), client.getClientId())) {
+//
+//				throw new ClientValidationException("GST number already exists: " + client.getGstNo());
+//			}
+//
+//			client.setRegdate(existingClient.getRegdate());
+//
+//			client.setModdate(new Timestamp(System.currentTimeMillis()));
+//
+//			if (client.getGstFlag() == null) {
+//				client.setGstFlag(existingClient.getGstFlag());
+//			}
+//
+//			if (client.getTaxFlag() == null) {
+//				client.setTaxFlag(existingClient.getTaxFlag());
+//			}
+//		}
+//
+//		ClientEntity savedClient = clientRepository.save(client);
+//
+//		String action = isNew ? "Client Added" : "Client Updated";
+//
+//		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
+//				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
+//
+//		return new ApiResponse<>(true, isNew ? "Client added successfully" : "Client updated successfully",
+//				savedClient);
+//	}
+
 	public ApiResponse<ClientEntity> addOrUpdateClient(ClientEntity client, HttpServletRequest httpRequest) {
 
 		boolean isNew = (client.getClientId() == null || client.getClientId() == 0);
-		
+
 		String location = client.getLocation() != null ? client.getLocation().trim() : "";
-        if (location.isEmpty()) {
-            throw new ClientValidationException("Location is required.");
-        }
-        client.setLocation(location);
+		if (location.isEmpty()) {
+			throw new ClientValidationException("Location is required.");
+		}
+		client.setLocation(location);
 
 		if (client.getStateId() != null && !stateRepository.existsById(client.getStateId())) {
 			throw new RuntimeException("Invalid stateId: " + client.getStateId());
@@ -119,7 +236,13 @@ public class ClientService {
 			client.setCode(client.getCode().trim());
 		}
 
+		// Used for transaction history
+		boolean managerChanged = false;
+		String oldManagerName = null;
+		String newManagerName = null;
+
 		if (isNew) {
+
 			if (client.getCode() != null && clientRepository.existsByCode(client.getCode())) {
 				throw new ClientValidationException("Client code already exists: " + client.getCode());
 			}
@@ -150,10 +273,26 @@ public class ClientService {
 
 			client.setRegdate(now);
 			client.setModdate(now);
+
 		} else {
 
 			ClientEntity existingClient = clientRepository.findById(client.getClientId())
 					.orElseThrow(() -> new RuntimeException("Client not found with id: " + client.getClientId()));
+
+			Integer oldManagerId = existingClient.getManagerId();
+			Integer newManagerId = client.getManagerId();
+
+			managerChanged = !Objects.equals(oldManagerId, newManagerId);
+
+			if (oldManagerId != null) {
+				oldManagerName = userLoginRepository.findById(oldManagerId).map(UserLoginEntity::getFirstName)
+						.orElse("Unknown");
+			}
+
+			if (newManagerId != null) {
+				newManagerName = userLoginRepository.findById(newManagerId).map(UserLoginEntity::getFirstName)
+						.orElse("Unknown");
+			}
 
 			if (client.getCode() != null
 					&& clientRepository.existsByCodeAndClientIdNot(client.getCode(), client.getClientId())) {
@@ -188,7 +327,21 @@ public class ClientService {
 
 		ClientEntity savedClient = clientRepository.save(client);
 
-		String action = isNew ? "Client Added" : "Client Updated";
+		String action;
+
+		if (isNew) {
+
+			action = "Client Added";
+
+		} else if (managerChanged) {
+
+			action = "Society Manager changed from Manager \"" + oldManagerName + "\" to Manager \"" + newManagerName
+					+ "\"";
+
+		} else {
+
+			action = "Client updated";
+		}
 
 		commonFunction.createHistoryAccess(savedClient.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 8, savedClient.getClientId(), -1);
@@ -225,9 +378,6 @@ public class ClientService {
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteClient(Integer clientId, Integer userId,
 			HttpServletRequest httpRequest) {
-		
-		
-
 
 		int updatedRows = clientRepository.deleteClient((short) 3, clientId);
 
@@ -1083,7 +1233,7 @@ public class ClientService {
 	}
 
 	// For Recurring
-	public List<ClientDTO> getClientsForRecurring(Integer userId, String isAdmin, String loginType,String isHod) {
+	public List<ClientDTO> getClientsForRecurring(Integer userId, String isAdmin, String loginType, String isHod) {
 
 		Short activeStatus = 1;
 		List<ClientEntity> clients;
@@ -1111,8 +1261,7 @@ public class ClientService {
 				.collect(Collectors.toList());
 	}
 
-	
-	//For Index
+	// For Index
 	public List<ClientDTO> getClientsForRecurringForIndex(Integer userId, String isAdmin, String loginType) {
 
 		Short activeStatus = 1;
@@ -1143,42 +1292,42 @@ public class ClientService {
 
 	// Manager Change
 	@Transactional
-    public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
-            HttpServletRequest httpRequest) {
+	public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
+			HttpServletRequest httpRequest) {
 
-        if (managerId == null) {
-            throw new RuntimeException("Society Manager is required");
-        }
+		if (managerId == null) {
+			throw new RuntimeException("Society Manager is required");
+		}
 
-        ClientEntity client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+		ClientEntity client = clientRepository.findById(clientId)
+				.orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
 
-        String oldManagerName = "-";
+		String oldManagerName = "-";
 
-        if (client.getManagerId() != null) {
-            oldManagerName = userLoginRepository.findById(client.getManagerId()).map(UserLoginEntity::getFirstName)
-                    .orElse("-");
-        }
+		if (client.getManagerId() != null) {
+			oldManagerName = userLoginRepository.findById(client.getManagerId()).map(UserLoginEntity::getFirstName)
+					.orElse("-");
+		}
 
-        UserLoginEntity manager = userLoginRepository.findById(managerId)
-                .orElseThrow(() -> new RuntimeException("Society Manager not found with id: " + managerId));
+		UserLoginEntity manager = userLoginRepository.findById(managerId)
+				.orElseThrow(() -> new RuntimeException("Society Manager not found with id: " + managerId));
 
-        if (manager.getStatus() != 1) {
-            throw new RuntimeException("Selected Society manager is not active");
-        }
+		if (manager.getStatus() != 1) {
+			throw new RuntimeException("Selected Society manager is not active");
+		}
 
-        String newManagerName = manager.getFirstName();
+		String newManagerName = manager.getFirstName();
 
-        client.setManagerId(managerId);
-        client.setModdate(new Timestamp(System.currentTimeMillis()));
+		client.setManagerId(managerId);
+		client.setModdate(new Timestamp(System.currentTimeMillis()));
 
-        ClientEntity savedClient = clientRepository.save(client);
+		ClientEntity savedClient = clientRepository.save(client);
 
-        String historyMessage = "Society Manager Changed from " + oldManagerName + " to " + newManagerName;
+		String historyMessage = "Society Manager Changed from " + oldManagerName + " to " + newManagerName;
 
-        commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(), historyMessage, 8, savedClient.getClientId(), -1);
-    }
+		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), historyMessage, 8, savedClient.getClientId(), -1);
+	}
 
 	// Change Outstanding
 	@Transactional
