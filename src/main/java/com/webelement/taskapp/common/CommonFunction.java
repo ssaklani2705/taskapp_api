@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,33 +20,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
 import com.webelement.taskapp.dto.TaskMailDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
-import com.webelement.taskapp.repo.SmtpRepo;
-import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.TransactionRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
-import com.webelement.taskapp.service.MailService;
-import com.webelement.taskapp.service.impl.TaskNoteMailServiceImpl;
-
 import lombok.RequiredArgsConstructor;
 
 @Component

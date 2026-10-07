@@ -1,6 +1,5 @@
 package com.webelement.taskapp.jwttoken;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 //import org.springframework.http.HttpMethod;
@@ -14,16 +13,16 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.webelement.taskapp.common.CommonFunction;
 
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
-
-	@Autowired
-	private JwtRequestFilter jwtFilter;
-
-	@Autowired
-	private CommonFunction commonFunction;
+	private final JwtRequestFilter jwtFilter;
+	private final CommonFunction commonFunction;
 
 	// New Added
 	@Bean

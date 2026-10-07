@@ -21,9 +21,9 @@ import com.webelement.taskapp.Exceptions.FileDownloadException;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/file")
-@CrossOrigin(origins = { "http://localhost:4500", "https://www.iba.org.in", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class FileController {
 	@Value("${task.upload-dir}") 
 	private String uploadDir;

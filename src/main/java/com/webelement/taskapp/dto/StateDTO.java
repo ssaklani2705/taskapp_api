@@ -2,17 +2,11 @@ package com.webelement.taskapp.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.webelement.taskapp.entity.TransactionEntity;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Data

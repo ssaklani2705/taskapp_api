@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,15 +21,18 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.dto.UserInfo;
 import com.webelement.taskapp.entity.UserLoginEntity;
+
 import com.webelement.taskapp.service.UserManagementService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc"})
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class UserManagementController {
 	
-	@Autowired
-	private UserManagementService userService;
+	private final UserManagementService userService;
 
 	@GetMapping("/getUserManagementDetails")
 	public Map<String, Object> findBasicUserInfo(@RequestParam() int page, @RequestParam() int size,

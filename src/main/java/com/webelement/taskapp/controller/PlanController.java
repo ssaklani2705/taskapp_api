@@ -17,16 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.PlanDTO;
-import com.webelement.taskapp.dto.StateDTO;
 import com.webelement.taskapp.entity.PlanEntity;
-import com.webelement.taskapp.entity.StateEntity;
 import com.webelement.taskapp.service.impl.PlanServiceImpl;
-import com.webelement.taskapp.service.impl.StateServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/plan")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class PlanController {
 

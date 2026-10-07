@@ -3,10 +3,10 @@ package com.webelement.taskapp.jwttoken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import com.webelement.taskapp.service.TokenBlacklistService;
 
 import java.util.Date;
@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @Component
+@RequiredArgsConstructor
 public class JwtUtil {
 
 	@Value("${jwt.secret}")
@@ -27,9 +28,7 @@ public class JwtUtil {
 
 	private final TokenBlacklistService tokenBlacklistService;
 
-	public JwtUtil(TokenBlacklistService tokenBlacklistService) {
-		this.tokenBlacklistService = tokenBlacklistService;
-	}
+	
 
 	// ================== CLAIM EXTRACTION ==================
 

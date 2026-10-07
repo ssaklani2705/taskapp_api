@@ -1,8 +1,6 @@
 package com.webelement.taskapp.dto;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 
 import com.webelement.taskapp.entity.TransactionEntity;
@@ -15,8 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskEditDTO {
-	 private static final DateTimeFormatter DATE_TIME_FORMATTER =
-	            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 	private Integer taskId;
 	private Integer addedBy;
 	private Integer assignedTo;

@@ -3,43 +3,26 @@ package com.webelement.taskapp.controller;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.MailLogDTO;
-import com.webelement.taskapp.entity.MailLogEntity;
+
 import com.webelement.taskapp.service.MailLogService;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
+import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/mailLog")
-@CrossOrigin(origins = { "http://localhost:4500", "https://www.iba.org.in", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class MailLogController {
+	private final MailLogService mailLogService;
 
-	@Autowired
-	MailLogService mailLogService;
-
-	
 	@GetMapping("/getMailLogDetails")
 	public Map<String, Object> getMailLogDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam String search) {

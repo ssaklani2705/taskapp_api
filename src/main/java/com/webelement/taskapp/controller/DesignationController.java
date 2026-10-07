@@ -4,22 +4,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.DesignationDTO;
 import com.webelement.taskapp.service.DesignationService;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/designation")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class DesignationController {
-
-	@Autowired
-	private DesignationService desigmationService;
+	private final DesignationService desigmationService;
 
 	@GetMapping("/getDesignationDetails")
 	public Map<String, Object> findDesigmationDetails(@RequestParam int page, @RequestParam int size,

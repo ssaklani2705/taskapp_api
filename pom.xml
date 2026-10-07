@@ -41,7 +41,13 @@
 
     <properties>
         <java.version>11</java.version>
+        
+          <!--sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.projectKey>taskapp_api</sonar.projectKey>
+        <sonar.projectName>taskapp_api</sonar.projectName-->
     </properties>
+    
+    
 
     <dependencies>
 
@@ -152,7 +158,35 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            
+               <!-- SonarQube scanner -->
+            <!--plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.0.0.4389</version>
+            </plugin>
+			 <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin!-->
         </plugins>
+        
+        
     </build>
-
+	
 </project>

@@ -2,11 +2,8 @@ package com.webelement.taskapp.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webelement.taskapp.dto.TaskNoteDTO;
 import com.webelement.taskapp.dto.TaskNoteRequestDTO;
 import com.webelement.taskapp.service.TaskNoteService;
@@ -15,13 +12,14 @@ import lombok.RequiredArgsConstructor;
 
 
 @RestController
+
 @RequestMapping("/admin/taskNote")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class TaskNoteController {
 
-    @Autowired
-    private TaskNoteService taskNoteService;
+   
+    private final TaskNoteService taskNoteService;
     // =====================================================
     // ADD NOTE
     // =====================================================

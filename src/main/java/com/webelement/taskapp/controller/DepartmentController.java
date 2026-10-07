@@ -1,29 +1,26 @@
 package com.webelement.taskapp.controller;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.service.DepartmentService;
 
 
+import lombok.RequiredArgsConstructor;
+
+
 @RestController
 @RequestMapping("/admin/department")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class DepartmentController {
 
-	@Autowired
-	private DepartmentService departmentService;
-
+	private final DepartmentService departmentService;
 	@GetMapping("/getDepartmentDetails")
 	public Map<String, Object> findDepartmentDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex, @RequestParam(required = false) String search) {

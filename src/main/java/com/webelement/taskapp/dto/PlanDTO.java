@@ -1,13 +1,5 @@
 package com.webelement.taskapp.dto;
-
-import java.time.LocalDateTime;
 import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
 import com.webelement.taskapp.entity.TransactionEntity;
 
 import lombok.AllArgsConstructor;

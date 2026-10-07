@@ -1,45 +1,26 @@
 package com.webelement.taskapp.controller;
-
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.HolidayDTO;
 import com.webelement.taskapp.entity.HolidayEntity;
 import com.webelement.taskapp.service.HolidayService;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/holiday")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class HolidayController {
-
-	@Autowired
-	private HolidayService holidayService;
-
-//	@GetMapping("/getHolidayDetails")
-//	public Map<String, Object> findHolidayDetails(@RequestParam int page, @RequestParam int size,
-//			@RequestParam int statusIndex, @RequestParam(required = false) String search) {
-//		Page<HolidayDTO> holidayPage = holidayService.findHolidayDetails(page, size, statusIndex, search);
-//
-//		Map<String, Object> response = new HashMap<>();
-//
-//		response.put("data", holidayPage.getContent());
-//		response.put("totalElements", holidayPage.getTotalElements());
-//
-//		return response;
-//	}
-
+	private final HolidayService holidayService;
 	@GetMapping("/getHolidayDetails")
 	public Map<String, Object> findHolidayDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex, @RequestParam(required = false) String search,

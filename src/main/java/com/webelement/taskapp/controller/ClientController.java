@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,17 +29,20 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientDTO;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.repo.ClientRepository;
+
 import com.webelement.taskapp.service.ClientService;
+
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class ClientController {
-
-	@Autowired
-	private ClientService clientService;
-	@Autowired
-	private ClientRepository clientRepository;
+	
+	private final ClientService clientService;
+	private final ClientRepository clientRepository;
 
 	@PostMapping("/addOrUpdateClient")
 	public ResponseEntity<ApiResponse<ClientEntity>> addOrUpdateClient(@RequestBody ClientEntity client,

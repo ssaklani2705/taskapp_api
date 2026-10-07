@@ -1,12 +1,10 @@
 package com.webelement.taskapp.controller;
 
-import java.util.Random;
-
+import java.security.SecureRandom;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,17 +17,22 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
+
 import com.webelement.taskapp.service.AuthService;
+
+
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc" }, allowCredentials = "true")
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class AuthController {
-	
-	@Autowired
-	private AuthService authService;
+	private final AuthService authService;
 	private Boolean isManager = false;
+	private final SecureRandom secureRandom = new SecureRandom();
+	
 	
 	@GetMapping("/test")
 	public String test() {
@@ -37,7 +40,7 @@ public class AuthController {
 	}
 	@GetMapping("/captcha")
 	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
-		int captcha = 100000 + new Random().nextInt(900000);
+		int captcha = 100000 + secureRandom.nextInt(900000);
 		session.setAttribute("captcha", String.valueOf(captcha));
 		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
 		return ResponseEntity.ok(response);

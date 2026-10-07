@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,16 +28,17 @@ import com.webelement.taskapp.entity.RecurringEntity;
 import com.webelement.taskapp.service.ClientService;
 import com.webelement.taskapp.service.RecurringService;
 
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class RecurringController {
 
-	@Autowired
-	private RecurringService recurringService;
-
-	@Autowired
-	private ClientService clientService;
+	private final RecurringService recurringService;
+	private final ClientService clientService;
 
 	@GetMapping("/getRecurringClients")
 	public ResponseEntity<?> getRecurringClients(@RequestParam("userId") Integer userId,
@@ -65,10 +64,7 @@ public class RecurringController {
 			@RequestParam("loginType") String loginType
 			) {
 		try {
-			System.out.println("getRecurringClients userId = " + userId);
 			List<ClientDTO> clients = clientService.getClientsForRecurringForIndex(userId,isAdmin,loginType);
-			System.out.println("clients found = " + clients.size());
-
 			return ResponseEntity.ok(clients);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
-import com.webelement.taskapp.entity.DesignationEntity;
+
 
 
 @Repository

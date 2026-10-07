@@ -3,7 +3,6 @@ package com.webelement.taskapp.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,48 +23,25 @@ import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.DashboardService;
 import com.webelement.taskapp.service.TaskService;
 
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/admin/dashboard")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class DashboardController {
-
-	@Autowired
-	private DashboardService taskService;
-	@Autowired
-	private UserLoginRepository userLoginRepository;
-	@Autowired
-	private ClientRepository clientRepository;
-
-	@RestController
-	@RequestMapping("/api/task")
-	public class TaskController {
-
-		@Autowired
-		private TaskService taskService;
-		@Autowired
-		private DashboardService dashboardService;
-
-		@GetMapping("/client/check-assignment/{managerId}")
-		public ClientAssignmentCheckDTO checkClientAssignment(@PathVariable Integer managerId) {
-
-			return taskService.checkClientAssigned(managerId);
-		}
-
-		@GetMapping("/dashboard-clients")
-		public ResponseEntity<List<ClientDashboardDTO>> getDashboardClients(@RequestParam Integer userId,
-				@RequestParam String isAdmin, @RequestParam String loginType) {
-
-			List<ClientDashboardDTO> clients = dashboardService.findDashboardClients(userId, isAdmin, loginType);
-
-			return ResponseEntity.ok(clients);
-		}
-	}
-
+	private final DashboardService dashboardService;
+	private final UserLoginRepository userLoginRepository;
+	private final ClientRepository clientRepository;
+	private final TaskService taskService;
+	
+	
 	@GetMapping("/dashboard")
 	public ResponseEntity<TaskDashboardResponse> getDashboard(@RequestParam(defaultValue = "0") Integer userId,
 			@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId,
 			@RequestParam(required = false) String isHod) {
-		TaskDashboardResponse response = taskService.getDashboard(userId, isAdmin, selectedClientId, isHod);
+		TaskDashboardResponse response = dashboardService.getDashboard(userId, isAdmin, selectedClientId, isHod);
 		return ResponseEntity.ok(response);
 	}
 
@@ -77,8 +53,8 @@ public class DashboardController {
 		Map<String, Object> map = new HashMap<>();
 		size = Math.min(size, 20);
 		String permission = userLoginRepository.findById(userId).map(UserLoginEntity::getPermission).orElse("N");
-		Page<TaskEditDTO> taskList = taskService.getTasksByStatus(page, size, clientId, userId, permission);
-		Double totalOutstanding = taskService.getTotalOutstanding(clientId, userId);
+		Page<TaskEditDTO> taskList = dashboardService.getTasksByStatus(page, size, clientId, userId, permission);
+		Double totalOutstanding = dashboardService.getTotalOutstanding(clientId, userId);
 		map.put("taskList", taskList.getContent());
 		map.put("totalTasks", taskList.getTotalElements());
 		map.put("totalOutstanding", totalOutstanding);
@@ -90,11 +66,8 @@ public class DashboardController {
 			@RequestParam("userId") Integer userId) {
 
 		Map<String, Object> map = new HashMap<>();
-
-		int count = taskService.countOfActiveTask(clientId, userId);
-
+		int count = dashboardService.countOfActiveTask(clientId, userId);
 		map.put("count", count);
-
 		return ResponseEntity.ok(map);
 	}
 
@@ -104,7 +77,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfCompletedTask(clientId, userId);
+		int count = dashboardService.countOfCompletedTask(clientId, userId);
 
 		map.put("count", count);
 
@@ -117,7 +90,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfPendingTask(clientId, userId);
+		int count = dashboardService.countOfPendingTask(clientId, userId);
 
 		map.put("count", count);
 
@@ -130,7 +103,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfAssignedTask(clientId, userId);
+		int count = dashboardService.countOfAssignedTask(clientId, userId);
 
 		map.put("count", count);
 
@@ -143,7 +116,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfAssigneeClosureTask(clientId, userId);
+		int count = dashboardService.countOfAssigneeClosureTask(clientId, userId);
 
 		map.put("count", count);
 
@@ -156,7 +129,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfReOpenTask(clientId, userId);
+		int count = dashboardService.countOfReOpenTask(clientId, userId);
 
 		map.put("count", count);
 
@@ -169,7 +142,7 @@ public class DashboardController {
 
 		Map<String, Object> map = new HashMap<>();
 
-		int count = taskService.countOfAssigneeReClosureTask(clientId, userId);
+		int count = dashboardService.countOfAssigneeReClosureTask(clientId, userId);
 
         return ResponseEntity.ok(map);
     }
@@ -178,7 +151,7 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> countOfUnAssigneeTask(@RequestParam Integer clientId,
             @RequestParam("userId") Integer userId) {
         Map<String, Object> map = new HashMap<>();
-        int count = taskService.countOfUnAssigneeTask(clientId, userId);
+        int count = dashboardService.countOfUnAssigneeTask(clientId, userId);
         map.put("count", count);
         return ResponseEntity.ok(map);
     }
@@ -205,4 +178,21 @@ public class DashboardController {
 
 		return response;
 	}
+	
+	
+	@GetMapping("/client/check-assignment/{managerId}")
+	public ClientAssignmentCheckDTO checkClientAssignment(@PathVariable Integer managerId) {
+
+		return taskService.checkClientAssigned(managerId);
+	}
+
+	@GetMapping("/dashboard-clients")
+	public ResponseEntity<List<ClientDashboardDTO>> getDashboardClients(@RequestParam Integer userId,
+			@RequestParam String isAdmin, @RequestParam String loginType) {
+
+		List<ClientDashboardDTO> clients = dashboardService.findDashboardClients(userId, isAdmin, loginType);
+
+		return ResponseEntity.ok(clients);
+	}
+
 }

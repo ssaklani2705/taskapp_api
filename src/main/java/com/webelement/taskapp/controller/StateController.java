@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.StateDTO;
 import com.webelement.taskapp.entity.StateEntity;
-import com.webelement.taskapp.repo.StateRepo;
+
 import com.webelement.taskapp.service.impl.StateServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/admin/state")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
+@RequestMapping("/admin/state")
 public class StateController {
 
 	private final StateServiceImpl stateService;

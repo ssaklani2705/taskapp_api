@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
-import com.webelement.taskapp.dto.AssigneeWorkloadDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
@@ -34,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/admin/task")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class TaskController {
 

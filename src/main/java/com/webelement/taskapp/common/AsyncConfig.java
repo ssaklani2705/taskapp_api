@@ -1,8 +1,6 @@
 package com.webelement.taskapp.common;
 
 import java.util.concurrent.Executor;
-
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;

@@ -5,7 +5,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,28 +17,24 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.RefreshTokenResponse;
 import com.webelement.taskapp.jwttoken.JwtUtil;
 import com.webelement.taskapp.service.JwtService;
+
 import com.webelement.taskapp.service.TokenBlacklistService;
 import com.webelement.taskapp.service.UserAccessLogService;
+
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = { "http://localhost:4500", "https://app.webelement.cc", "https://13.202.30.190" })
+@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@RequiredArgsConstructor
 public class LogoutController {
-
+	
 	private final JwtUtil jwtUtil;
 	private final TokenBlacklistService tokenBlacklistService;
+	private final JwtService jwtService;
+	private final UserAccessLogService accessLogService;
 
-	@Autowired
-	private JwtService jwtService;
-
-	@Autowired
-	private UserAccessLogService accessLogService;
-
-	public LogoutController(JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
-		this.jwtUtil = jwtUtil;
-		this.tokenBlacklistService = tokenBlacklistService;
-	}
 
 	@PostMapping("/refreshtoken")
 	public ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
