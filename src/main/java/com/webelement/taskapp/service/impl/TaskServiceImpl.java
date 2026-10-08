@@ -715,36 +715,21 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime end = parseStartDateTime(endDateTime);
 		String startDate = start.toLocalDate().toString();
 		String endDate = end.toLocalDate().toString();
-		
-		
 		System.err.println("startDate  " + startDate);
 		System.err.println("endDate  " + endDate);
-		
-		
-		
-		
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
-		
 		Integer pickedUserId = null;
 		Double pickedHours = null;
-		
-		
 		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(),end.toLocalDate());
-	
 		if (holidayCount > 0) {
 		    throw new InvalidRequestException("Selected date range falls on a holiday.");
 		}
-
 		try {
 			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
-			 System.out.println("rows is null = " + rows.toString());
-
-		
 			
 			if (rows != null && !rows.isEmpty()) {
 				double min = Double.MAX_VALUE;
 				List<Integer> candidates = new ArrayList<Integer>();
-				
 				for (Object[] row : rows) {
 					int userId = ((Number) row[0]).intValue();
 					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;

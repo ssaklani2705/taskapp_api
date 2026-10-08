@@ -251,8 +251,7 @@ public class TaskController {
 	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId,
 			@RequestParam String startDate,@RequestParam String endDate) {
 		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId, startDate,endDate);
-		String message = data.isEmpty() ? "No workload found for this category"
-				: "Assignee workload fetched successfully";
+		String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
 		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
 	}
 
@@ -264,8 +263,6 @@ public class TaskController {
 
 			Short dayOfWeek = (short) date.getDayOfWeek().getValue();
 
-			// Java: Mon=1 ... Sun=7
-			// DB : Sun=1 ... Sat=7
 			Short dbDay = (short) ((dayOfWeek == 7) ? 1 : dayOfWeek + 1);
 
 			weeklyOffDays.add(dbDay);
