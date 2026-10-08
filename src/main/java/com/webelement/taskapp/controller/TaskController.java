@@ -139,12 +139,19 @@ public class TaskController {
 		Map<String, Object> response = new HashMap<>();
 
 		Set<Short> weeklyOffDays = Collections.emptySet();
-		if (startDate != null && !startDate.trim().isEmpty() && endDate != null && !endDate.trim().isEmpty()) {
-			LocalDate start = LocalDate.parse(startDate.substring(0, 10));
-			LocalDate end = LocalDate.parse(endDate.substring(0, 10));
-			weeklyOffDays = getWeeklyOffDays(start, end);
-			System.err.println("Weekly Off Days : " + weeklyOffDays);
-		}
+//		if (startDate != null && !startDate.trim().isEmpty() && endDate != null && !endDate.trim().isEmpty()) {
+//			LocalDate start = LocalDate.parse(startDate.substring(0, 10));
+//			LocalDate end = LocalDate.parse(endDate.substring(0, 10));
+//			weeklyOffDays = getWeeklyOffDays(start, end);
+//			System.err.println("Weekly Off Days : " + weeklyOffDays);
+//		}
+	    // only the start date decides who is on weekly off
+	    if (startDate != null && !startDate.trim().isEmpty()) {
+	        LocalDate start = LocalDate.parse(startDate.substring(0, 10));
+	        weeklyOffDays = getWeeklyOffDays(start, start);   // same method, one-day range
+//	        System.err.println("Weekly Off Days (start date only) : " + weeklyOffDays);
+	    }
+
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays,systemFlag));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
