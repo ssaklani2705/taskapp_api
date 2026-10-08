@@ -139,19 +139,12 @@ public class TaskController {
 		Map<String, Object> response = new HashMap<>();
 
 		Set<Short> weeklyOffDays = Collections.emptySet();
-//		if (startDate != null && !startDate.trim().isEmpty() && endDate != null && !endDate.trim().isEmpty()) {
-//			LocalDate start = LocalDate.parse(startDate.substring(0, 10));
-//			LocalDate end = LocalDate.parse(endDate.substring(0, 10));
-//			weeklyOffDays = getWeeklyOffDays(start, end);
-//			System.err.println("Weekly Off Days : " + weeklyOffDays);
-//		}
-	    // only the start date decides who is on weekly off
-	    if (startDate != null && !startDate.trim().isEmpty()) {
-	        LocalDate start = LocalDate.parse(startDate.substring(0, 10));
-	        weeklyOffDays = getWeeklyOffDays(start, start);   // same method, one-day range
-//	        System.err.println("Weekly Off Days (start date only) : " + weeklyOffDays);
-	    }
-
+		if (startDate != null && !startDate.trim().isEmpty() && endDate != null && !endDate.trim().isEmpty()) {
+			LocalDate start = LocalDate.parse(startDate.substring(0, 10));
+			LocalDate end = LocalDate.parse(endDate.substring(0, 10));
+			weeklyOffDays = getWeeklyOffDays(start, end);
+			System.err.println("Weekly Off Days : " + weeklyOffDays);
+		}
 		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays,systemFlag));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
@@ -258,7 +251,7 @@ public class TaskController {
 	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId,
 			@RequestParam String startDate,@RequestParam String endDate) {
 		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId, startDate,endDate);
-		String message = data.isEmpty() ? "No workload found for this category" : "Assignee workload fetched successfully";
+		String message = data.isEmpty() ? "No workload found for this category": "Assignee workload fetched successfully";
 		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
 	}
 

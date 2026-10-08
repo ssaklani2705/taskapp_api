@@ -75,6 +75,7 @@ public class SecurityConfig {
 	        .sessionManagement(session ->
 	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 	        .authorizeHttpRequests(auth -> auth
+	        		 .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
 	            .requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
 	            .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
 	            .requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll()

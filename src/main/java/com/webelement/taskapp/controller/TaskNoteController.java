@@ -3,6 +3,7 @@ package com.webelement.taskapp.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import com.webelement.taskapp.dto.TaskNoteDTO;
 import com.webelement.taskapp.dto.TaskNoteRequestDTO;
@@ -18,16 +19,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TaskNoteController {
 
-   
+	private final SimpMessagingTemplate messagingTemplate;
     private final TaskNoteService taskNoteService;
-    // =====================================================
-    // ADD NOTE
-    // =====================================================
-    @PostMapping("/add")
-    public ResponseEntity<TaskNoteDTO> addTaskNote(@RequestBody TaskNoteRequestDTO request) throws Exception {
-        TaskNoteDTO response =taskNoteService.addTaskNote(request);
-        return ResponseEntity.ok(response);
-    }
+
+	// =====================================================
+	// ADD NOTE
+	// =====================================================
+	@PostMapping("/add")
+	public ResponseEntity<TaskNoteDTO> addTaskNote(@RequestBody TaskNoteRequestDTO request) throws Exception {
+		TaskNoteDTO response = taskNoteService.addTaskNote(request);
+
+		messagingTemplate.convertAndSend("/topic/task-notes/" + request.getTaskId(), response);
+		return ResponseEntity.ok(response);
+	}
     // =====================================================
     // GET NOTES BY TASK ID
     // =====================================================
