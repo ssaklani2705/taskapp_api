@@ -431,7 +431,7 @@ public class CommonFunction {
 
 		rows.put("Priority", param.getPriority());
 		rows.put("Due Date", formatDate(param.getDueDate()));
-		rows.put("Remark", param.getRemark());
+		rows.put("Description", param.getRemark());
 
 		StringBuilder statusRows = new StringBuilder();
 

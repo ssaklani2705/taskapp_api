@@ -335,7 +335,7 @@ public class ClientService {
 
 		} else if (managerChanged) {
 
-			action = "Society Manager changed from Manager \"" + oldManagerName + "\" to Manager \"" + newManagerName
+			action = "Society Manager changed from \"" + oldManagerName + "\" to \"" + newManagerName
 					+ "\"";
 
 		} else {

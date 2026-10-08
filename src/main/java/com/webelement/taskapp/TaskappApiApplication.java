@@ -9,13 +9,15 @@ public class TaskappApiApplication {
 	
 	static boolean isAlpabetic(String s) {
 				// "XYZ@GMAIL.COM" // 
+		
+				// password validate 
 		return s.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 	}
 	
 	public static void main(String[] args) {
 		
 		SpringApplication.run(TaskappApiApplication.class, args);
-		System.err.println(isAlpabetic("xyzgmail.com"));
+	//	System.err.println(isAlpabetic("xyzgmail.com"));
 	}
 
 }
