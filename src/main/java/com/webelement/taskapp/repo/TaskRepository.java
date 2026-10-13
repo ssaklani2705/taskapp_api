@@ -56,8 +56,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             + "ON u.userId = t.assignedTo " + "LEFT JOIN UserLoginEntity a " + "ON a.userId = t.addedBy "
             + "WHERE t.taskId = :taskId")
     Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
-
-    
     
     @Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, c.managerId, " + "c.name, " + "t.date, "
             + "t.endDate, " + "tc.name, " + "COALESCE(u.firstName, '0'), " + "COALESCE(t.priority, 0), " + "t.status, "
@@ -76,7 +74,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             + "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) " + "AND (:assignedTo = -1 "
             + "     OR (:assignedTo = 0 AND (t.assignedTo = 0 OR t.assignedTo IS NULL)) "
             + "     OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) " + "AND ( "
-            + "     0 IN :taskStatusIds " + "     OR t.taskStatus IN :taskStatusIds "
+            + "     -1 IN :taskStatusIds " + "     OR t.taskStatus IN :taskStatusIds "
             + "     OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) " + ") "
             + "AND (:fromDate IS NULL OR :fromDate = '' OR FUNCTION('DATE', t.date) >= FUNCTION('DATE', CAST(:fromDate AS date))) "
             + "AND (:toDate IS NULL OR :toDate = '' OR FUNCTION('DATE', t.date) <= FUNCTION('DATE', CAST(:toDate AS date))) "

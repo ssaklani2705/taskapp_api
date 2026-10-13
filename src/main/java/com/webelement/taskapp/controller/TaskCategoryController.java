@@ -63,10 +63,8 @@ public class TaskCategoryController {
 
 	@GetMapping("/{taskcategoryId}")
 	public ApiResponse<TaskCategoryDTO> getTaskCategoryById(@PathVariable Integer taskcategoryId) {
-
 		try {
 			return taskCategoryService.getById(taskcategoryId);
-
 		} catch (Exception e) {
 			return new ApiResponse<>(false, e.getMessage(), null);
 		}
@@ -112,8 +110,7 @@ public class TaskCategoryController {
 	}
 
 	@GetMapping("/departments")
-	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(
-			@RequestParam("departmentIds") List<Integer> departmentIds) {
+	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(@RequestParam("departmentIds") List<Integer> departmentIds) {
 
 		return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
 	}

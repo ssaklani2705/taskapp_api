@@ -100,7 +100,7 @@ public class TaskController {
 			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
 			@RequestParam(required = false) String isAdmin,
 			@RequestParam(required = false, defaultValue = "0") Integer userId,
-			@RequestParam(required = false, defaultValue = "0") String taskStatusIds,
+			@RequestParam(required = false, defaultValue = "-1") String taskStatusIds,
 			@RequestParam(required = false) String loginType,
 			@RequestParam(required = false, defaultValue = "") String dashboardFilter,
 			@RequestParam(required = false) String isHod) {
