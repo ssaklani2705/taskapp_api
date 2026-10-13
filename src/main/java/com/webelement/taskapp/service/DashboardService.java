@@ -193,11 +193,18 @@ public class DashboardService {
 	            .count();
 	}
 
-	private long countUnassigned(List<TaskEntity> tasks) {
-	    return tasks.stream()
-	            .filter(t -> t.getTaskStatus() == null || t.getTaskStatus() == ST_UNASSIGNED)
-	            .count();
-	}
+//	private long countUnassigned(List<TaskEntity> tasks) {
+//	    return tasks.stream()
+//	            .filter(t -> t.getTaskStatus() == null || t.getTaskStatus() == ST_UNASSIGNED)
+//	            .count();
+//	}
+
+private long countUnassigned(List<TaskEntity> tasks) {
+    return tasks.stream()
+            .filter(t -> t.getAssignedTo() == null || t.getAssignedTo() == 0)
+            .count();
+}
+
 
 	private LocalDateTime getDueDateTime(TaskEntity task) {
 
