@@ -297,4 +297,14 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
     long countEmployeesByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
 	
 	
+	@Query(value = "SELECT s_password FROM t_userlogin WHERE i_userid = :userId",
+		       nativeQuery = true)
+	String findPasswordByUserId(Integer userId);
+	
+	
+	
+	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email AND u.userId = :userId AND u.status = 1")
+	Optional<Integer> findUserIdByEmailAndStatusAndUserId(@Param("email") String email, @Param("userId") Integer userId);
+	
+	
 }

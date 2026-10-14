@@ -14,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+
 @ToString
 public class LoginResponse {
 	private String token;
@@ -27,17 +27,22 @@ public class LoginResponse {
 	private String isHod;
 	
 	private List<ModulePermissionDTO> modules;
+	private String emailId;
 
-	public LoginResponse(String token, int userId, String username, int sessionId, String isAdmin,
-			String designationName,List<ModulePermissionDTO> modules,String isHod) {
+	public LoginResponse(String token, int userId, String username, Integer sessionId, String isAdmin,
+			String designationName, List<ModulePermissionDTO> modules, String isHod, String emailId) {
+
 		this.token = token;
 		this.userId = userId;
 		this.username = username;
-		this.sessionId = sessionId;
+		this.sessionId = sessionId != null ? sessionId : 0;
 		this.isAdmin = isAdmin;
 		this.designationName = designationName;
 		this.modules = modules;
 		this.isHod = isHod;
+		this.emailId = emailId;
 	}
+
+	
 
 }

@@ -41,23 +41,22 @@ public class GloballyExceptionHandlers {
 	public ResponseEntity<Map<String, Object>> handleFileDownloadException(FileDownloadException ex) {
 
 		Map<String, Object> response = new HashMap<>();
-
 		response.put("status", false);
 		response.put("message", ex.getMessage());
-
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 	}
-	
 	@ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ResponseApi<Object>> handleInvalidRequest(InvalidRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ResponseApi<Object>(false, ex.getMessage(), null));
     }
-
     @ExceptionHandler(WorkloadFetchException.class)
     public ResponseEntity<ResponseApi<Object>> handleWorkloadFetch(WorkloadFetchException ex) {
-       // log.error("Workload fetch failed", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ResponseApi<Object>(false, ex.getMessage(), null));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseApi<Object>(false, ex.getMessage(), null));
     }
+    
+	@ExceptionHandler(IllegalStateException.class)
+	public ResponseEntity<ResponseApi<String>> handleUpdateError(IllegalStateException e) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseApi<String>(false, "Unable to change password. Please try again.", null));
+	}
 }
