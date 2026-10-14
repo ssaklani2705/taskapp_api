@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.common.ResponseApi;
+import com.webelement.taskapp.dto.ChangePassWordDTO;
 import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
 
 import com.webelement.taskapp.service.AuthService;
+import com.webelement.taskapp.service.impl.ChangePasswordImpl;
+
 import lombok.RequiredArgsConstructor;
 
 
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
+	private final ChangePasswordImpl changePasswordService;
 	private Boolean isManager = false;
 	private final SecureRandom secureRandom = new SecureRandom();
 	
@@ -60,5 +64,13 @@ public class AuthController {
 	public ResponseEntity<ResponseApi<String>> forgotpassword(@RequestParam String emailId, @RequestParam String userId,
 			@RequestParam String password,@RequestParam(required = false) String isManagerLogin) throws Exception {
 		return authService.forgotpassword(emailId, userId, password,isManagerLogin);
+	}
+	
+	
+	@PostMapping("/change_password")
+	public ResponseEntity<ResponseApi<String>> changePassword(@RequestBody ChangePassWordDTO request) {
+	
+		String message = changePasswordService.changePassword(request);
+		return ResponseEntity.ok(new ResponseApi<String>(true, message, null));
 	}
 }
