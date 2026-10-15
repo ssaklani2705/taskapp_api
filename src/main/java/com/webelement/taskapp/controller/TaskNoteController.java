@@ -3,7 +3,7 @@ package com.webelement.taskapp.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import org.springframework.web.bind.annotation.*;
 import com.webelement.taskapp.dto.TaskNoteDTO;
 import com.webelement.taskapp.dto.TaskNoteRequestDTO;
