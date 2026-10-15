@@ -1,4 +1,5 @@
 package com.webelement.taskapp.controller;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -22,28 +23,26 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/file")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class FileController {
-	@Value("${task.upload-dir}") 
+	@Value("${task.upload-dir}")
 	private String uploadDir;
 
 	@Qualifier("fileExecutor")
 	private final Executor fileExecutor;
 
 	@GetMapping("/download")
-	public CompletableFuture<ResponseEntity<byte[]>> download(
-	        @RequestParam String type,
-	        @RequestParam String fileName) {
+	public CompletableFuture<ResponseEntity<byte[]>> download(@RequestParam String type,
+			@RequestParam String fileName) {
 
-	    return CompletableFuture.supplyAsync(() -> {
-	        try {
-	            return buildResponse(type, fileName);
-	        } catch (IOException e) {
-	            throw new FileDownloadException(
-	                    "Error downloading file.", e);
-	        }
-	    }, fileExecutor);
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				return buildResponse(type, fileName);
+			} catch (IOException e) {
+				throw new FileDownloadException("Error downloading file.", e);
+			}
+		}, fileExecutor);
 	}
 
 	private ResponseEntity<byte[]> buildResponse(String type, String fileName) throws IOException {

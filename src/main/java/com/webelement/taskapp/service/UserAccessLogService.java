@@ -16,7 +16,6 @@ import com.webelement.taskapp.dto.UserAccessLogDTO;
 import com.webelement.taskapp.entity.UserAccessLogEntity;
 import com.webelement.taskapp.repo.UserAccessLogRepo;
 
-
 @Service
 public class UserAccessLogService {
 

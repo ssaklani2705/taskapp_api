@@ -284,8 +284,7 @@ public class TaskServiceImpl implements TaskService {
 			if (!isOle2 && !isHtmlExcel) {
 				throw new FileValidationException("Corrupted XLS file");
 			}
-		}
-		else {
+		} else {
 			throw new FileValidationException("Unsupported file type: " + extension);
 		}
 	}

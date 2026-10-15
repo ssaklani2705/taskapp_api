@@ -1,6 +1,5 @@
 package com.webelement.taskapp.dto;
 
-
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,4 +23,3 @@ public class UserAccessLogDTO {
 	private String userName;
 
 }
-

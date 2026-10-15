@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import com.webelement.taskapp.dto.UserAccessLogDTO;
 import com.webelement.taskapp.entity.UserAccessLogEntity;
 
-
 public interface UserAccessLogRepo extends JpaRepository<UserAccessLogEntity, Integer> {
 
 	Optional<UserAccessLogEntity> findByUserIdAndStatus(Integer userId, Integer status);

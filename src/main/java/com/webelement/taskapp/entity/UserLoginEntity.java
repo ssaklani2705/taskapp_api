@@ -114,15 +114,15 @@ public class UserLoginEntity {
 
 	@Transient
 	private String designationName;
-	
+
 	@Column(name = "s_ishod")
-	private String isHod;   // "Y" / "N"
-	
+	private String isHod; // "Y" / "N"
+
 	@Column(name = "i_weekly_off")
-	private Short weeklyOff;   // e.g. "1,7"
+	private Short weeklyOff; // e.g. "1,7"
 
 	@Transient
-	private List<Integer> weeklyOffIds;   // for the edit form
+	private List<Integer> weeklyOffIds; // for the edit form
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

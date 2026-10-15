@@ -13,7 +13,6 @@ import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
-
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
@@ -31,7 +30,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserLoginEntity user = loginRepository.findByEmailAndStatus(username,1)
+		UserLoginEntity user = loginRepository.findByEmailAndStatus(username, 1)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
 				new java.util.ArrayList<>());

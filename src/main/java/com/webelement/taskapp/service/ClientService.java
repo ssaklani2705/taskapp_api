@@ -168,8 +168,7 @@ public class ClientService {
 		if (isNew) {
 			action = "Client Added";
 		} else if (managerChanged) {
-			action = "Society Manager changed from \"" + oldManagerName + "\" to \"" + newManagerName
-					+ "\"";
+			action = "Society Manager changed from \"" + oldManagerName + "\" to \"" + newManagerName + "\"";
 		} else {
 			action = "Client updated";
 		}

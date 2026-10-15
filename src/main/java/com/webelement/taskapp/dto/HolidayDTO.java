@@ -26,24 +26,15 @@ public class HolidayDTO {
 	private List<TransactionEntity> transactionHistory;
 
 	/**
-	 * Used by the JPQL "new" projection in
-	 * HolidayRepository.findHolidayDetails().
+	 * Used by the JPQL "new" projection in HolidayRepository.findHolidayDetails().
 	 *
-	 * Hibernate resolves the projected column types for this
-	 * query as: int, String, LocalDate, LocalDate, int, int,
-	 * java.util.Date, java.util.Date — NOT the boxed/Timestamp
-	 * types on the entity. The signature below must match that
+	 * Hibernate resolves the projected column types for this query as: int, String,
+	 * LocalDate, LocalDate, int, int, java.util.Date, java.util.Date — NOT the
+	 * boxed/Timestamp types on the entity. The signature below must match that
 	 * exactly, or Hibernate throws QuerySyntaxException at startup.
 	 */
-	public HolidayDTO(
-			int holidayId,
-			String name,
-			LocalDate startDate,
-			LocalDate endDate,
-			int status,
-			int userId,
-			Date regdate,
-			Date moddate) {
+	public HolidayDTO(int holidayId, String name, LocalDate startDate, LocalDate endDate, int status, int userId,
+			Date regdate, Date moddate) {
 
 		this.holidayId = holidayId;
 		this.name = name;

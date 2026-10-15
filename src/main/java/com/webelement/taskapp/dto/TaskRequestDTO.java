@@ -7,33 +7,32 @@ import lombok.Data;
 @Data
 public class TaskRequestDTO {
 
-    private Integer taskId;
+	private Integer taskId;
 
-    private String title;
+	private String title;
 
-    private Integer clientId;
+	private Integer clientId;
 
-    private LocalDate date;
+	private LocalDate date;
 
-    private Integer taskCategoryId;
+	private Integer taskCategoryId;
 
-    private String description;
+	private String description;
 
-    private Integer assignedTo;
+	private Integer assignedTo;
 
-    private Short priority;
+	private Short priority;
 
-    /*
-     * Only used during UPDATE.
-     *
-     * CREATE:
-     * status should be ignored/defaulted to 1.
-     */
-    private Short status;
+	/*
+	 * Only used during UPDATE.
+	 *
+	 * CREATE: status should be ignored/defaulted to 1.
+	 */
+	private Short status;
 
-    private String closeRemarks;
+	private String closeRemarks;
 
-    private Integer taskGroupId;
+	private Integer taskGroupId;
 
-    private Integer addedBy;
+	private Integer addedBy;
 }

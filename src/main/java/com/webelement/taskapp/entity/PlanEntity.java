@@ -21,26 +21,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlanEntity {
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "i_planid", nullable = false)
-	    private Integer planId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "i_planid", nullable = false)
+	private Integer planId;
 
-	    @Column(name = "s_name", length = 100)
-	    private String name;
+	@Column(name = "s_name", length = 100)
+	private String name;
 
-	    @Column(name = "i_rate")
-	    private Integer rate; // Monthly Rate
+	@Column(name = "i_rate")
+	private Integer rate; // Monthly Rate
 
-	    @Column(name = "i_description", columnDefinition = "LONGTEXT")
-	    private String description;
+	@Column(name = "i_description", columnDefinition = "LONGTEXT")
+	private String description;
 
-	    @Column(name = "i_status")
-	    private Short status;
+	@Column(name = "i_status")
+	private Short status;
 
-	    @Column(name = "ts_regdate")
-	    private LocalDateTime registrationDate;
+	@Column(name = "ts_regdate")
+	private LocalDateTime registrationDate;
 
-	    @Column(name = "ts_moddate")
-	    private LocalDateTime modificationDate;
+	@Column(name = "ts_moddate")
+	private LocalDateTime modificationDate;
 }

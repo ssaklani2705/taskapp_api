@@ -1,4 +1,5 @@
 package com.webelement.taskapp.dto;
+
 import java.time.LocalDateTime;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class TaskEditDTO {
 	private Integer clientId;
 	private String closeRemarks;
 	private LocalDateTime date;
-	  private LocalDateTime dueDateTime;
+	private LocalDateTime dueDateTime;
 	private String description;
 	private String fileName1;
 	private String fileName2;
@@ -30,70 +31,52 @@ public class TaskEditDTO {
 	private Short status;
 	private Integer taskCategoryId;
 	private String title;
-	
+
 	private String clientName;
 	private String taskCategoryName;
 	private String assignedUserName;
 	private String addedByName;
-	
+
 	private Short taskStatus;
-	
+
 //	private String dueDatetime;
 	private List<TransactionEntity> transactionHistory;
-	
-	
-	public TaskEditDTO(
-	        Integer taskId,
-	        Integer addedBy,
-	        Integer assignedTo,
-	        Integer clientId,
-	        String closeRemarks,
-	        LocalDateTime date,
-	        String description,
-	        String fileName1,
-	        String fileName2,
-	        String fileName3,
-	        String fileName4,
-	        Short priority,
-	        Short status,
-	        Integer taskCategoryId,
-	        String title,
-	        String clientName,
-	        String taskCategoryName,
-	        String assignedUserName,
-	        String addedByName,
-	        Short taskStatus,
-	        LocalDateTime dueDatetime) {
 
-	    super();
-
-	    this.taskId = taskId;
-	    this.addedBy = addedBy;
-	    this.assignedTo = assignedTo;
-	    this.clientId = clientId;
-	    this.closeRemarks = closeRemarks;
-	    this.date = date;
-	    this.description = description;
-	    this.fileName1 = fileName1;
-	    this.fileName2 = fileName2;
-	    this.fileName3 = fileName3;
-	    this.fileName4 = fileName4;
-	    this.priority = priority;
-	    this.status = status;
-	    this.taskCategoryId = taskCategoryId;
-	    this.title = title;
-	    this.clientName = clientName;
-	    this.taskCategoryName = taskCategoryName;
-	    this.assignedUserName = assignedUserName;
-	    this.addedByName = addedByName;
-	    this.taskStatus = taskStatus;
-	    this.dueDateTime = dueDatetime;
-	}
-	
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,
-			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3, String fileName4,
-			Short priority, Short status, Integer taskCategoryId, String title, String clientName,
-			String taskCategoryName, String assignedUserName, String addedByName,Short taskStatus) {
+			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3,
+			String fileName4, Short priority, Short status, Integer taskCategoryId, String title, String clientName,
+			String taskCategoryName, String assignedUserName, String addedByName, Short taskStatus,
+			LocalDateTime dueDatetime) {
+
+		super();
+
+		this.taskId = taskId;
+		this.addedBy = addedBy;
+		this.assignedTo = assignedTo;
+		this.clientId = clientId;
+		this.closeRemarks = closeRemarks;
+		this.date = date;
+		this.description = description;
+		this.fileName1 = fileName1;
+		this.fileName2 = fileName2;
+		this.fileName3 = fileName3;
+		this.fileName4 = fileName4;
+		this.priority = priority;
+		this.status = status;
+		this.taskCategoryId = taskCategoryId;
+		this.title = title;
+		this.clientName = clientName;
+		this.taskCategoryName = taskCategoryName;
+		this.assignedUserName = assignedUserName;
+		this.addedByName = addedByName;
+		this.taskStatus = taskStatus;
+		this.dueDateTime = dueDatetime;
+	}
+
+	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,
+			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3,
+			String fileName4, Short priority, Short status, Integer taskCategoryId, String title, String clientName,
+			String taskCategoryName, String assignedUserName, String addedByName, Short taskStatus) {
 		super();
 		this.taskId = taskId;
 		this.addedBy = addedBy;
@@ -116,15 +99,16 @@ public class TaskEditDTO {
 		this.addedByName = addedByName;
 		this.taskStatus = taskStatus;
 	}
-	
-	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,Integer addedBy) {
-        this.taskId = taskId;
-        this.assignedTo = assignedTo;
-        this.assignedUserName = assignedUserName;
-        this.title = title;
-        this.taskStatus = taskStatus;
-        this.addedBy = addedBy;
-    }
+
+	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
+			Integer addedBy) {
+		this.taskId = taskId;
+		this.assignedTo = assignedTo;
+		this.assignedUserName = assignedUserName;
+		this.title = title;
+		this.taskStatus = taskStatus;
+		this.addedBy = addedBy;
+	}
 
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
 
@@ -143,7 +127,6 @@ public class TaskEditDTO {
 		this.clientName = clientName;
 	}
 
-	
 	// Used by TaskRepository.findTasksByStatus
 	public TaskEditDTO(Integer taskId, Integer assignedTo, String assignedUserName, String title, Short taskStatus,
 			Integer addedBy, String addedByName, LocalDateTime date, LocalDateTime dueDateTime, Short priority,
@@ -162,5 +145,4 @@ public class TaskEditDTO {
 		this.clientName = clientName;
 	}
 
-	
 }

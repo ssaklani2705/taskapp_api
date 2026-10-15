@@ -15,39 +15,21 @@ import org.springframework.stereotype.Repository;
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
 
-
-
 @Repository
-public interface DepartmentRepository
-		extends JpaRepository<DepartmentEntity, Integer> {
-	
+public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Integer> {
+
 	@Transactional
 	@Modifying
-	@Query("UPDATE DepartmentEntity d "
-			+ "SET d.status = :status, "
-			+ "d.moddate = CURRENT_TIMESTAMP "
+	@Query("UPDATE DepartmentEntity d " + "SET d.status = :status, " + "d.moddate = CURRENT_TIMESTAMP "
 			+ "WHERE d.departmentId = :departmentId")
-	int softDelete(
-			@Param("status") Integer status,
-			@Param("departmentId") Integer departmentId);
+	int softDelete(@Param("status") Integer status, @Param("departmentId") Integer departmentId);
 
-	@Query("SELECT new com.webelement.taskapp.dto.DepartmentDTO("
-			+ "d.departmentId, "
-			+ "d.name, "
-			+ "d.sequence, "
-			+ "d.status, "
-			+ "d.userId, "
-			+ "d.regdate, "
-			+ "d.moddate) "
-			+ "FROM DepartmentEntity d "
-			+ "WHERE d.departmentId > 0 "
-			+ "AND (:statusIndex = 0 OR d.status = :statusIndex) "
-			+ "AND (:search IS NULL OR :search = '' "
-			+ "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) "
+	@Query("SELECT new com.webelement.taskapp.dto.DepartmentDTO(" + "d.departmentId, " + "d.name, " + "d.sequence, "
+			+ "d.status, " + "d.userId, " + "d.regdate, " + "d.moddate) " + "FROM DepartmentEntity d "
+			+ "WHERE d.departmentId > 0 " + "AND (:statusIndex = 0 OR d.status = :statusIndex) "
+			+ "AND (:search IS NULL OR :search = '' " + "OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))) "
 			+ "ORDER BY d.status, d.sequence, d.name")
-	Page<DepartmentDTO> findDepartmentDetails(
-			Pageable pageable,
-			@Param("statusIndex") int statusIndex,
+	Page<DepartmentDTO> findDepartmentDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search);
 
 	List<DepartmentEntity> findByStatus(Integer status);
@@ -56,21 +38,14 @@ public interface DepartmentRepository
 
 	DepartmentEntity findByNameIgnoreCase(String name);
 
-	boolean existsByNameIgnoreCaseAndStatusNot(
-			String name,
-			Integer status);
-	
+	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
+
 	@Query(value = "SELECT * FROM t_department WHERE status = 1", nativeQuery = true)
 	List<DepartmentEntity> findAllActiveDepartments();
-	
-	   boolean existsBySequenceAndStatusNot(
-	            Integer sequence,
-	            Integer status);
-	DepartmentEntity findBySequence(
-            Integer sequence);
 
-	boolean existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(
-	        String name,
-	        Integer departmentId,
-	        Integer status);
+	boolean existsBySequenceAndStatusNot(Integer sequence, Integer status);
+
+	DepartmentEntity findBySequence(Integer sequence);
+
+	boolean existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(String name, Integer departmentId, Integer status);
 }

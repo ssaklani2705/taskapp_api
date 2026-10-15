@@ -113,7 +113,7 @@ public class ClientEntity {
 
 	@Column(name = "s_location")
 	private String location;
-	
+
 	@Column(name = "i_planid")
 	private Integer planId;
 
@@ -125,7 +125,7 @@ public class ClientEntity {
 
 	@Transient
 	private String managerNameForExcel;
-	
+
 	@Transient
 	private String planNameForExcel;
 }

@@ -11,9 +11,8 @@ import lombok.ToString;
 @ToString
 public class UserInfo {
 
-	private static final String[] WEEK_DAYS = {
-	        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-	};
+	private static final String[] WEEK_DAYS = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+			"Saturday" };
 
 	private int userId;
 	private String firstName;
@@ -54,8 +53,6 @@ public class UserInfo {
 		this.departmentName = departmentName;
 		this.designationName = designationName;
 		this.isHod = isHod;
-		this.weeklyOffNames = (weeklyOff != null && weeklyOff >= 1 && weeklyOff <= 7)
-				? WEEK_DAYS[weeklyOff - 1]
-				: "";
+		this.weeklyOffNames = (weeklyOff != null && weeklyOff >= 1 && weeklyOff <= 7) ? WEEK_DAYS[weeklyOff - 1] : "";
 	}
 }

@@ -12,7 +12,7 @@ import com.webelement.taskapp.entity.StateEntity;
 public interface StateRepository extends JpaRepository<StateEntity, Integer> {
 
 	List<StateEntity> findByStatus(Short status);
-	
+
 	Optional<StateEntity> findByNameIgnoreCaseAndStatus(String name, Short status);
-	
+
 }

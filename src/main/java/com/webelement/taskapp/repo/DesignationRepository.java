@@ -15,69 +15,34 @@ import org.springframework.stereotype.Repository;
 import com.webelement.taskapp.dto.DesignationDTO;
 import com.webelement.taskapp.entity.DesignationEntity;
 
-
 @Repository
-public interface DesignationRepository
-        extends JpaRepository<DesignationEntity, Integer> {
+public interface DesignationRepository extends JpaRepository<DesignationEntity, Integer> {
 
-    @Transactional
-    @Modifying
-    @Query("UPDATE DesignationEntity d " +
-           "SET d.status = :status, " +
-           "d.moddate = CURRENT_TIMESTAMP " +
-           "WHERE d.designationId = :designationId")
-    int softDelete(
-            @Param("status") Integer status,
-            @Param("designationId") Integer designationId);
+	@Transactional
+	@Modifying
+	@Query("UPDATE DesignationEntity d " + "SET d.status = :status, " + "d.moddate = CURRENT_TIMESTAMP "
+			+ "WHERE d.designationId = :designationId")
+	int softDelete(@Param("status") Integer status, @Param("designationId") Integer designationId);
 
-    @Query(
-        "SELECT new com.webelement.taskapp.dto.DesignationDTO(" +
-        "d.designationId, " +
-        "d.name, " +
-        "d.sequence, " +
-        "d.status, " +
-        "d.userId, " +
-        "d.regdate, " +
-        "d.moddate) " +
-        "FROM DesignationEntity d " +
-        "WHERE d.designationId > 0 " +
-        "AND (:statusIndex = 0 OR d.status = :statusIndex) " +
-        "AND (" +
-        ":search IS NULL OR " +
-        ":search = '' OR " +
-        "LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))" +
-        ") " +
-        "ORDER BY d.status, d.sequence, d.name"
-    )
-    Page<DesignationDTO> findDesignationDetails(
-            Pageable pageable,
-            @Param("statusIndex") int statusIndex,
-            @Param("search") String search);
+	@Query("SELECT new com.webelement.taskapp.dto.DesignationDTO(" + "d.designationId, " + "d.name, " + "d.sequence, "
+			+ "d.status, " + "d.userId, " + "d.regdate, " + "d.moddate) " + "FROM DesignationEntity d "
+			+ "WHERE d.designationId > 0 " + "AND (:statusIndex = 0 OR d.status = :statusIndex) " + "AND ("
+			+ ":search IS NULL OR " + ":search = '' OR " + "LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%'))" + ") "
+			+ "ORDER BY d.status, d.sequence, d.name")
+	Page<DesignationDTO> findDesignationDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search);
 
-    List<DesignationEntity> findByStatus(Integer status);
+	List<DesignationEntity> findByStatus(Integer status);
 
-    boolean existsByNameIgnoreCaseAndStatusNot(
-            String name,
-            Integer status);
+	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
 
-    DesignationEntity findByNameIgnoreCase(String name);
-    
-    
-    boolean existsBySequenceAndStatusNot(
-            Integer sequence,
-            Integer status);
+	DesignationEntity findByNameIgnoreCase(String name);
 
-    DesignationEntity findBySequence(
-            Integer sequence);
-    
-    boolean existsBySequenceAndDesignationIdNotAndStatusNot(
-            Integer sequence,
-            Integer designationId,
-            Integer status);
-    
-    boolean existsByNameIgnoreCaseAndDesignationIdNotAndStatusNot(
-            String name,
-            Integer designationId,
-            Integer status);
+	boolean existsBySequenceAndStatusNot(Integer sequence, Integer status);
+
+	DesignationEntity findBySequence(Integer sequence);
+
+	boolean existsBySequenceAndDesignationIdNotAndStatusNot(Integer sequence, Integer designationId, Integer status);
+
+	boolean existsByNameIgnoreCaseAndDesignationIdNotAndStatusNot(String name, Integer designationId, Integer status);
 }
-

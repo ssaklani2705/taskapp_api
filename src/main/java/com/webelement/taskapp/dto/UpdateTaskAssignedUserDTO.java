@@ -14,10 +14,10 @@ public class UpdateTaskAssignedUserDTO {
 	private Integer assignedTo;
 	private Integer userId;
 	private String remarks;
-   
+
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime date;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime endDate;
 }

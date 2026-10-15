@@ -1,4 +1,5 @@
 package com.webelement.taskapp.controller;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.data.domain.Page;
@@ -10,13 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.dto.UserAccessLogDTO;
 import com.webelement.taskapp.service.UserAccessLogService;
 import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/useraccesslog")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class UserAccessLogController {
 
-		private final UserAccessLogService accessLogService;
+	private final UserAccessLogService accessLogService;
 
 	@GetMapping("/getUserAccessDetails")
 	public Map<String, Object> getUserAccessDetails(@RequestParam int page, @RequestParam int size,

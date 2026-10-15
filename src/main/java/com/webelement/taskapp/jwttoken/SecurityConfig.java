@@ -13,7 +13,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.webelement.taskapp.common.CommonFunction;
 
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.web.SecurityFilterChain;
@@ -69,22 +68,17 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-	    http
-	        .csrf(csrf -> csrf.disable())
-	        .cors(cors -> {})
-	        .sessionManagement(session ->
-	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	        .authorizeHttpRequests(auth -> auth
-	        		 .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
-	            .requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
-	            .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
-	            .requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll()
-	            .requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll()
-	            .anyRequest().authenticated()
-	        );
+		http.csrf(csrf -> csrf.disable()).cors(cors -> {
+		}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
+						.requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
+						.requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
+						.requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll()
+						.requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll().anyRequest()
+						.authenticated());
 
-	    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-	    return http.build();
+		return http.build();
 	}
 }

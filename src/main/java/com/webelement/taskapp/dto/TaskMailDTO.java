@@ -31,5 +31,5 @@ public class TaskMailDTO {
 	private String url;
 	private String reClosedBy;
 	private String closedBy;
-	
+
 }

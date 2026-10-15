@@ -1,4 +1,5 @@
 package com.webelement.taskapp.service.impl;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +21,11 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 @RequiredArgsConstructor
 public class PlanServiceImpl implements PlanService {
-	
+
 	private final PlanRepo planRepo;
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
-	
+
 	@Override
 	public ApiResponse<PlanDTO> addOrUpdate(PlanDTO request) {
 		LocalDateTime now = LocalDateTime.now();
@@ -72,7 +73,7 @@ public class PlanServiceImpl implements PlanService {
 		Integer planId = request.getPlanId();
 		Integer PlainExitsInClient = planRepo.existsByPlanId(planId);
 		if (PlainExitsInClient != null && PlainExitsInClient > 0) {
-			return new ApiResponse<>(false,"Plan is assigned to one or more client and cannot be deleted", null);
+			return new ApiResponse<>(false, "Plan is assigned to one or more client and cannot be deleted", null);
 		}
 		Optional<PlanEntity> existing = planRepo.findById(request.getPlanId());
 		if (!existing.isPresent()) {
@@ -106,7 +107,8 @@ public class PlanServiceImpl implements PlanService {
 	public Page<PlanDTO> findPlanList(int page, int size, int statusIndex, String search) {
 		return planRepo.findPlanDetails(PageRequest.of(page, size), statusIndex, search);
 	}
+
 	public List<PlanEntity> getPlan() {
-        return planRepo.findByStatus((short) 1);
-    }
+		return planRepo.findByStatus((short) 1);
+	}
 }

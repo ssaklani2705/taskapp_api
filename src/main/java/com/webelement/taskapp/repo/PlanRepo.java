@@ -19,28 +19,14 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 
 	boolean existsByNameIgnoreCaseAndStatusNot(String name, short s);
 
-	@Query(
-		    "SELECT new com.webelement.taskapp.dto.PlanDTO(" +
-		    "p.planId, " +
-		    "p.name, " +
-		    "p.rate, " +
-		    "p.description, " +
-		    "p.status) " +
-		    "FROM PlanEntity p " +
-		    "WHERE p.planId > 0 " +
-		    "AND (:statusIndex = 0 OR p.status = :statusIndex) " +
-		    "AND (" +
-		    "    LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-		    "    OR " +
-		    "    LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-		    ") " +
-		    "ORDER BY p.status ASC, p.registrationDate DESC ,p.name ASC "
-		)
-		Page<PlanDTO> findPlanDetails(
-		    Pageable pageable,
-		    @Param("statusIndex") int statusIndex,
-		    @Param("search") String search
-		);
+	@Query("SELECT new com.webelement.taskapp.dto.PlanDTO(" + "p.planId, " + "p.name, " + "p.rate, " + "p.description, "
+			+ "p.status) " + "FROM PlanEntity p " + "WHERE p.planId > 0 "
+			+ "AND (:statusIndex = 0 OR p.status = :statusIndex) " + "AND ("
+			+ "    LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " + "    OR "
+			+ "    LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " + ") "
+			+ "ORDER BY p.status ASC, p.registrationDate DESC ,p.name ASC ")
+	Page<PlanDTO> findPlanDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search);
 
 	@Modifying
 	@Transactional
@@ -48,12 +34,11 @@ public interface PlanRepo extends JpaRepository<PlanEntity, Integer> {
 	Integer softDelete(@Param("planId") Integer planId);
 
 	List<PlanEntity> findByStatus(Short status);
-	
+
 	@Query("SELECT u.planId FROM PlanEntity u WHERE LOWER(u.name) = LOWER(:name) AND u.status = 1")
-    Integer findIdByName(@Param("name") String name);
-	
+	Integer findIdByName(@Param("name") String name);
+
 	@Query(value = "SELECT EXISTS (SELECT 1 FROM t_client WHERE i_planid = :planId AND i_status <> 3)", nativeQuery = true)
 	Integer existsByPlanId(@Param("planId") Integer planId);
-
 
 }

@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import com.webelement.taskapp.dto.MailLogDTO;
 import com.webelement.taskapp.entity.MailLogEntity;
 
-
 public interface MailLogRepo extends JpaRepository<MailLogEntity, Integer> {
 
 	@Query("SELECT new com.webelement.taskapp.dto.MailLogDTO("

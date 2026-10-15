@@ -26,16 +26,12 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
 	String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
-	
+
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
-	     + "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) "
-	     + "FROM TaskCategoryEntity tc "
-	     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
-	     + "WHERE tc.status = :status "
-	     + "AND tc.taskcategoryId IN :ids "
-	     + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
-	List<TaskCategoryDTO> findByIdsWithDepartment(@Param("status") Integer status,
-	                                              @Param("ids") List<Integer> ids);
+			+ "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
+			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = :status "
+			+ "AND tc.taskcategoryId IN :ids " + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
+	List<TaskCategoryDTO> findByIdsWithDepartment(@Param("status") Integer status, @Param("ids") List<Integer> ids);
 
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin "
 			+ "WHERE FIND_IN_SET(:departmentId, s_departmentids) > 0", nativeQuery = true)
@@ -48,7 +44,8 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	boolean existsByDesignationIdAndStatusNot(Integer designationId, Integer status);
 
 	@Query(value = "SELECT " + "u.i_userid, " + "u.s_firstname, " + "u.s_email, " + "u.s_mobileno, "
-			+ "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " + "u.s_permission,u.s_taskcategoryIds AS taskcategoryIds, "
+			+ "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, "
+			+ "u.s_permission,u.s_taskcategoryIds AS taskcategoryIds, "
 			+ "d.s_name AS designationName,u.s_ishod as isHod " + "FROM t_userlogin u "
 			+ "LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid " + "WHERE u.i_status = 1 "
 			+ "AND u.s_email = :email " + "AND u.s_password = :password " + "AND ( "
@@ -72,9 +69,9 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "AND (:statusIndex = 0 OR u.status = :statusIndex) " + "AND (:departmentId = 0 OR "
 			+ "     FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) "
 			+ "AND (:designationId = 0 OR u.designationId = :designationId) " + "AND (:selectedCategoryId = 0 OR "
-			+ "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) " +
-			"AND (:weeklyOff = 0 OR u.weeklyOff = :weeklyOff) " +
-			"AND (:search IS NULL OR :search = '' " + "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "     FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) "
+			+ "AND (:weeklyOff = 0 OR u.weeklyOff = :weeklyOff) " + "AND (:search IS NULL OR :search = '' "
+			+ "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "OR EXISTS (SELECT 1 FROM DepartmentEntity dx "
@@ -218,24 +215,24 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	Integer countActiveUsersUsingTaskCategory(@Param("taskcategoryId") Integer taskcategoryId);
 
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin u WHERE u.i_status = 1 AND u.s_taskcategoryIds IS NOT NULL "
-            + "AND ( u.s_taskcategoryIds = :taskCategoryId OR u.s_taskcategoryIds LIKE CONCAT(:taskCategoryId, ',%') "
-            + "OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId) OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId, ',%') )", nativeQuery = true)
-    long countEmployeesByTaskCategoryIdForTask(@Param("taskCategoryId") Integer taskCategoryId);
-   
+			+ "AND ( u.s_taskcategoryIds = :taskCategoryId OR u.s_taskcategoryIds LIKE CONCAT(:taskCategoryId, ',%') "
+			+ "OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId) OR u.s_taskcategoryIds LIKE CONCAT('%,', :taskCategoryId, ',%') )", nativeQuery = true)
+	long countEmployeesByTaskCategoryIdForTask(@Param("taskCategoryId") Integer taskCategoryId);
+
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin u " + "WHERE u.i_status = 1 "
-            + "AND (u.s_ishod IS NULL OR u.s_ishod <> 'Y') " + "AND u.s_taskcategoryIds IS NOT NULL " + "AND ( "
-            + "    u.s_taskcategoryIds = CAST(:taskCategoryId AS CHAR) "
-            + "    OR u.s_taskcategoryIds LIKE CONCAT(CAST(:taskCategoryId AS CHAR), ',%') "
-            + "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR)) "
-            + "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR), ',%') "
-            + ")", nativeQuery = true)
-    long countEmployeesByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
-	
-	@Query(value = "SELECT s_password FROM t_userlogin WHERE i_userid = :userId",
-		       nativeQuery = true)
+			+ "AND (u.s_ishod IS NULL OR u.s_ishod <> 'Y') " + "AND u.s_taskcategoryIds IS NOT NULL " + "AND ( "
+			+ "    u.s_taskcategoryIds = CAST(:taskCategoryId AS CHAR) "
+			+ "    OR u.s_taskcategoryIds LIKE CONCAT(CAST(:taskCategoryId AS CHAR), ',%') "
+			+ "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR)) "
+			+ "    OR u.s_taskcategoryIds LIKE CONCAT('%,', CAST(:taskCategoryId AS CHAR), ',%') "
+			+ ")", nativeQuery = true)
+	long countEmployeesByTaskCategoryId(@Param("taskCategoryId") Integer taskCategoryId);
+
+	@Query(value = "SELECT s_password FROM t_userlogin WHERE i_userid = :userId", nativeQuery = true)
 	String findPasswordByUserId(Integer userId);
-	
+
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email AND u.userId = :userId AND u.status = 1")
-	Optional<Integer> findUserIdByEmailAndStatusAndUserId(@Param("email") String email, @Param("userId") Integer userId);
-	
+	Optional<Integer> findUserIdByEmailAndStatusAndUserId(@Param("email") String email,
+			@Param("userId") Integer userId);
+
 }

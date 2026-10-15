@@ -11,9 +11,9 @@ import lombok.ToString;
 @ToString
 public class TaskNoteRequestDTO {
 
-    private Integer taskId;
-    private Integer userId;
-    private String note;
-    private Boolean sendMail;
-    private String isAdmin;
+	private Integer taskId;
+	private Integer userId;
+	private String note;
+	private Boolean sendMail;
+	private String isAdmin;
 }

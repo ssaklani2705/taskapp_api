@@ -18,11 +18,15 @@ import com.webelement.taskapp.entity.ClientEntity;
 
 @Repository
 public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
-	
+
 	boolean existsByManagerId(Integer managerId);
-    boolean existsByManagerIdAndStatus(Integer managerId, Short status);
+
+	boolean existsByManagerIdAndStatus(Integer managerId, Short status);
+
 	boolean existsByCode(String code);
+
 	boolean existsByCodeAndClientIdNot(String code, Integer clientId);
+
 	Optional<ClientEntity> findByCodeIgnoreCase(String code);
 
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
@@ -36,39 +40,39 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	ClientDTO getClientById(@Param("clientId") int clientId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.ClientDTO("
-            + "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, "
-            + "c.stateId, s.name, c.addressLine1, c.addressLine2, "
-            + "c.city, c.pincode, c.contactName, c.contactEmail, c.emails, "
-            + "c.startDate, c.monthlyCharge, c.outstanding, "
-            + "c.name1, c.emailId1, c.name2, c.emailId2, c.name3, c.emailId3, "
-            + "c.managerId, u.firstName, c.userId, c.regdate, c.moddate, " + "c.taxFlag, c.location, c.planId, p.name) "
-            + "FROM ClientEntity c " + "LEFT JOIN StateEntity s ON c.stateId = s.stateId "
-            + "LEFT JOIN UserLoginEntity u ON c.managerId = u.userId "
-            + "LEFT JOIN PlanEntity p ON c.planId = p.planId WHERE c.clientId > 0 "
-            + "AND (:status IS NULL OR c.status = :status) " + "AND (:managerId IS NULL OR c.managerId = :managerId) "
-            + "AND (:stateId IS NULL OR c.stateId = :stateId) " + "AND (:gstFlag IS NULL OR c.gstFlag = :gstFlag) "
-            + "AND (:taxFlag IS NULL OR c.taxFlag = :taxFlag) " + "AND (:planId IS NULL OR c.planId = :planId) "
-            + "AND (:fromDate IS NULL OR c.startDate >= :fromDate) "
-            + "AND (:toDate IS NULL OR c.startDate <= :toDate) " + "AND (:clientName IS NULL OR :clientName = '' "
-            + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :clientName, '%'))) "
-            + "AND (:clientCode IS NULL OR :clientCode = '' "
-            + "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :clientCode, '%'))) "
-            + "AND (:contactName IS NULL OR :contactName = '' "
-            + "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) "
-            + "AND (:contactEmail IS NULL OR :contactEmail = '' "
-            + "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :contactEmail, '%'))) "
-            + "AND (:search IS NULL OR :search = '' " + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%'))"
-            + "OR LOWER(c.city) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(c.location) LIKE LOWER(CONCAT('%', :search, '%'))) ORDER BY c.status ASC")
-    Page<ClientDTO> findClientDetails(Pageable pageable, @Param("status") Short status,
-            @Param("managerId") Integer managerId, @Param("stateId") Integer stateId, @Param("planId") Integer planId,
-            @Param("gstFlag") Short gstFlag, @Param("taxFlag") Short taxFlag, @Param("fromDate") LocalDate fromDate,
-            @Param("toDate") LocalDate toDate, @Param("clientName") String clientName,
-            @Param("clientCode") String clientCode, @Param("contactName") String contactName,
-            @Param("contactEmail") String contactEmail, @Param("search") String search);
+			+ "c.clientId, c.name, c.code, c.pan, c.status, c.gstFlag, c.gstNo, "
+			+ "c.stateId, s.name, c.addressLine1, c.addressLine2, "
+			+ "c.city, c.pincode, c.contactName, c.contactEmail, c.emails, "
+			+ "c.startDate, c.monthlyCharge, c.outstanding, "
+			+ "c.name1, c.emailId1, c.name2, c.emailId2, c.name3, c.emailId3, "
+			+ "c.managerId, u.firstName, c.userId, c.regdate, c.moddate, " + "c.taxFlag, c.location, c.planId, p.name) "
+			+ "FROM ClientEntity c " + "LEFT JOIN StateEntity s ON c.stateId = s.stateId "
+			+ "LEFT JOIN UserLoginEntity u ON c.managerId = u.userId "
+			+ "LEFT JOIN PlanEntity p ON c.planId = p.planId WHERE c.clientId > 0 "
+			+ "AND (:status IS NULL OR c.status = :status) " + "AND (:managerId IS NULL OR c.managerId = :managerId) "
+			+ "AND (:stateId IS NULL OR c.stateId = :stateId) " + "AND (:gstFlag IS NULL OR c.gstFlag = :gstFlag) "
+			+ "AND (:taxFlag IS NULL OR c.taxFlag = :taxFlag) " + "AND (:planId IS NULL OR c.planId = :planId) "
+			+ "AND (:fromDate IS NULL OR c.startDate >= :fromDate) "
+			+ "AND (:toDate IS NULL OR c.startDate <= :toDate) " + "AND (:clientName IS NULL OR :clientName = '' "
+			+ "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :clientName, '%'))) "
+			+ "AND (:clientCode IS NULL OR :clientCode = '' "
+			+ "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :clientCode, '%'))) "
+			+ "AND (:contactName IS NULL OR :contactName = '' "
+			+ "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :contactName, '%'))) "
+			+ "AND (:contactEmail IS NULL OR :contactEmail = '' "
+			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :contactEmail, '%'))) "
+			+ "AND (:search IS NULL OR :search = '' " + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(c.contactName) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(c.contactEmail) LIKE LOWER(CONCAT('%', :search, '%'))"
+			+ "OR LOWER(c.city) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(c.location) LIKE LOWER(CONCAT('%', :search, '%'))) ORDER BY c.status ASC")
+	Page<ClientDTO> findClientDetails(Pageable pageable, @Param("status") Short status,
+			@Param("managerId") Integer managerId, @Param("stateId") Integer stateId, @Param("planId") Integer planId,
+			@Param("gstFlag") Short gstFlag, @Param("taxFlag") Short taxFlag, @Param("fromDate") LocalDate fromDate,
+			@Param("toDate") LocalDate toDate, @Param("clientName") String clientName,
+			@Param("clientCode") String clientCode, @Param("contactName") String contactName,
+			@Param("contactEmail") String contactEmail, @Param("search") String search);
 
 	@Modifying
 	@Query("UPDATE ClientEntity u " + "SET u.status = :status " + "WHERE u.clientId = :clientId")
@@ -87,128 +91,76 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	Set<String> findAllGstsNormalized();
 
 	List<ClientEntity> findByManagerIdAndStatus(Integer managerId, Short status);
+
 	List<ClientEntity> findByStatus(Short status);
-	List<ClientEntity> findByUserIdAndStatus(
-	        Integer userId,
-	        Short status);
-	
-    @Query("SELECT c FROM ClientEntity c "
-            + "WHERE c.managerId = :managerId "
-            + "AND EXISTS ( "
-            + "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId "
-            + ") "
-            + "ORDER BY c.name ASC")
-    List<ClientEntity> findByManagerIdAndStatusForIndex(
-            @Param("managerId") Integer managerId);
 
-    @Query("SELECT c FROM ClientEntity c "
-            + "WHERE "
-            + " EXISTS ( "
-            + "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId "
-            + ") "
-            + "ORDER BY c.name ASC")
-    List<ClientEntity> findByStatusForIndex();
+	List<ClientEntity> findByUserIdAndStatus(Integer userId, Short status);
 
-    @Query("SELECT DISTINCT c FROM ClientEntity c "
-            + "WHERE "
-            + " EXISTS ( "
-            + "     SELECT 1 FROM RecurringEntity r "
-            + "     WHERE r.clientId = c.clientId "
-            + "     AND EXISTS ( "
-            + "          SELECT 1 FROM UserLoginEntity ul "
-            + "          WHERE ul.userId = :userId "
-            + "          AND CONCAT(',', ul.taskcategoryIds, ',') "
-            + "              LIKE CONCAT('%,', r.taskCatId, ',%') "
-            + "     ) "
-            + ") "
-            + "ORDER BY c.name ASC")
-    List<ClientEntity> findByUserIdAndStatusForIndex(
-            @Param("userId") Integer userId);
+	@Query("SELECT c FROM ClientEntity c " + "WHERE c.managerId = :managerId " + "AND EXISTS ( "
+			+ "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId " + ") " + "ORDER BY c.name ASC")
+	List<ClientEntity> findByManagerIdAndStatusForIndex(@Param("managerId") Integer managerId);
+
+	@Query("SELECT c FROM ClientEntity c " + "WHERE " + " EXISTS ( "
+			+ "     SELECT 1 FROM RecurringEntity r WHERE r.clientId = c.clientId " + ") " + "ORDER BY c.name ASC")
+	List<ClientEntity> findByStatusForIndex();
+
+	@Query("SELECT DISTINCT c FROM ClientEntity c " + "WHERE " + " EXISTS ( " + "     SELECT 1 FROM RecurringEntity r "
+			+ "     WHERE r.clientId = c.clientId " + "     AND EXISTS ( "
+			+ "          SELECT 1 FROM UserLoginEntity ul " + "          WHERE ul.userId = :userId "
+			+ "          AND CONCAT(',', ul.taskcategoryIds, ',') "
+			+ "              LIKE CONCAT('%,', r.taskCatId, ',%') " + "     ) " + ") " + "ORDER BY c.name ASC")
+	List<ClientEntity> findByUserIdAndStatusForIndex(@Param("userId") Integer userId);
 
 	Optional<ClientEntity> findByClientIdAndManagerIdAndStatus(Integer clientId, Integer managerId, Short status);
 
-    Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer managerId);
-    
-    @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 "
-    		+ "AND  ( "
-    		+ "(:loginType = 'manager' AND c.managerId = :userId) "
-    		+ " OR (:loginType <> 'manager') "
-    		+ ") "
-    		+ "ORDER BY c.name ASC")
-    List<ClientEntity> findAllActiveClients( @Param("userId") Integer userId,@Param("loginType") String loginType);
-	
-    @Query("SELECT DISTINCT c FROM ClientEntity c "
-            + "WHERE "
-            + " EXISTS ( "
-            + "     SELECT 1 FROM TaskEntity tAny WHERE tAny.clientId = c.clientId "
-            + ") "
-            + "AND ( "
+	Optional<ClientEntity> findByClientIdAndManagerId(Integer clientId, Integer managerId);
 
-            // ---- HOD: clients having tasks in own task categories ----
-            + "     ( "
-            + "          :isHod = 'Y' "
-            + "          AND EXISTS ( "
-            + "               SELECT 1 FROM TaskEntity th "
-            + "               WHERE th.clientId = c.clientId "
-            + "               AND EXISTS ( "
-            + "                    SELECT 1 FROM UserLoginEntity h "
-            + "                    WHERE h.userId = :userId "
-            + "                    AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
-            + "                        LIKE CONCAT('%,', th.taskCategoryId, ',%') "
-            + "               ) "
-            + "          ) "
-            + "     ) "
+	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 " + "AND  ( "
+			+ "(:loginType = 'manager' AND c.managerId = :userId) " + " OR (:loginType <> 'manager') " + ") "
+			+ "ORDER BY c.name ASC")
+	List<ClientEntity> findAllActiveClients(@Param("userId") Integer userId, @Param("loginType") String loginType);
 
-            // ---- MANAGER ----
-            + "     OR ( "
-            + "          :loginType = 'manager' "
-            + "          AND ( "
-            + "               c.managerId = :userId "
-            + "               OR EXISTS ( "
-            + "                    SELECT 1 FROM TaskEntity t "
-            + "                    WHERE t.clientId = c.clientId "
-            + "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) "
-            + "               ) "
-            + "          ) "
-            + "     ) "
+	@Query("SELECT DISTINCT c FROM ClientEntity c " + "WHERE " + " EXISTS ( "
+			+ "     SELECT 1 FROM TaskEntity tAny WHERE tAny.clientId = c.clientId " + ") " + "AND ( "
 
-            // ---- ADMIN / OTHERS ----
-            + "     OR ( "
-            + "          :loginType <> 'manager' "
-            + "          AND ( "
-            + "               :isAdmin = 'Y' "
-            + "               OR EXISTS ( "
-            + "                    SELECT 1 FROM TaskEntity t "
-            + "                    WHERE t.clientId = c.clientId "
-            + "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) "
-            + "               ) "
-            + "               OR ( "
-            + "                    :isAdmin <> 'Y' "
-            + "                    AND EXISTS ( "
-            + "                         SELECT 1 FROM TaskEntity t2 "
-            + "                         WHERE t2.clientId = c.clientId "
-            + "                         AND (t2.assignedTo = 0 OR t2.assignedTo IS NULL) "
-            + "                         AND EXISTS ( "
-            + "                              SELECT 1 FROM UserLoginEntity ul "
-            + "                              WHERE ul.userId = :userId "
-            + "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
-            + "                                  LIKE CONCAT('%,', t2.taskCategoryId, ',%') "
-            + "                         ) "
-            + "                    ) "
-            + "               ) "
-            + "          ) "
-            + "     ) "
-            + ") "
-            + "ORDER BY c.name ASC")
-    List<ClientEntity> findAllActiveClientsForIndex(
-            @Param("userId") Integer userId,
-            @Param("loginType") String loginType,
-            @Param("isAdmin") String isAdmin,
-            @Param("isHod") String isHod);
-    
-    @Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
-    List<ClientEntity> findAllActiveClients();
-    
+			// ---- HOD: clients having tasks in own task categories ----
+			+ "     ( " + "          :isHod = 'Y' " + "          AND EXISTS ( "
+			+ "               SELECT 1 FROM TaskEntity th " + "               WHERE th.clientId = c.clientId "
+			+ "               AND EXISTS ( " + "                    SELECT 1 FROM UserLoginEntity h "
+			+ "                    WHERE h.userId = :userId "
+			+ "                    AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+			+ "                        LIKE CONCAT('%,', th.taskCategoryId, ',%') " + "               ) "
+			+ "          ) " + "     ) "
+
+			// ---- MANAGER ----
+			+ "     OR ( " + "          :loginType = 'manager' " + "          AND ( "
+			+ "               c.managerId = :userId " + "               OR EXISTS ( "
+			+ "                    SELECT 1 FROM TaskEntity t " + "                    WHERE t.clientId = c.clientId "
+			+ "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) " + "               ) "
+			+ "          ) " + "     ) "
+
+			// ---- ADMIN / OTHERS ----
+			+ "     OR ( " + "          :loginType <> 'manager' " + "          AND ( "
+			+ "               :isAdmin = 'Y' " + "               OR EXISTS ( "
+			+ "                    SELECT 1 FROM TaskEntity t " + "                    WHERE t.clientId = c.clientId "
+			+ "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) " + "               ) "
+			+ "               OR ( " + "                    :isAdmin <> 'Y' " + "                    AND EXISTS ( "
+			+ "                         SELECT 1 FROM TaskEntity t2 "
+			+ "                         WHERE t2.clientId = c.clientId "
+			+ "                         AND (t2.assignedTo = 0 OR t2.assignedTo IS NULL) "
+			+ "                         AND EXISTS ( "
+			+ "                              SELECT 1 FROM UserLoginEntity ul "
+			+ "                              WHERE ul.userId = :userId "
+			+ "                              AND CONCAT(',', ul.taskcategoryIds, ',') "
+			+ "                                  LIKE CONCAT('%,', t2.taskCategoryId, ',%') "
+			+ "                         ) " + "                    ) " + "               ) " + "          ) "
+			+ "     ) " + ") " + "ORDER BY c.name ASC")
+	List<ClientEntity> findAllActiveClientsForIndex(@Param("userId") Integer userId,
+			@Param("loginType") String loginType, @Param("isAdmin") String isAdmin, @Param("isHod") String isHod);
+
+	@Query("SELECT c FROM ClientEntity c WHERE c.status = 1 ORDER BY c.name ASC")
+	List<ClientEntity> findAllActiveClients();
+
 	boolean existsByPan(String pan);
 
 	boolean existsByPanAndClientIdNot(String pan, Integer clientId);
@@ -216,13 +168,13 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	boolean existsByGstNo(String gstNo);
 
 	boolean existsByGstNoAndClientIdNot(String gstNo, Integer clientId);
-	
+
 	@Query("SELECT c FROM ClientEntity c " + "WHERE c.status = 1 " + "AND c.managerId = :managerId "
-            + "ORDER BY c.name ASC")
-    List<ClientEntity> findAllActiveClientsByManagerId(@Param("managerId") Integer managerId);
-	
+			+ "ORDER BY c.name ASC")
+	List<ClientEntity> findAllActiveClientsByManagerId(@Param("managerId") Integer managerId);
+
 	@Query("SELECT COALESCE(SUM(c.outstanding), 0) " + "FROM ClientEntity c "
-            + "WHERE c.status = 1 AND (:clientId = 0 OR c.clientId = :clientId) "
-            + "AND (c.managerId = :userId OR c.userId = :userId)")
-    Double getTotalOutstanding(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
+			+ "WHERE c.status = 1 AND (:clientId = 0 OR c.clientId = :clientId) "
+			+ "AND (c.managerId = :userId OR c.userId = :userId)")
+	Double getTotalOutstanding(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
 }

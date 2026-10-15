@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskNoteDTO {
 
-    private Integer taskNoteId;
+	private Integer taskNoteId;
 
-    private Integer taskId;
+	private Integer taskId;
 
-    private Integer createdBy;
+	private Integer createdBy;
 
-    private String creatorName;
+	private String creatorName;
 
-    private String note;
+	private String note;
 
-    private LocalDateTime timestamp;
+	private LocalDateTime timestamp;
 }

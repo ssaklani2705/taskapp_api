@@ -1,6 +1,5 @@
 package com.webelement.taskapp.entity;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;

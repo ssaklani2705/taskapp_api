@@ -9,18 +9,16 @@ import org.springframework.web.bind.annotation.*;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.service.DepartmentService;
-
-
 import lombok.RequiredArgsConstructor;
-
 
 @RestController
 @RequestMapping("/admin/department")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class DepartmentController {
 
 	private final DepartmentService departmentService;
+
 	@GetMapping("/getDepartmentDetails")
 	public Map<String, Object> findDepartmentDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex, @RequestParam(required = false) String search) {
@@ -71,10 +69,10 @@ public class DepartmentController {
 
 		return departmentService.deleteDepartment(dto.getDepartmentId(), dto.getUserId(), httpRequest);
 	}
+
 	@GetMapping("/active")
 	public List<DepartmentDTO> getActiveDepartments() {
 
 		return departmentService.getActiveDepartments();
 	}
 }
-

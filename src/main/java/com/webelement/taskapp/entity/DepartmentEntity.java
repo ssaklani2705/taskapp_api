@@ -1,6 +1,5 @@
 package com.webelement.taskapp.entity;
 
-
 import java.sql.Timestamp;
 
 import javax.persistence.Column;

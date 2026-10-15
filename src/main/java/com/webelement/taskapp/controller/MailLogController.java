@@ -16,9 +16,10 @@ import com.webelement.taskapp.dto.MailLogDTO;
 import com.webelement.taskapp.service.MailLogService;
 
 import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/mailLog")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class MailLogController {
 	private final MailLogService mailLogService;
@@ -45,5 +46,4 @@ public class MailLogController {
 		});
 	}
 
-	
 }

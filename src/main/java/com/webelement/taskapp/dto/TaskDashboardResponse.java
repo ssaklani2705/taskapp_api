@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskDashboardResponse {
 
-	  private DashboardMetricDTO myTasksToday;
-	    private DashboardMetricDTO dueThisWeek;
-	    private DashboardMetricDTO overdue;
+	private DashboardMetricDTO myTasksToday;
+	private DashboardMetricDTO dueThisWeek;
+	private DashboardMetricDTO overdue;
 
-    private TaskGroupResponse todo;
-    private TaskGroupResponse inProgress;
-    private TaskGroupResponse done;
-    
-    private StatusCountsResponse statusCounts;
+	private TaskGroupResponse todo;
+	private TaskGroupResponse inProgress;
+	private TaskGroupResponse done;
+
+	private StatusCountsResponse statusCounts;
 }

@@ -21,27 +21,27 @@ import lombok.ToString;
 @Table(name = "t_designation")
 public class DesignationEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "i_designationid")
-    private Integer designationId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "i_designationid")
+	private Integer designationId;
 
-    @Column(name = "s_name")
-    private String name;
+	@Column(name = "s_name")
+	private String name;
 
-    @Column(name = "i_sequence")
-    private Integer sequence;
+	@Column(name = "i_sequence")
+	private Integer sequence;
 
-    @Column(name = "i_status")
-    private Integer status;
+	@Column(name = "i_status")
+	private Integer status;
 
-    @Column(name = "i_userid")
-    private Integer userId;
+	@Column(name = "i_userid")
+	private Integer userId;
 
-    @Column(name = "ts_regdate")
-    private Timestamp regdate;
+	@Column(name = "ts_regdate")
+	private Timestamp regdate;
 
-    @Column(name = "ts_moddate")
-    private Timestamp moddate;
+	@Column(name = "ts_moddate")
+	private Timestamp moddate;
 
 }
