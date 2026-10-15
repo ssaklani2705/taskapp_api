@@ -174,4 +174,31 @@ public class TaskCategoryDTO {
         this.transactionHistory =
                 transactionHistory;
     }
+    
+    
+    /*
+     * Constructor for active dropdown with department
+     */
+    public TaskCategoryDTO(
+            Integer taskcategoryId,
+            Integer departmentId,
+            String name,
+            String departmentName,
+            String dueDateTime) {
+
+        this.taskcategoryId = taskcategoryId;
+        this.departmentId = departmentId;
+        this.name = name;
+        this.departmentName = departmentName;
+        this.dueDateTime = dueDateTime;
+    }
+    
+    public TaskCategoryDTO(Integer taskcategoryId, String name, Integer departmentId,
+            String departmentName, String dueDateTime) {
+this.taskcategoryId = taskcategoryId;
+this.name = name;
+this.departmentId = departmentId;
+this.departmentName = departmentName;
+this.dueDateTime = dueDateTime;
+}
 }

@@ -18,15 +18,28 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 @Repository
 public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity, Integer> {
 	
+	
 //	@Query("SELECT tc FROM TaskCategoryEntity tc "
-////	        + "WHERE tc.status = 1 AND "
-//+ "WHERE "
+//	        + "WHERE "
 //	        + " EXISTS ( "
 //	        + "     SELECT 1 FROM TaskEntity t "
 //	        + "     LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 //	        + "     WHERE t.taskCategoryId = tc.taskcategoryId "
 //	        + "     AND ( "
+//
+//	        // ---- HOD: tasks of own task categories ----
 //	        + "          ( "
+//	        + "               :isHod = 'Y' "
+//	        + "               AND EXISTS ( "
+//	        + "                    SELECT 1 FROM UserLoginEntity h "
+//	        + "                    WHERE h.userId = :userId "
+//	        + "                    AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
+//	        + "                        LIKE CONCAT('%,', t.taskCategoryId, ',%') "
+//	        + "               ) "
+//	        + "          ) "
+//
+//	        // ---- MANAGER ----
+//	        + "          OR ( "
 //	        + "               :loginType = 'manager' "
 //	        + "               AND ( "
 //	        + "                    t.assignedTo = :userId "
@@ -34,8 +47,9 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 //	        + "                    OR c.managerId = :userId "
 //	        + "               ) "
 //	        + "          ) "
-//	        + "          OR "
-//	        + "          ( "
+//
+//	        // ---- ADMIN / OTHERS ----
+//	        + "          OR ( "
 //	        + "               :loginType <> 'manager' "
 //	        + "               AND ( "
 //	        + "                    :isAdmin = 'Y' "
@@ -60,10 +74,12 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 //	        @Param("userId") Integer userId,
 //	        @Param("loginType") String loginType,
 //	        @Param("isAdmin") String isAdmin,
-//	        String isHod);
+//	        @Param("isHod") String isHod);
 	
-	
-	@Query("SELECT tc FROM TaskCategoryEntity tc "
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+	        + "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) "
+	        + "FROM TaskCategoryEntity tc "
+	        + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
 	        + "WHERE "
 	        + " EXISTS ( "
 	        + "     SELECT 1 FROM TaskEntity t "
@@ -113,15 +129,23 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	        + "          ) "
 	        + "     ) "
 	        + ") "
-	        + "ORDER BY tc.name ASC")
-	List<TaskCategoryEntity> findAllActiveTaskCategoriesForIndex(
+	        + "ORDER BY d.name ASC, tc.name ASC")
+	List<TaskCategoryDTO> findAllActiveTaskCategoriesForIndex(
 	        @Param("userId") Integer userId,
 	        @Param("loginType") String loginType,
 	        @Param("isAdmin") String isAdmin,
 	        @Param("isHod") String isHod);
 	
-	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
-	List<TaskCategoryEntity> findAllActiveTaskCategories();
+//	@Query("SELECT tc FROM TaskCategoryEntity tc WHERE tc.status = 1 ORDER BY tc.name ASC")
+//	List<TaskCategoryEntity> findAllActiveTaskCategories();
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+		     + "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) "
+		     + "FROM TaskCategoryEntity tc "
+		     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+		     + "WHERE tc.status = 1 "
+		     + "ORDER BY d.name ASC, tc.name ASC")
+		List<TaskCategoryDTO> findAllActiveTaskCategories();
 	
 //	@Query("SELECT tc FROM TaskCategoryEntity tc "
 //	        + "WHERE tc.status = 1 "
@@ -177,13 +201,32 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	        + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
 	List<TaskCategoryEntity> findByStatus(@Param("status") Integer status);
 	
-	@Query("SELECT tc FROM TaskCategoryEntity tc "
-	        + "WHERE tc.status = :status "
-	        + "AND EXISTS ( "
-	        + "     SELECT 1 FROM RecurringEntity r WHERE r.taskCatId = tc.taskcategoryId "
-	        + ") "
-	        + "ORDER BY tc.name ASC")
-	List<TaskCategoryEntity> findByStatusForIndex(@Param("status") Integer status);
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+		     + "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) "
+		     + "FROM TaskCategoryEntity tc "
+		     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+		     + "WHERE tc.status = :status "
+		     + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
+		List<TaskCategoryDTO> findByStatusWithDepartment(@Param("status") Integer status);
+	
+//	@Query("SELECT tc FROM TaskCategoryEntity tc "
+//	        + "WHERE tc.status = :status "
+//	        + "AND EXISTS ( "
+//	        + "     SELECT 1 FROM RecurringEntity r WHERE r.taskCatId = tc.taskcategoryId "
+//	        + ") "
+//	        + "ORDER BY tc.name ASC")
+//	List<TaskCategoryEntity> findByStatusForIndex(@Param("status") Integer status);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+		     + "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) "
+		     + "FROM TaskCategoryEntity tc "
+		     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+		     + "WHERE tc.status = :status "
+		     + "AND EXISTS ( "
+		     + "     SELECT 1 FROM RecurringEntity r WHERE r.taskCatId = tc.taskcategoryId "
+		     + ") "
+		     + "ORDER BY tc.name ASC")
+		List<TaskCategoryDTO> findByStatusForIndex(@Param("status") Integer status);
 
 	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
 

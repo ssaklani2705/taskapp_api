@@ -2,11 +2,14 @@ package com.webelement.taskapp.service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
@@ -95,8 +98,21 @@ public class AuthService {
 					List<ModulePermissionDTO> modules = getModuleListByName(userId, b);
 					UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(),
 							httpRequest);
+					
+					List<Integer> categoryIds = new ArrayList<>();
+
+					if (info.getTaskcategoryIds() != null
+					        && !info.getTaskcategoryIds().trim().isEmpty()) {
+
+					    categoryIds = Arrays.stream(info.getTaskcategoryIds().split(","))
+					            .map(String::trim)
+					            .filter(s -> !s.isEmpty())
+					            .map(Integer::parseInt)
+					            .collect(Collectors.toList());
+					}
+					
 					LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules,info.getIsHod(),info.getEmail());
+							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules,info.getIsHod(),info.getEmail(),categoryIds);
 					session.removeAttribute("captcha");
 					return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
 				} else {
@@ -184,8 +200,13 @@ public class AuthService {
 			String s_permission = (String) row.get("s_permission");
 			String designationName  = (String) row.get("designationName");
 			String isHod  = (String) row.get("isHod");
+			
+			// Get category IDs from database
+	        String taskcategoryIds = (String) row.get("taskcategoryIds");
 
 			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission,designationName,isHod);
+			// Set category IDs
+	        info.setTaskcategoryIds(taskcategoryIds);
 		}
 		return info;
 	}

@@ -24,6 +24,7 @@ public class UserInfo {
 	private String departmentName;
 	private String designationName;
 	private String taskCategoryNames;
+	private String taskcategoryIds;
 	private String isHod;
 	private String weeklyOffNames;
 

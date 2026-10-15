@@ -16,6 +16,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.webelement.taskapp.dto.TaskCategoryDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.dto.UserInfo;
 import com.webelement.taskapp.entity.UserLoginEntity;
@@ -25,6 +26,17 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
 	String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
+	
+	// Path 2: only the categories assigned to the user
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+	     + "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) "
+	     + "FROM TaskCategoryEntity tc "
+	     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+	     + "WHERE tc.status = :status "
+	     + "AND tc.taskcategoryId IN :ids "
+	     + "AND LOWER(TRIM(tc.name)) <> 'admin task'")
+	List<TaskCategoryDTO> findByIdsWithDepartment(@Param("status") Integer status,
+	                                              @Param("ids") List<Integer> ids);
 
 	// ------------------------------------------------------------
 	// DEPARTMENT IN USE CHECK
@@ -42,7 +54,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	boolean existsByDesignationIdAndStatusNot(Integer designationId, Integer status);
 
 	@Query(value = "SELECT " + "u.i_userid, " + "u.s_firstname, " + "u.s_email, " + "u.s_mobileno, "
-			+ "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " + "u.s_permission, "
+			+ "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " + "u.s_permission,u.s_taskcategoryIds AS taskcategoryIds, "
 			+ "d.s_name AS designationName,u.s_ishod as isHod " + "FROM t_userlogin u "
 			+ "LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid " + "WHERE u.i_status = 1 "
 			+ "AND u.s_email = :email " + "AND u.s_password = :password " + "AND ( "
