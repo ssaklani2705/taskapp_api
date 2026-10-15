@@ -67,99 +67,70 @@ public class UserManagementService {
 		if (ids == null || ids.isEmpty()) {
 			return "";
 		}
-		return ids.stream()
-				.filter(Objects::nonNull)
-				.distinct()
-				.map(String::valueOf)
-				.collect(Collectors.joining(","));
+		return ids.stream().filter(Objects::nonNull).distinct().map(String::valueOf).collect(Collectors.joining(","));
 	}
 
 	private static List<Integer> toIdList(String csv) {
 		if (csv == null || csv.trim().isEmpty()) {
 			return new ArrayList<>();
 		}
-		return Arrays.stream(csv.split(","))
-				.map(String::trim)
-				.filter(s -> !s.isEmpty())
-				.map(Integer::valueOf)
-				.distinct()
-				.collect(Collectors.toList());
+		return Arrays.stream(csv.split(",")).map(String::trim).filter(s -> !s.isEmpty()).map(Integer::valueOf)
+				.distinct().collect(Collectors.toList());
 	}
-		
+
 	public List<UserActiveDTO> getActiveUsers() {
 		return loginRepository.findActiveManager();
 	}
 
-	public Page<UserInfo> findBasicUserInfo(
-	        int page,
-	        int size,
-	        int statusIndex,
-	        String search,
-	        int departmentId,
-	        int designationId,
-	        int selectedCategoryId,
-	        int weeklyOff) {
-	    Page<UserInfo> pageData = loginRepository.findBasicUserInfo(
-	            PageRequest.of(page, size),
-	            statusIndex,
-	            search,
-	            departmentId,
-	            designationId,
-	            selectedCategoryId,
-	            weeklyOff
-	    );
-	    Map<Integer, String> departmentNames = new HashMap<>();
-	    for (DepartmentEntity d : departmentRepository.findAll()) {
-	        departmentNames.put(d.getDepartmentId(), d.getName());
-	    }
-	    pageData.getContent().forEach(user -> {
-	        UserLoginEntity userEntity =
-	                loginRepository.findById(user.getUserId()).orElse(null);
-	        if (userEntity != null
-	                && userEntity.getTaskcategoryIds() != null
-	                && !userEntity.getTaskcategoryIds().trim().isEmpty()) {
-	            List<Integer> categoryIds = toIdList(userEntity.getTaskcategoryIds());
-	            user.setWeeklyOffNames(toWeeklyOffName(userEntity.getWeeklyOff()));
-	            List<String> categoryNames =
-	                    taskCategoryRepository.findNamesByIds(categoryIds);
-	            user.setTaskCategoryNames(String.join(", ", categoryNames));
-	        } else {
-	            user.setTaskCategoryNames("");
-	        }
-	        if (userEntity != null) {
-	            String names = toIdList(userEntity.getDepartmentIdsCsv())
-	                    .stream()
-	                    .map(departmentNames::get)
-	                    .filter(Objects::nonNull)
-	                    .collect(Collectors.joining(", "));
+	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search, int departmentId,
+			int designationId, int selectedCategoryId, int weeklyOff) {
+		Page<UserInfo> pageData = loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,
+				departmentId, designationId, selectedCategoryId, weeklyOff);
+		Map<Integer, String> departmentNames = new HashMap<>();
+		for (DepartmentEntity d : departmentRepository.findAll()) {
+			departmentNames.put(d.getDepartmentId(), d.getName());
+		}
+		pageData.getContent().forEach(user -> {
+			UserLoginEntity userEntity = loginRepository.findById(user.getUserId()).orElse(null);
+			if (userEntity != null && userEntity.getTaskcategoryIds() != null
+					&& !userEntity.getTaskcategoryIds().trim().isEmpty()) {
+				List<Integer> categoryIds = toIdList(userEntity.getTaskcategoryIds());
+				user.setWeeklyOffNames(toWeeklyOffName(userEntity.getWeeklyOff()));
+				List<String> categoryNames = taskCategoryRepository.findNamesByIds(categoryIds);
+				user.setTaskCategoryNames(String.join(", ", categoryNames));
+			} else {
+				user.setTaskCategoryNames("");
+			}
+			if (userEntity != null) {
+				String names = toIdList(userEntity.getDepartmentIdsCsv()).stream().map(departmentNames::get)
+						.filter(Objects::nonNull).collect(Collectors.joining(", "));
 
-	            user.setDepartmentName(names);
-	        } else {
-	            user.setDepartmentName("");
-	        }
-	    });
+				user.setDepartmentName(names);
+			} else {
+				user.setDepartmentName("");
+			}
+		});
 
-	    return pageData;
+		return pageData;
 	}
-	
-	private static final String[] WEEK_DAYS = {
-	        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-	};
+
+	private static final String[] WEEK_DAYS = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+			"Saturday" };
 
 	private String toWeeklyOffName(Short weeklyOff) {
-	    if (weeklyOff == null || weeklyOff < 1 || weeklyOff > 7) {
-	        return "";
-	    }
-	    return WEEK_DAYS[weeklyOff - 1];
+		if (weeklyOff == null || weeklyOff < 1 || weeklyOff > 7) {
+			return "";
+		}
+		return WEEK_DAYS[weeklyOff - 1];
 	}
 
 	public ResponseEntity<ResponseApi<String>> deleteUser(int userId, int createdBy, HttpServletRequest httpRequest) {
 		Optional<UserLoginEntity> existingUser = loginRepository.findById(userId);
 		boolean isManagerAssigned = clientRepository.existsByManagerId(userId);
-        if (isManagerAssigned) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false,
-                    "User cannot be deleted because the user is assigned as a manager to one or more clients.", null));
-        }
+		if (isManagerAssigned) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false,
+					"User cannot be deleted because the user is assigned as a manager to one or more clients.", null));
+		}
 		if (!existingUser.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, "User not found", null));
 		}
@@ -207,83 +178,83 @@ public class UserManagementService {
 	}
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
-            throws Exception {
-        System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
-        boolean isEdit = userRequest.getUserId() > 0;
-        boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
-        if (!hod && userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().size() > 1) {
-            return ResponseEntity.badRequest()
-                    .body(new ResponseApi<>(false, "Only HOD can have multiple departments", "Invalid"));
-        }
-        if (!isEdit) {
-            int isDuplicateEmail = loginRepository.checkDuplicacy(0, userRequest.getEmail());
+			throws Exception {
+		System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
+		boolean isEdit = userRequest.getUserId() > 0;
+		boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
+		if (!hod && userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().size() > 1) {
+			return ResponseEntity.badRequest()
+					.body(new ResponseApi<>(false, "Only HOD can have multiple departments", "Invalid"));
+		}
+		if (!isEdit) {
+			int isDuplicateEmail = loginRepository.checkDuplicacy(0, userRequest.getEmail());
 
-            if (isDuplicateEmail == 1) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new ResponseApi<>(false, "User already exists", "Exist"));
-            }
-        } else {
-            int isDuplicateEmail = loginRepository.checkDuplicacy(userRequest.getUserId(), userRequest.getEmail());
+			if (isDuplicateEmail == 1) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(new ResponseApi<>(false, "User already exists", "Exist"));
+			}
+		} else {
+			int isDuplicateEmail = loginRepository.checkDuplicacy(userRequest.getUserId(), userRequest.getEmail());
 
-            if (isDuplicateEmail == 1) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new ResponseApi<>(false, "Email already used by another user", "Exist"));
-            }
-        }
+			if (isDuplicateEmail == 1) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(new ResponseApi<>(false, "Email already used by another user", "Exist"));
+			}
+		}
 
-        int uid;
-        if (!isEdit) {
-            uid = createUser(userRequest, userRequest.getPassword(), 0);
-            commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
-                    commonFunction.getLocalIp(), "Add User", 1, uid, -1);
-        } else {
-            uid = updateUser(userRequest);
-            commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
-                    commonFunction.getLocalIp(), "Update User", 1, uid, -1);
-        }
+		int uid;
+		if (!isEdit) {
+			uid = createUser(userRequest, userRequest.getPassword(), 0);
+			commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
+					commonFunction.getLocalIp(), "Add User", 1, uid, -1);
+		} else {
+			uid = updateUser(userRequest);
+			commonFunction.createHistoryAccess(userRequest.getCreatedBy(), commonFunction.resolveClientIp(httpRequest),
+					commonFunction.getLocalIp(), "Update User", 1, uid, -1);
+		}
 
-        if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
-            permissionRepo.deleteByUserId(uid);
-            if (userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().contains(1)) {
-                int[] autoModuleIds = { 10, 11 };
-                for (int moduleId : autoModuleIds) {
-                    PermissionEntity entity = new PermissionEntity();
-                    entity.setUserId(uid);
-                    entity.setModuleId(moduleId);
-                    entity.setAdd("Y");
-                    entity.setEdit("Y");
-                    entity.setDelete("Y");
-                    entity.setApprove("Y");
-                    entity.setAdminApprove("Y");
-                    entity.setView("Y");
-                    entity.setExportExcel("Y");
-                    permissionRepo.save(entity);
-                }
+		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
+			permissionRepo.deleteByUserId(uid);
+			if (userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().contains(1)) {
+				int[] autoModuleIds = { 10, 11 };
+				for (int moduleId : autoModuleIds) {
+					PermissionEntity entity = new PermissionEntity();
+					entity.setUserId(uid);
+					entity.setModuleId(moduleId);
+					entity.setAdd("Y");
+					entity.setEdit("Y");
+					entity.setDelete("Y");
+					entity.setApprove("Y");
+					entity.setAdminApprove("Y");
+					entity.setView("Y");
+					entity.setExportExcel("Y");
+					permissionRepo.save(entity);
+				}
 
-            } else if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
-                for (ModulePermissionDTO m : userRequest.getModule()) {
-                    if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
-                            || "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
-                            || "Y".equalsIgnoreCase(m.getApprovePer()) || "Y".equalsIgnoreCase(m.getAdminApprovePer())
-                            || "Y".equalsIgnoreCase(m.getExportExcel())) {
-                        PermissionEntity entity = new PermissionEntity();
-                        entity.setUserId(uid);
-                        entity.setModuleId(m.getModuleId());
-                        entity.setAdd(defaultIfNull(m.getAddPer()));
-                        entity.setEdit(defaultIfNull(m.getEditPer()));
-                        entity.setDelete(defaultIfNull(m.getDeletePer()));
-                        entity.setApprove(defaultIfNull(m.getApprovePer()));
-                        entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
-                        entity.setView(defaultIfNull(m.getViewPer()));
-                        entity.setExportExcel(defaultIfNull(m.getExportExcel()));
-                        permissionRepo.save(entity);
-                    }
-                }
-            }
-        }
-        return ResponseEntity.ok(
-                new ResponseApi<>(true, "Success", isEdit ? "User updated successfully" : "User added successfully"));
-    }
+			} else if (userRequest.getModule() != null && !userRequest.getModule().isEmpty()) {
+				for (ModulePermissionDTO m : userRequest.getModule()) {
+					if ("Y".equalsIgnoreCase(m.getViewPer()) || "Y".equalsIgnoreCase(m.getAddPer())
+							|| "Y".equalsIgnoreCase(m.getEditPer()) || "Y".equalsIgnoreCase(m.getDeletePer())
+							|| "Y".equalsIgnoreCase(m.getApprovePer()) || "Y".equalsIgnoreCase(m.getAdminApprovePer())
+							|| "Y".equalsIgnoreCase(m.getExportExcel())) {
+						PermissionEntity entity = new PermissionEntity();
+						entity.setUserId(uid);
+						entity.setModuleId(m.getModuleId());
+						entity.setAdd(defaultIfNull(m.getAddPer()));
+						entity.setEdit(defaultIfNull(m.getEditPer()));
+						entity.setDelete(defaultIfNull(m.getDeletePer()));
+						entity.setApprove(defaultIfNull(m.getApprovePer()));
+						entity.setAdminApprove(defaultIfNull(m.getAdminApprovePer()));
+						entity.setView(defaultIfNull(m.getViewPer()));
+						entity.setExportExcel(defaultIfNull(m.getExportExcel()));
+						permissionRepo.save(entity);
+					}
+				}
+			}
+		}
+		return ResponseEntity.ok(
+				new ResponseApi<>(true, "Success", isEdit ? "User updated successfully" : "User added successfully"));
+	}
 
 	private String defaultIfNull(String value) {
 		return (value != null && !value.isEmpty()) ? value : "N";
@@ -316,14 +287,14 @@ public class UserManagementService {
 			user.setQcFlag((short) info.getQcFlag());
 			user.setPcb(info.getPcb());
 			user.setDesignationId(info.getDesignationId());
-			user.setWeeklyOff(info.getWeeklyOff());   
+			user.setWeeklyOff(info.getWeeklyOff());
 			user.setDepartmentIdsCsv(toCsv(info.getDepartmentIds()));
 			user.setIsHod("Y".equalsIgnoreCase(info.getIsHod()) ? "Y" : "N");
 			user.setTaskcategoryIds(toCsv(info.getCategoryIds()));
 			UserLoginEntity savedUser = loginRepository.save(user);
 			return savedUser.getUserId();
 		} catch (Exception e) {
-			e.printStackTrace(); 
+			e.printStackTrace();
 			return 0;
 		}
 	}
@@ -359,75 +330,75 @@ public class UserManagementService {
 
 	public UserLoginEntity getUserById(int userId) {
 
-	    UserLoginEntity user = loginRepository.getUserById(userId);
+		UserLoginEntity user = loginRepository.getUserById(userId);
 
-	    if (user == null) {
-	        UserLoginEntity emptyUser = new UserLoginEntity();
-	        emptyUser.setModule(getPermissionsByUserId(userId == 0 ? -1 : userId));
-	        return emptyUser;
-	    }
+		if (user == null) {
+			UserLoginEntity emptyUser = new UserLoginEntity();
+			emptyUser.setModule(getPermissionsByUserId(userId == 0 ? -1 : userId));
+			return emptyUser;
+		}
 
-	    int effectiveUserId = "N".equalsIgnoreCase(user.getPermission()) ? userId : -1;
+		int effectiveUserId = "N".equalsIgnoreCase(user.getPermission()) ? userId : -1;
 
-	    CompletableFuture<List<ModulePermissionDTO>> moduleFuture =
-	            CompletableFuture.supplyAsync(() -> getPermissionsByUserId(effectiveUserId), taskExecutor);
+		CompletableFuture<List<ModulePermissionDTO>> moduleFuture = CompletableFuture
+				.supplyAsync(() -> getPermissionsByUserId(effectiveUserId), taskExecutor);
 
-	    CompletableFuture<List<TransactionEntity>> historyFuture =
-	            CompletableFuture.supplyAsync(() -> getTransactionLogs(1, userId), taskExecutor);
+		CompletableFuture<List<TransactionEntity>> historyFuture = CompletableFuture
+				.supplyAsync(() -> getTransactionLogs(1, userId), taskExecutor);
 
-	    CompletableFuture<String> departmentFuture =
-	            CompletableFuture.supplyAsync(() -> resolveDepartmentNames(user), taskExecutor);
+		CompletableFuture<String> departmentFuture = CompletableFuture.supplyAsync(() -> resolveDepartmentNames(user),
+				taskExecutor);
 
-	    CompletableFuture<String> designationFuture =
-	            CompletableFuture.supplyAsync(() -> resolveDesignationName(user), taskExecutor);
+		CompletableFuture<String> designationFuture = CompletableFuture.supplyAsync(() -> resolveDesignationName(user),
+				taskExecutor);
 
-	    CompletableFuture<List<String>> categoriesFuture =
-	            CompletableFuture.supplyAsync(() -> resolveTaskCategories(user), taskExecutor);
+		CompletableFuture<List<String>> categoriesFuture = CompletableFuture
+				.supplyAsync(() -> resolveTaskCategories(user), taskExecutor);
 
-	    CompletableFuture.allOf(moduleFuture, historyFuture, departmentFuture, designationFuture, categoriesFuture)
-	            .join();
+		CompletableFuture.allOf(moduleFuture, historyFuture, departmentFuture, designationFuture, categoriesFuture)
+				.join();
 
-	    user.setModule(moduleFuture.join());
-	    user.setTransactionhistory(historyFuture.join());
+		user.setModule(moduleFuture.join());
+		user.setTransactionhistory(historyFuture.join());
 
-	    // Department ids as list for the edit form (Angular reads response.departmentIds)
-	    user.setDepartmentIds(toIdList(user.getDepartmentIdsCsv()));
+		// Department ids as list for the edit form (Angular reads
+		// response.departmentIds)
+		user.setDepartmentIds(toIdList(user.getDepartmentIdsCsv()));
 
-	    if (departmentFuture.join() != null) user.setDepartmentName(departmentFuture.join());
-	    if (designationFuture.join() != null) user.setDesignationName(designationFuture.join());
-	    user.setTaskCategories(categoriesFuture.join());
+		if (departmentFuture.join() != null)
+			user.setDepartmentName(departmentFuture.join());
+		if (designationFuture.join() != null)
+			user.setDesignationName(designationFuture.join());
+		user.setTaskCategories(categoriesFuture.join());
 
-	    return user;
+		return user;
 	}
 
 	/** Comma separated department names, e.g. "HR, IT" */
 	private String resolveDepartmentNames(UserLoginEntity user) {
-	    List<Integer> ids = toIdList(user.getDepartmentIdsCsv());
+		List<Integer> ids = toIdList(user.getDepartmentIdsCsv());
 
-	    if (ids.isEmpty()) return null;
+		if (ids.isEmpty())
+			return null;
 
-	    return departmentRepository.findAllById(ids)
-	            .stream()
-	            .map(DepartmentEntity::getName)
-	            .collect(Collectors.joining(", "));
+		return departmentRepository.findAllById(ids).stream().map(DepartmentEntity::getName)
+				.collect(Collectors.joining(", "));
 	}
 
 	private String resolveDesignationName(UserLoginEntity user) {
-	    if (user.getDesignationId() == null) return null;
-	    return designationRepository.findById(user.getDesignationId())
-	            .map(DesignationEntity::getName)
-	            .orElse(null);
+		if (user.getDesignationId() == null)
+			return null;
+		return designationRepository.findById(user.getDesignationId()).map(DesignationEntity::getName).orElse(null);
 	}
 
 	private List<String> resolveTaskCategories(UserLoginEntity user) {
-	    List<Integer> categoryIds = toIdList(user.getTaskcategoryIds());
+		List<Integer> categoryIds = toIdList(user.getTaskcategoryIds());
 
-	    if (categoryIds.isEmpty()) return List.of();
+		if (categoryIds.isEmpty())
+			return List.of();
 
-	    return taskCategoryRepository.findAllById(categoryIds)
-	            .stream()
-	            .map(TaskCategoryEntity::getName)
-	            .collect(Collectors.toList());
+		return taskCategoryRepository.findAllById(categoryIds).stream().map(TaskCategoryEntity::getName)
+				.collect(Collectors.toList());
 	}
 
 }

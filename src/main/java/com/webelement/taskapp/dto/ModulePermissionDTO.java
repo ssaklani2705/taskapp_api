@@ -1,6 +1,5 @@
 package com.webelement.taskapp.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;

@@ -1,4 +1,5 @@
 package com.webelement.taskapp.controller;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,11 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskCategoryDTO;
 import com.webelement.taskapp.service.TaskCategoryService;
 
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/taskcategory")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class TaskCategoryController {
 
@@ -39,11 +39,11 @@ public class TaskCategoryController {
 
 		return response;
 	}
-	
+
 	@GetMapping("task/category/employee-available")
-    public boolean isEmployeeAvailableForTaskCategoryForTask(@RequestParam("taskCategoryId") Integer taskCategoryId) {
-        return taskCategoryService.isEmployeeAvailableForTaskCategoryForTask(taskCategoryId);
-    }
+	public boolean isEmployeeAvailableForTaskCategoryForTask(@RequestParam("taskCategoryId") Integer taskCategoryId) {
+		return taskCategoryService.isEmployeeAvailableForTaskCategoryForTask(taskCategoryId);
+	}
 
 	@PostMapping("/saveTaskCategory")
 	public ResponseEntity<ApiResponse<TaskCategoryDTO>> saveTaskCategory(@RequestBody TaskCategoryDTO dto,
@@ -97,7 +97,8 @@ public class TaskCategoryController {
 	}
 
 	@GetMapping("recurringForindex/active")
-	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(@RequestParam("isAdmin") String isAdmin,
+			@RequestParam("loginType") String loginType, @RequestParam("userId") Integer userId) {
 
 		return taskCategoryService.getActiveTaskCategoriesForRecurringForIndex(userId, isAdmin, loginType);
 	}
@@ -108,7 +109,8 @@ public class TaskCategoryController {
 	}
 
 	@GetMapping("/departments")
-	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(@RequestParam("departmentIds") List<Integer> departmentIds) {
+	public List<TaskCategoryDTO> getCategoriesByDepartmentIds(
+			@RequestParam("departmentIds") List<Integer> departmentIds) {
 
 		return taskCategoryService.getCategoriesByDepartmentIds(departmentIds);
 	}

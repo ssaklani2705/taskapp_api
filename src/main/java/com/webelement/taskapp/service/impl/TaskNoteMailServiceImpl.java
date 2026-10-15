@@ -38,62 +38,64 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 	static final Logger logger = LoggerFactory.getLogger(TaskNoteMailServiceImpl.class);
 
 	private final HttpServletRequest httpReq;
-	
+
 	@Value("${file_maillog:}")
-	private  String file_maillog;
-	
+	private String file_maillog;
+
 	public void sendTaskNotesMail(TaskNoteEntity request) throws Exception {
-	    String filePath = commonFunction.createFolder(file_maillog);
-	    TaskEntity task = taskRepo.findById(request.getTaskId())
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-	    Set<Integer> userIds = new HashSet<>();
-	    Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
-	    Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
-	    Optional.ofNullable(request.getUserId()).ifPresent(userIds::add);
-	    Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
-	            .collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
-	    UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
-	    UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
-	    UserLoginEntity actionUser = userMap.get(request.getUserId());
-	    Set<String> toEmails = new LinkedHashSet<>();
-	    Set<String> ccEmails = new LinkedHashSet<>();
-	    boolean isAdminUser = "Y".equalsIgnoreCase(request.getIsAdmin());
-	    boolean noteByAssignee = Objects.equals(request.getUserId(), task.getAssignedTo());
-	    UserLoginEntity recipientUser;
-	    if (isAdminUser) {
-	        commonFunction.addEmail(toEmails, assignedUser);
-	        commonFunction.addEmail(toEmails, addedByUser);
-	        commonFunction.addEmail(ccEmails, actionUser);
-	        recipientUser = assignedUser;
-	    } else if (noteByAssignee) {
-	        commonFunction.addEmail(toEmails, addedByUser);
-	        commonFunction.addEmail(ccEmails, assignedUser);
-	        recipientUser = addedByUser;
-	    } else {
-	        commonFunction.addEmail(toEmails, assignedUser);
-	        commonFunction.addEmail(ccEmails, addedByUser);
-	        recipientUser = assignedUser;
-	    }
-	    ccEmails.removeAll(toEmails);
-	    if (toEmails.isEmpty()) {
-	        logger.warn("No recipients found for task {}", task.getTaskId());
-	        return;
-	    }
-	    String recipientName = commonFunction.getFirstName(recipientUser);
-	    String actionUserName = commonFunction.getFirstName(actionUser);
-	    String mailBody = commonFunction.getTaskNotesMailTemplate(recipientName, task.getTitle(), request.getNote(), actionUserName, "");
-	    String[] to = toEmails.toArray(new String[0]);
-	    String[] cc = ccEmails.toArray(new String[0]);
-	    String subject = "Task App :: Task Notes";
-	    SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
-	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
-	    logger.info("Task Notes Mail Sent. TaskId={}, Result={}, To={}, Cc={}", task.getTaskId(), result,
-	            String.join(",", toEmails), String.join(",", ccEmails));
-	    String ip = commonFunction.resolveClientIp(httpReq);
-	    String iplocal = commonFunction.getLocalIp();
-	    String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath, "np-" + System.currentTimeMillis());
-	    commonFunction.createMailLog(1, recipientName, String.join(",", toEmails), String.join(",", ccEmails),
-	            String.join(",", toEmails), "", subject, filePath + "/" + fname, ip, iplocal, 1);
+		String filePath = commonFunction.createFolder(file_maillog);
+		TaskEntity task = taskRepo.findById(request.getTaskId())
+				.orElseThrow(() -> new RuntimeException("Task not found"));
+		Set<Integer> userIds = new HashSet<>();
+		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
+		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
+		Optional.ofNullable(request.getUserId()).ifPresent(userIds::add);
+		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
+				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
+		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
+		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
+		UserLoginEntity actionUser = userMap.get(request.getUserId());
+		Set<String> toEmails = new LinkedHashSet<>();
+		Set<String> ccEmails = new LinkedHashSet<>();
+		boolean isAdminUser = "Y".equalsIgnoreCase(request.getIsAdmin());
+		boolean noteByAssignee = Objects.equals(request.getUserId(), task.getAssignedTo());
+		UserLoginEntity recipientUser;
+		if (isAdminUser) {
+			commonFunction.addEmail(toEmails, assignedUser);
+			commonFunction.addEmail(toEmails, addedByUser);
+			commonFunction.addEmail(ccEmails, actionUser);
+			recipientUser = assignedUser;
+		} else if (noteByAssignee) {
+			commonFunction.addEmail(toEmails, addedByUser);
+			commonFunction.addEmail(ccEmails, assignedUser);
+			recipientUser = addedByUser;
+		} else {
+			commonFunction.addEmail(toEmails, assignedUser);
+			commonFunction.addEmail(ccEmails, addedByUser);
+			recipientUser = assignedUser;
+		}
+		ccEmails.removeAll(toEmails);
+		if (toEmails.isEmpty()) {
+			logger.warn("No recipients found for task {}", task.getTaskId());
+			return;
+		}
+		String recipientName = commonFunction.getFirstName(recipientUser);
+		String actionUserName = commonFunction.getFirstName(actionUser);
+		String mailBody = commonFunction.getTaskNotesMailTemplate(recipientName, task.getTitle(), request.getNote(),
+				actionUserName, "");
+		String[] to = toEmails.toArray(new String[0]);
+		String[] cc = ccEmails.toArray(new String[0]);
+		String subject = "Task App :: Task Notes";
+		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
+		logger.info("Task Notes Mail Sent. TaskId={}, Result={}, To={}, Cc={}", task.getTaskId(), result,
+				String.join(",", toEmails), String.join(",", ccEmails));
+		String ip = commonFunction.resolveClientIp(httpReq);
+		String iplocal = commonFunction.getLocalIp();
+		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
+				"np-" + System.currentTimeMillis());
+		commonFunction.createMailLog(1, recipientName, String.join(",", toEmails), String.join(",", ccEmails),
+				String.join(",", toEmails), "", subject, filePath + "/" + fname, ip, iplocal, 1);
 	}
 
 }

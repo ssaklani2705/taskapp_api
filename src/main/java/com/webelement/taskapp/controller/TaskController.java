@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/admin/task")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class TaskController {
 
@@ -134,7 +134,8 @@ public class TaskController {
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
 			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
-			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate,int systemFlag) {
+			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate,
+			int systemFlag) {
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -145,7 +146,8 @@ public class TaskController {
 			weeklyOffDays = getWeeklyOffDays(start, end);
 			System.err.println("Weekly Off Days : " + weeklyOffDays);
 		}
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays,systemFlag));
+		response.put("assignedUsers",
+				userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays, systemFlag));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}
@@ -249,9 +251,10 @@ public class TaskController {
 
 	@GetMapping("/assignee_workload")
 	public ResponseEntity<ResponseApi<List<Map<String, Object>>>> getAssigneeWorkload(@RequestParam Integer taskCatId,
-			@RequestParam String startDate,@RequestParam String endDate) {
-		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId, startDate,endDate);
-		String message = data.isEmpty() ? "No workload found for this category": "Assignee workload fetched successfully";
+			@RequestParam String startDate, @RequestParam String endDate) {
+		List<Map<String, Object>> data = taskService.getAssigneeWorkload(taskCatId, startDate, endDate);
+		String message = data.isEmpty() ? "No workload found for this category"
+				: "Assignee workload fetched successfully";
 		return ResponseEntity.ok(new ResponseApi<List<Map<String, Object>>>(true, message, data));
 	}
 

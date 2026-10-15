@@ -24,22 +24,21 @@ import com.webelement.taskapp.service.impl.ChangePasswordImpl;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
 	private final ChangePasswordImpl changePasswordService;
 	private Boolean isManager = false;
 	private final SecureRandom secureRandom = new SecureRandom();
-	
-	
+
 	@GetMapping("/test")
 	public String test() {
 		return "20-08-2026 10:53";
 	}
+
 	@GetMapping("/captcha")
 	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
 		int captcha = 100000 + secureRandom.nextInt(900000);
@@ -47,29 +46,30 @@ public class AuthController {
 		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
 		return ResponseEntity.ok(response);
 	}
+
 	@PostMapping("/login")
 	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request, HttpSession session,
 			HttpServletRequest httpRequest, HttpServletResponse response) throws Exception {
 		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request, session, httpRequest);
 		return loginResponse;
 	}
+
 	@PostMapping("/forgotpasswordMail")
 	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(@RequestParam String emailId,
-			@RequestParam String loginType,
-			HttpServletRequest httpRequest) throws Exception {
-		 isManager = false;
-		return authService.forgotpasswordMail(emailId, httpRequest,isManager,loginType);
+			@RequestParam String loginType, HttpServletRequest httpRequest) throws Exception {
+		isManager = false;
+		return authService.forgotpasswordMail(emailId, httpRequest, isManager, loginType);
 	}
+
 	@PostMapping("/forgotpassword")
 	public ResponseEntity<ResponseApi<String>> forgotpassword(@RequestParam String emailId, @RequestParam String userId,
-			@RequestParam String password,@RequestParam(required = false) String isManagerLogin) throws Exception {
-		return authService.forgotpassword(emailId, userId, password,isManagerLogin);
+			@RequestParam String password, @RequestParam(required = false) String isManagerLogin) throws Exception {
+		return authService.forgotpassword(emailId, userId, password, isManagerLogin);
 	}
-	
-	
+
 	@PostMapping("/change_password")
 	public ResponseEntity<ResponseApi<String>> changePassword(@RequestBody ChangePassWordDTO request) {
-	
+
 		String message = changePasswordService.changePassword(request);
 		return ResponseEntity.ok(new ResponseApi<String>(true, message, null));
 	}

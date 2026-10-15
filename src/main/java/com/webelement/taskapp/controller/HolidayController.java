@@ -1,4 +1,5 @@
 package com.webelement.taskapp.controller;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -17,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/holiday")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class HolidayController {
 	private final HolidayService holidayService;
+
 	@GetMapping("/getHolidayDetails")
 	public Map<String, Object> findHolidayDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex, @RequestParam(required = false) String search,

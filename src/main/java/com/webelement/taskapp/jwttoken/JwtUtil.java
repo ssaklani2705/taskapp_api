@@ -28,8 +28,6 @@ public class JwtUtil {
 
 	private final TokenBlacklistService tokenBlacklistService;
 
-	
-
 	// ================== CLAIM EXTRACTION ==================
 
 	public String extractUsername(String token) {

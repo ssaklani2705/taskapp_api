@@ -447,14 +447,14 @@ public class CommonFunction {
 	private String nvl(String value) {
 		return value == null ? "" : value;
 	}
-	
+
 	public String formatDate(LocalDateTime dateTime) {
-	    if (dateTime == null) {
-	        return "";
-	    }
-	    return dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
+		if (dateTime == null) {
+			return "";
+		}
+		return dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm"));
 	}
-	
+
 	public String getPriorityName(Short priority) {
 
 		if (priority == null) {
@@ -475,7 +475,7 @@ public class CommonFunction {
 			return "";
 		}
 	}
-	
+
 	public void addEmail(Set<String> emails, UserLoginEntity user) {
 
 		if (user != null && user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
@@ -483,13 +483,12 @@ public class CommonFunction {
 			emails.add(user.getEmail().trim());
 		}
 	}
-	
+
 	public String getFirstName(UserLoginEntity user) {
-	    return user != null ? user.getFirstName() : "";
+		return user != null ? user.getFirstName() : "";
 	}
 
 	public String formatNow() {
-	    return LocalDateTime.now()
-	            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
 	}
 }

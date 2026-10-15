@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 public class ClientAssignmentCheckDTO {
 
-    private boolean assigned;
-    private String message;
+	private boolean assigned;
+	private String message;
 }

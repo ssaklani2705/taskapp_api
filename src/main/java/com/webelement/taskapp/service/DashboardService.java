@@ -1,4 +1,5 @@
 package com.webelement.taskapp.service;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,20 +28,20 @@ import com.webelement.taskapp.repo.TaskRepository;
 
 @Service
 public class DashboardService {
-	
+
 	private static final short TODO = 1;
-	private static final short DONE = 5; 
-	private static final short ST_ASSIGNED           = 1;  
-	private static final short ST_ASSIGNEE_CLOSURE   = 2;  
-	private static final short ST_REOPEN             = 3;  
-	private static final short ST_ASSIGNEE_RECLOSURE = 4;  
-	private static final short ST_ASSIGNOR_CLOSURE   = 5;  
-	
+	private static final short DONE = 5;
+	private static final short ST_ASSIGNED = 1;
+	private static final short ST_ASSIGNEE_CLOSURE = 2;
+	private static final short ST_REOPEN = 3;
+	private static final short ST_ASSIGNEE_RECLOSURE = 4;
+	private static final short ST_ASSIGNOR_CLOSURE = 5;
+
 	@Autowired
 	private TaskRepository taskRepository;
 	@Autowired
 	private ClientRepository clientRepository;
-	
+
 	public List<ClientDashboardDTO> findDashboardClients(Integer userId, String isAdmin, String loginType) {
 		List<Object[]> result = taskRepository.findDashboardClients(userId, isAdmin, loginType);
 		return result.stream().map(row -> new ClientDashboardDTO((Integer) row[0], (String) row[1]))
@@ -65,7 +66,7 @@ public class DashboardService {
 					.done(TaskGroupResponse.builder().count(0).tasks(Collections.emptyList()).build())
 					.statusCounts(new StatusCountsResponse()).build();
 		}
-		
+
 		List<TaskEntity> tasksToday = tasks.stream().filter(task -> {
 			LocalDateTime taskDate = task.getDate();
 			return taskDate != null && !taskDate.isBefore(startOfToday) && taskDate.isBefore(startOfTomorrow);
@@ -95,48 +96,36 @@ public class DashboardService {
 				.filter(task -> task.getTaskStatus() != null && task.getTaskStatus() == DONE)
 				.collect(Collectors.toList());
 		DashboardMetricDTO myTasksTodayMetric = DashboardMetricDTO.builder().count(tasksToday.size())
-				.taskStatusIds(getStatusIds(tasksToday))
-				.build();
+				.taskStatusIds(getStatusIds(tasksToday)).build();
 		DashboardMetricDTO dueThisWeekMetric = DashboardMetricDTO.builder().count(dueThisWeek.size())
-				.taskStatusIds(getStatusIds(dueThisWeek))
-				.build();
+				.taskStatusIds(getStatusIds(dueThisWeek)).build();
 		DashboardMetricDTO overdueMetric = DashboardMetricDTO.builder().count(overdueTasks.size())
-				.taskStatusIds(getStatusIds(overdueTasks))
-				.build();
-		return TaskDashboardResponse.builder()
-				.myTasksToday(myTasksTodayMetric)
-				.dueThisWeek(dueThisWeekMetric)
+				.taskStatusIds(getStatusIds(overdueTasks)).build();
+		return TaskDashboardResponse.builder().myTasksToday(myTasksTodayMetric).dueThisWeek(dueThisWeekMetric)
 				.overdue(overdueMetric)
 				.todo(TaskGroupResponse.builder().count(todoTasks.size()).tasks(toDashboardItems(todoTasks)).build())
 				.inProgress(TaskGroupResponse.builder().count(inProgressTasks.size())
 						.tasks(toDashboardItems(inProgressTasks)).build())
 				.done(TaskGroupResponse.builder().count(doneTasks.size()).tasks(toDashboardItems(doneTasks)).build())
-				.statusCounts(buildStatusCounts(tasks))
-				.build();
-	}
-	
-	private StatusCountsResponse buildStatusCounts(List<TaskEntity> tasks) {
-	    return StatusCountsResponse.builder()
-	            .unassigned((int) countUnassigned(tasks))
-	            .assigned((int) countByStatus(tasks, ST_ASSIGNED))
-	            .assigneeClosure((int) countByStatus(tasks, ST_ASSIGNEE_CLOSURE))
-	            .reOpen((int) countByStatus(tasks, ST_REOPEN))
-	            .assigneeReClosure((int) countByStatus(tasks, ST_ASSIGNEE_RECLOSURE))
-	            .assignorClosure((int) countByStatus(tasks, ST_ASSIGNOR_CLOSURE))
-	            .build();
-	}
-	
-	private long countByStatus(List<TaskEntity> tasks, short status) {
-	    return tasks.stream()
-	            .filter(t -> t.getTaskStatus() != null && t.getTaskStatus() == status)
-	            .count();
+				.statusCounts(buildStatusCounts(tasks)).build();
 	}
 
-private long countUnassigned(List<TaskEntity> tasks) {
-    return tasks.stream()
-            .filter(t -> t.getAssignedTo() == null || t.getAssignedTo() == 0)
-            .count();
-}
+	private StatusCountsResponse buildStatusCounts(List<TaskEntity> tasks) {
+		return StatusCountsResponse.builder().unassigned((int) countUnassigned(tasks))
+				.assigned((int) countByStatus(tasks, ST_ASSIGNED))
+				.assigneeClosure((int) countByStatus(tasks, ST_ASSIGNEE_CLOSURE))
+				.reOpen((int) countByStatus(tasks, ST_REOPEN))
+				.assigneeReClosure((int) countByStatus(tasks, ST_ASSIGNEE_RECLOSURE))
+				.assignorClosure((int) countByStatus(tasks, ST_ASSIGNOR_CLOSURE)).build();
+	}
+
+	private long countByStatus(List<TaskEntity> tasks, short status) {
+		return tasks.stream().filter(t -> t.getTaskStatus() != null && t.getTaskStatus() == status).count();
+	}
+
+	private long countUnassigned(List<TaskEntity> tasks) {
+		return tasks.stream().filter(t -> t.getAssignedTo() == null || t.getAssignedTo() == 0).count();
+	}
 
 	private LocalDateTime getDueDateTime(TaskEntity task) {
 		if (task == null || task.getDate() == null || task.getTaskCategoryId() == null) {
@@ -163,51 +152,61 @@ private long countUnassigned(List<TaskEntity> tasks) {
 	}
 
 	private TaskDashboardItem toDashboardItem(TaskEntity task) {
-        return TaskDashboardItem.builder().taskId(task.getTaskId()).clientId(task.getClientId())
-                .clientName(task.getClient() != null ? task.getClient().getName() : null)
-                .taskCategoryId(task.getTaskCategoryId())
-                .taskCategoryName(task.getTaskCategory() != null ? task.getTaskCategory().getName() : null)
-                .dueDateTime(task.getEndDate())
-                .assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
-                .assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
-                .title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate()).priority(String.valueOf(task.getPriority()))
-                .assignedTo(task.getAssignedTo()).addedBy(task.getAddedBy()).build();
-    }
+		return TaskDashboardItem.builder().taskId(task.getTaskId()).clientId(task.getClientId())
+				.clientName(task.getClient() != null ? task.getClient().getName() : null)
+				.taskCategoryId(task.getTaskCategoryId())
+				.taskCategoryName(task.getTaskCategory() != null ? task.getTaskCategory().getName() : null)
+				.dueDateTime(task.getEndDate())
+				.assignedUser(task.getAssignedUser() != null ? task.getAssignedUser().getFirstName() : null)
+				.assignedByUser(task.getAssignedByUser() != null ? task.getAssignedByUser().getFirstName() : null)
+				.title(task.getTitle()).taskStatus(task.getTaskStatus()).date(task.getDate())
+				.priority(String.valueOf(task.getPriority())).assignedTo(task.getAssignedTo())
+				.addedBy(task.getAddedBy()).build();
+	}
 
 	public Page<TaskEditDTO> getTasksByStatus(int page, int size, Integer clientId, Integer userId, String permission) {
 		Pageable pageable = PageRequest.of(page, size);
 		Page<TaskEditDTO> taskList = taskRepository.findTasksByStatus(pageable, clientId, userId);
 		return taskList;
 	}
-	
+
 	public Double getTotalOutstanding(Integer clientId, Integer userId) {
-        return clientRepository.getTotalOutstanding(clientId, userId);
-    }
+		return clientRepository.getTotalOutstanding(clientId, userId);
+	}
+
 	// NEW
-	public int countOfActiveTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfActiveTask(clientId,userId);
+	public int countOfActiveTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfActiveTask(clientId, userId);
 	}
-	public int countOfCompletedTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfCompletedTask(clientId,userId);
+
+	public int countOfCompletedTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfCompletedTask(clientId, userId);
 	}
-	public int countOfPendingTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfPendingTask(clientId,userId);
+
+	public int countOfPendingTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfPendingTask(clientId, userId);
 	}
-	public int countOfAssignedTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfAssignedTask(clientId,userId);
+
+	public int countOfAssignedTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfAssignedTask(clientId, userId);
 	}
-	public int countOfAssigneeClosureTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfAssigneeClosureTask(clientId,userId);
+
+	public int countOfAssigneeClosureTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfAssigneeClosureTask(clientId, userId);
 	}
-	public int countOfReOpenTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfReOpenTask(clientId,userId);
+
+	public int countOfReOpenTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfReOpenTask(clientId, userId);
 	}
-	public int countOfAssigneeReClosureTask(Integer clientId,Integer userId) {
-		return taskRepository.countOfAssigneeReClosureTask(clientId,userId);
+
+	public int countOfAssigneeReClosureTask(Integer clientId, Integer userId) {
+		return taskRepository.countOfAssigneeReClosureTask(clientId, userId);
 	}
+
 	public int countOfUnAssigneeTask(Integer clientId, Integer userId) {
-        return taskRepository.countOfUnassignedTask(clientId, userId);
-    }
+		return taskRepository.countOfUnassignedTask(clientId, userId);
+	}
+
 	private List<Short> getStatusIds(List<TaskEntity> tasks) {
 		return tasks.stream().map(TaskEntity::getTaskStatus).filter(Objects::nonNull).distinct().sorted()
 				.collect(Collectors.toList());

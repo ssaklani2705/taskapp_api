@@ -28,12 +28,11 @@ import com.webelement.taskapp.entity.RecurringEntity;
 import com.webelement.taskapp.service.ClientService;
 import com.webelement.taskapp.service.RecurringService;
 
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class RecurringController {
 
@@ -42,13 +41,11 @@ public class RecurringController {
 
 	@GetMapping("/getRecurringClients")
 	public ResponseEntity<?> getRecurringClients(@RequestParam("userId") Integer userId,
-			@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType,
-			@RequestParam("isHod") String isHod
-			) {
+			@RequestParam("isAdmin") String isAdmin, @RequestParam("loginType") String loginType,
+			@RequestParam("isHod") String isHod) {
 		try {
 			System.out.println("getRecurringClients userId = " + userId);
-			List<ClientDTO> clients = clientService.getClientsForRecurring(userId,isAdmin,loginType,isHod);
+			List<ClientDTO> clients = clientService.getClientsForRecurring(userId, isAdmin, loginType, isHod);
 			System.out.println("clients found = " + clients.size());
 
 			return ResponseEntity.ok(clients);
@@ -57,14 +54,12 @@ public class RecurringController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/getRecurringClientsForIndex")
 	public ResponseEntity<?> getRecurringClientsForIndex(@RequestParam("userId") Integer userId,
-			@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType
-			) {
+			@RequestParam("isAdmin") String isAdmin, @RequestParam("loginType") String loginType) {
 		try {
-			List<ClientDTO> clients = clientService.getClientsForRecurringForIndex(userId,isAdmin,loginType);
+			List<ClientDTO> clients = clientService.getClientsForRecurringForIndex(userId, isAdmin, loginType);
 			return ResponseEntity.ok(clients);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,8 +89,8 @@ public class RecurringController {
 	}
 
 	private static final Map<String, String> RECURRING_SORT_MAP = Map.of("title", "r.title", "clientName", "c.name",
-			"description", "r.description", "type", "r.type", "taskCategory", "tc.name", "status", "r.status","priority", "r.priority",
-			"regDate", "r.regDate");
+			"description", "r.description", "type", "r.type", "taskCategory", "tc.name", "status", "r.status",
+			"priority", "r.priority", "regDate", "r.regDate");
 
 	// For index
 	@GetMapping("/getRecurringDetails")
@@ -105,8 +100,8 @@ public class RecurringController {
 			@RequestParam(defaultValue = "0") Short type, @RequestParam(defaultValue = "0") Integer taskCatId,
 			@RequestParam(defaultValue = "title") String sortColumn,
 			@RequestParam(defaultValue = "asc") String sortDirection, @RequestParam Integer userId,
-			@RequestParam("isAdmin") String isAdmin,
-			@RequestParam("loginType") String loginType,@RequestParam(defaultValue = "0") Integer priority) {
+			@RequestParam("isAdmin") String isAdmin, @RequestParam("loginType") String loginType,
+			@RequestParam(defaultValue = "0") Integer priority) {
 
 		String sortBy = RECURRING_SORT_MAP.getOrDefault(sortColumn, "r.title");
 
@@ -118,7 +113,7 @@ public class RecurringController {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<RecurringDTO> recurringPage = recurringService.findRecurringDetails(pageable, status, search, clientId,
-				type, taskCatId, userId,isAdmin,loginType,priority);
+				type, taskCatId, userId, isAdmin, loginType, priority);
 
 		Map<String, Object> response = new HashMap<>();
 

@@ -21,7 +21,7 @@ public class TaskDashboardItem {
 	private String taskCategoryName;
 	private LocalDateTime dueDateTime;
 	private String assignedUser;
-	
+
 	private String assignedByUser;
 
 	private String title;
@@ -52,8 +52,6 @@ public class TaskDashboardItem {
 
 	private String closeRemarks;
 
-	private Short taskStatus; 
-
-	
+	private Short taskStatus;
 
 }

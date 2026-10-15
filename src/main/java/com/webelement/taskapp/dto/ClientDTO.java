@@ -154,5 +154,5 @@ public class ClientDTO {
 		this.clientId = clientId;
 		this.name = name;
 	}
-	
+
 }

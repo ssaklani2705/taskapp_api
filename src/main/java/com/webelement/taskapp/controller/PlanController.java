@@ -23,12 +23,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/plan")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class PlanController {
 
 	private final PlanServiceImpl planService;
-	
+
 	@PostMapping("/add_or_Update")
 	public ResponseEntity<ApiResponse<PlanDTO>> addOrUpdate(@RequestBody PlanDTO dto) {
 
@@ -58,18 +58,18 @@ public class PlanController {
 
 		return planService.getById(planId);
 	}
-	
+
 	@PostMapping("/delete")
 	public ApiResponse<PlanDTO> delete(@RequestBody PlanDTO dto) {
-	    return planService.delete(dto);
+		return planService.delete(dto);
 	}
-	
+
 	@GetMapping("/getPlan")
-    public ApiResponse<List<PlanEntity>> getPlan() {
+	public ApiResponse<List<PlanEntity>> getPlan() {
 
-        List<PlanEntity> plan = planService.getPlan();
+		List<PlanEntity> plan = planService.getPlan();
 
-        return new ApiResponse<>(true, "Plan fetched successfully", plan);
-    }
-	
+		return new ApiResponse<>(true, "Plan fetched successfully", plan);
+	}
+
 }

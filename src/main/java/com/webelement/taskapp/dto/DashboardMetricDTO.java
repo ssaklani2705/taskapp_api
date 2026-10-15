@@ -16,6 +16,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardMetricDTO {
-	 private int count;
-	    private List<Short> taskStatusIds;
+	private int count;
+	private List<Short> taskStatusIds;
 }

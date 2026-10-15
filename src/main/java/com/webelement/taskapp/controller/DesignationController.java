@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/designation")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class DesignationController {
 	private final DesignationService desigmationService;
@@ -60,7 +60,7 @@ public class DesignationController {
 
 	@GetMapping("/{designationId}")
 	public ApiResponse<DesignationDTO> getDesigmationById(@PathVariable Integer designationId) {
-		
+
 		try {
 
 			return desigmationService.getById(designationId);

@@ -45,10 +45,10 @@ public class RecurringService {
 			throw new RuntimeException("Invalid recurring type.");
 		}
 		if (dto.getPriority() == null || dto.getPriority() < 1 || dto.getPriority() > 3) {
-            throw new RuntimeException("Invalid priority.");
-        }
+			throw new RuntimeException("Invalid priority.");
+		}
 		if (dto.getTime() == null) {
-		    throw new RuntimeException("Please select a time.");
+			throw new RuntimeException("Please select a time.");
 		}
 		validateRecurringType(dto);
 		RecurringEntity recurring;
@@ -56,8 +56,7 @@ public class RecurringService {
 			recurring = new RecurringEntity();
 			recurring.setRegDate(Timestamp.from(Instant.now()));
 			recurring.setStatus((short) 1);
-		}
-		else {
+		} else {
 			Optional<RecurringEntity> existing = recurringRepository.findById(dto.getRecurringId());
 			if (existing.isEmpty()) {
 				throw new RuntimeException("Recurring record not found.");
@@ -76,7 +75,7 @@ public class RecurringService {
 		recurring.setDate(dto.getDate());
 		recurring.setDay(dto.getDay());
 		recurring.setMonth(dto.getMonth());
-		recurring.setTime(dto.getTime());          // <-- new
+		recurring.setTime(dto.getTime()); // <-- new
 		recurring.setTaskCatId(dto.getTaskCatId());
 		RecurringEntity recurringEntity = recurringRepository.save(recurring);
 		String action = isNew ? "Recurring Added" : "Recurring Updated";
@@ -98,8 +97,7 @@ public class RecurringService {
 			}
 			dto.setDate(null);
 			dto.setMonth(null);
-		}
-		else if (type == 3) {
+		} else if (type == 3) {
 			if (dto.getDate() == null || dto.getDate() < -2 || dto.getDate() > 28) {
 				throw new RuntimeException("For monthly recurring, date must be between 1 and 28.");
 			}
@@ -115,6 +113,7 @@ public class RecurringService {
 			dto.setDay(null);
 		}
 	}
+
 	// For edit
 	@Transactional(readOnly = true)
 	public RecurringDTO getRecurringById(Integer recurringId, Integer userId) {
@@ -125,45 +124,21 @@ public class RecurringService {
 		RecurringEntity recurring = existing.get();
 		return new RecurringDTO(recurring.getRecurringId(), recurring.getClientId(), recurring.getTitle(),
 				recurring.getDescription(), recurring.getType(), recurring.getDate(), recurring.getDay(),
-				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus(),recurring.getPriority(),recurring.getTime());
+				recurring.getMonth(), recurring.getTaskCatId(), recurring.getStatus(), recurring.getPriority(),
+				recurring.getTime());
 	}
-	
-	public Page<RecurringDTO> findRecurringDetails(
-	        Pageable pageable,
-	        Short status,
-	        String search,
-	        Integer clientId,
-	        Short type,
-	        Integer taskCatId,
-	        Integer userId,
-	        String isAdmin,
-	        String loginType,Integer priority) {
-	    Short statusFilter =
-	            (status != null && status == 0) ? null : status;
-	    String searchFilter =
-	            (search != null && !search.trim().isEmpty())
-	                    ? search.trim()
-	                    : null;
-	    Integer clientFilter =
-	            (clientId != null && clientId == 0) ? null : clientId;
-	    Short typeFilter =
-	            (type != null && type == 0) ? null : type;
-	    Integer taskCatFilter =
-	            (taskCatId != null && taskCatId == 0) ? null : taskCatId;
-	    return recurringRepository.findRecurringDetails(
-	            pageable,
-	            statusFilter,
-	            userId,
-	            searchFilter,
-	            clientFilter,
-	            typeFilter,
-	            taskCatFilter,
-	            isAdmin,
-	            loginType,
-	            userId,
-	            priority
-	    );
+
+	public Page<RecurringDTO> findRecurringDetails(Pageable pageable, Short status, String search, Integer clientId,
+			Short type, Integer taskCatId, Integer userId, String isAdmin, String loginType, Integer priority) {
+		Short statusFilter = (status != null && status == 0) ? null : status;
+		String searchFilter = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+		Integer clientFilter = (clientId != null && clientId == 0) ? null : clientId;
+		Short typeFilter = (type != null && type == 0) ? null : type;
+		Integer taskCatFilter = (taskCatId != null && taskCatId == 0) ? null : taskCatId;
+		return recurringRepository.findRecurringDetails(pageable, statusFilter, userId, searchFilter, clientFilter,
+				typeFilter, taskCatFilter, isAdmin, loginType, userId, priority);
 	}
+
 	// For View
 	@Transactional(readOnly = true)
 	public RecurringDTO getViewRecurringById(Integer recurringId, Integer userId) {
@@ -177,6 +152,7 @@ public class RecurringService {
 		}
 		return recurring;
 	}
+
 	// For Delete
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteRecurring(Integer recurringId, Integer userId,
@@ -191,6 +167,7 @@ public class RecurringService {
 					.body(new ResponseApi<>(false, "Failed to delete Recurring", null));
 		}
 	}
+
 	// For transaction history
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = userLoginRepository.getTransactionLogs(moduleId, recordId);

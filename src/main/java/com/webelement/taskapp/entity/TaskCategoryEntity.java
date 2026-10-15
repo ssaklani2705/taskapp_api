@@ -12,90 +12,90 @@ import javax.persistence.Table;
 @Table(name = "t_taskcategory")
 public class TaskCategoryEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "i_taskcategoryid")
-    private Integer taskcategoryId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "i_taskcategoryid")
+	private Integer taskcategoryId;
 
-    @Column(name = "i_departmentid")
-    private Integer departmentId;
+	@Column(name = "i_departmentid")
+	private Integer departmentId;
 
-    @Column(name = "s_name")
-    private String name;
+	@Column(name = "s_name")
+	private String name;
 
-    @Column(name = "i_status")
-    private Integer status;
+	@Column(name = "i_status")
+	private Integer status;
 
-    @Column(name = "i_userid")
-    private Integer userId;
+	@Column(name = "i_userid")
+	private Integer userId;
 
-    @Column(name = "ts_regdate")
-    private Timestamp regdate;
+	@Column(name = "ts_regdate")
+	private Timestamp regdate;
 
-    @Column(name = "ts_moddate")
-    private Timestamp moddate;
-    
-    @Column(name = "ts_duetime")
-    private String duedatetime;
+	@Column(name = "ts_moddate")
+	private Timestamp moddate;
 
-    public TaskCategoryEntity() {
-    }
+	@Column(name = "ts_duetime")
+	private String duedatetime;
 
-    public Integer getTaskcategoryId() {
-        return taskcategoryId;
-    }
+	public TaskCategoryEntity() {
+	}
 
-    public void setTaskcategoryId(Integer taskcategoryId) {
-        this.taskcategoryId = taskcategoryId;
-    }
+	public Integer getTaskcategoryId() {
+		return taskcategoryId;
+	}
 
-    public Integer getDepartmentId() {
-        return departmentId;
-    }
+	public void setTaskcategoryId(Integer taskcategoryId) {
+		this.taskcategoryId = taskcategoryId;
+	}
 
-    public void setDepartmentId(Integer departmentId) {
-        this.departmentId = departmentId;
-    }
+	public Integer getDepartmentId() {
+		return departmentId;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setDepartmentId(Integer departmentId) {
+		this.departmentId = departmentId;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public Integer getStatus() {
-        return status;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
+	public Integer getStatus() {
+		return status;
+	}
 
-    public Integer getUserId() {
-        return userId;
-    }
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
+	public Integer getUserId() {
+		return userId;
+	}
 
-    public Timestamp getRegdate() {
-        return regdate;
-    }
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}
 
-    public void setRegdate(Timestamp regdate) {
-        this.regdate = regdate;
-    }
+	public Timestamp getRegdate() {
+		return regdate;
+	}
 
-    public Timestamp getModdate() {
-        return moddate;
-    }
+	public void setRegdate(Timestamp regdate) {
+		this.regdate = regdate;
+	}
 
-    public void setModdate(Timestamp moddate) {
-        this.moddate = moddate;
-    }
+	public Timestamp getModdate() {
+		return moddate;
+	}
+
+	public void setModdate(Timestamp moddate) {
+		this.moddate = moddate;
+	}
 
 	public String getDuedatetime() {
 		return duedatetime;
@@ -104,6 +104,5 @@ public class TaskCategoryEntity {
 	public void setDuedatetime(String duedatetime) {
 		this.duedatetime = duedatetime;
 	}
-    
-    
+
 }

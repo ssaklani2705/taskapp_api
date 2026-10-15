@@ -24,7 +24,7 @@ import com.webelement.taskapp.service.impl.StateServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 @RequestMapping("/admin/state")
 public class StateController {
@@ -60,17 +60,17 @@ public class StateController {
 
 		return stateService.getById(stateId);
 	}
-	
+
 	@PostMapping("/delete")
 	public ApiResponse<StateDTO> delete(@RequestBody StateDTO dto) {
-	    return stateService.delete(dto);
+		return stateService.delete(dto);
 	}
-	
+
 	@GetMapping("/getStates")
-    public ApiResponse<List<StateEntity>> getStates() {
+	public ApiResponse<List<StateEntity>> getStates() {
 
-        List<StateEntity> states = stateService.getStates();
+		List<StateEntity> states = stateService.getStates();
 
-        return new ApiResponse<>(true, "States fetched successfully", states);
-    }
+		return new ApiResponse<>(true, "States fetched successfully", states);
+	}
 }

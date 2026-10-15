@@ -33,8 +33,7 @@ public class RecurringDTO {
 
 	// For edit
 	public RecurringDTO(Integer recurringId, Integer clientId, String title, String description, Short type,
-			Integer date, Short day, Integer month, Integer taskCatId, Short status, Short priority,
-			LocalTime time) {
+			Integer date, Short day, Integer month, Integer taskCatId, Short status, Short priority, LocalTime time) {
 		super();
 		this.recurringId = recurringId;
 		this.clientId = clientId;

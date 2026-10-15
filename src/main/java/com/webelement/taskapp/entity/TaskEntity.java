@@ -103,7 +103,7 @@ public class TaskEntity {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_assignedto", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedUser;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	@NotFound(action = NotFoundAction.IGNORE)
@@ -112,10 +112,10 @@ public class TaskEntity {
 
 	@Transient
 	private Integer ManagerId;
-	
+
 	@Column(name = "d_enddate")
 	private LocalDateTime endDate;
-	
+
 	@Column(name = "i_systemflag")
 	private Integer systemFlag;
 

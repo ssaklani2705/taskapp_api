@@ -1,4 +1,5 @@
 package com.webelement.taskapp.service;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,94 +30,64 @@ public class DepartmentService {
 	@Autowired
 	private UserLoginRepository userLoginRepository;
 
-	public ApiResponse<DepartmentDTO> addOrUpdate(
-	        DepartmentDTO dto,
-	        HttpServletRequest httpRequest) {
-	    Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
-	    String name = dto.getName() == null
-	            ? ""
-	            : dto.getName().trim();
-	    boolean isNew = dto.getDepartmentId() == null
-	            || dto.getDepartmentId() == 0;
-	    if (isNew) {
-	    		if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(
-	                name, 3)) {
+	public ApiResponse<DepartmentDTO> addOrUpdate(DepartmentDTO dto, HttpServletRequest httpRequest) {
+		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+		String name = dto.getName() == null ? "" : dto.getName().trim();
+		boolean isNew = dto.getDepartmentId() == null || dto.getDepartmentId() == 0;
+		if (isNew) {
+			if (departmentRepository.existsByNameIgnoreCaseAndStatusNot(name, 3)) {
 
-	            return new ApiResponse<>(
-	                    false,
-	                    "Department name already exists",
-	                    null);
-	        }
-	    }
-	    else {
-	        boolean duplicateName =
-	                departmentRepository
-	                        .existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(
-	                                name,
-	                                dto.getDepartmentId(),
-	                                3);
-	        if (duplicateName) {
-	            return new ApiResponse<>(
-	                    false,
-	                    "Department name already exists",
-	                    null);
-	        }
-	    }
+				return new ApiResponse<>(false, "Department name already exists", null);
+			}
+		} else {
+			boolean duplicateName = departmentRepository.existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(name,
+					dto.getDepartmentId(), 3);
+			if (duplicateName) {
+				return new ApiResponse<>(false, "Department name already exists", null);
+			}
+		}
 
-	   
-	    DepartmentEntity entity;
+		DepartmentEntity entity;
 
-	    if (!isNew) {
+		if (!isNew) {
 
-	        // UPDATE
-	        entity = departmentRepository.findById(dto.getDepartmentId())
-	                .orElseThrow(() ->
-	                        new RuntimeException("Department Record not found"));
-	        entity.setName(name);
-	        entity.setSequence(dto.getSequence());
-	        entity.setUserId(dto.getUserId());
-	        if (dto.getStatus() != null) {
-	            entity.setStatus(dto.getStatus());
-	        }
-	        entity.setModdate(timestamp);
-	    } else {
-	        // ADD
-	        entity = new DepartmentEntity();
-	        entity.setName(name);
-	        entity.setSequence(dto.getSequence());
-	        entity.setUserId(dto.getUserId());
-	        entity.setStatus(1);
-	        entity.setRegdate(timestamp);
-	    }
+			// UPDATE
+			entity = departmentRepository.findById(dto.getDepartmentId())
+					.orElseThrow(() -> new RuntimeException("Department Record not found"));
+			entity.setName(name);
+			entity.setSequence(dto.getSequence());
+			entity.setUserId(dto.getUserId());
+			if (dto.getStatus() != null) {
+				entity.setStatus(dto.getStatus());
+			}
+			entity.setModdate(timestamp);
+		} else {
+			// ADD
+			entity = new DepartmentEntity();
+			entity.setName(name);
+			entity.setSequence(dto.getSequence());
+			entity.setUserId(dto.getUserId());
+			entity.setStatus(1);
+			entity.setRegdate(timestamp);
+		}
 
-	    DepartmentEntity saved = departmentRepository.save(entity);
+		DepartmentEntity saved = departmentRepository.save(entity);
 
-	    DepartmentDTO d = new DepartmentDTO();
-	    d.setDepartmentId(saved.getDepartmentId());
-	    d.setName(saved.getName());
-	    d.setSequence(saved.getSequence());
-	    d.setUserId(saved.getUserId());
-	    d.setStatus(saved.getStatus());
-	    d.setRegdate(saved.getRegdate());
-	    d.setModdate(saved.getModdate());
+		DepartmentDTO d = new DepartmentDTO();
+		d.setDepartmentId(saved.getDepartmentId());
+		d.setName(saved.getName());
+		d.setSequence(saved.getSequence());
+		d.setUserId(saved.getUserId());
+		d.setStatus(saved.getStatus());
+		d.setRegdate(saved.getRegdate());
+		d.setModdate(saved.getModdate());
 
-	    String action = isNew
-	            ? "Department Added"
-	            : "Department Updated";
-	    commonFunction.createHistoryAccess(
-	            dto.getUserId(),
-	            commonFunction.resolveClientIp(httpRequest),
-	            commonFunction.getLocalIp(),
-	            action,
-	            3,
-	            saved.getDepartmentId(),
-	            -1);
-	    return new ApiResponse<>(
-	            true,
-	            "Department saved successfully",
-	            d);
+		String action = isNew ? "Department Added" : "Department Updated";
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 3, saved.getDepartmentId(), -1);
+		return new ApiResponse<>(true, "Department saved successfully", d);
 	}
-	
+
 	public ApiResponse<DepartmentDTO> getById(Integer id) {
 		DepartmentEntity entity = departmentRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Department Record not found"));
@@ -135,88 +106,39 @@ public class DepartmentService {
 		return new ApiResponse<>(true, "Department fetched successfully", d);
 	}
 
-	public Page<DepartmentDTO> findDepartmentDetails(
-			int page,
-			int size,
-			int statusIndex,
-			String search) {
-		return departmentRepository
-				.findDepartmentDetails(
-						PageRequest.of(
-								page,
-								size),
-						statusIndex, search);
+	public Page<DepartmentDTO> findDepartmentDetails(int page, int size, int statusIndex, String search) {
+		return departmentRepository.findDepartmentDetails(PageRequest.of(page, size), statusIndex, search);
 	}
 
-	public ResponseEntity<ApiResponse<String>> deleteDepartment(
-			Integer departmentId,
-			Integer userId,
+	public ResponseEntity<ApiResponse<String>> deleteDepartment(Integer departmentId, Integer userId,
 			HttpServletRequest httpRequest) {
-		Optional<DepartmentEntity> existingDepartment =
-				departmentRepository
-						.findById(departmentId);
+		Optional<DepartmentEntity> existingDepartment = departmentRepository.findById(departmentId);
 		if (!existingDepartment.isPresent()) {
-			return ResponseEntity
-					.status(
-							HttpStatus.NOT_FOUND)
-					.body(
-							new ApiResponse<>(
-									false,
-									"Department not found",
-									null));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ApiResponse<>(false, "Department not found", null));
 		}
-		
+
 		boolean isDepartmentInUse = userLoginRepository.existsByDepartmentId(departmentId);
 		if (isDepartmentInUse) {
-			return ResponseEntity
-					.status(HttpStatus.CONFLICT)
-					.body(new ApiResponse<>(false, "Department is assigned to one or more users and cannot be deleted", null));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
+					"Department is assigned to one or more users and cannot be deleted", null));
 		}
 
-		int updatedRows =
-				departmentRepository
-						.softDelete(
-								3,
-								departmentId);
+		int updatedRows = departmentRepository.softDelete(3, departmentId);
 		if (updatedRows > 0) {
-			commonFunction.createHistoryAccess(
-					userId,
-					commonFunction.resolveClientIp(
-							httpRequest),
-					commonFunction.getLocalIp(),
-					"Department Deleted",
-					3,
-					departmentId,
-					-1);
+			commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+					commonFunction.getLocalIp(), "Department Deleted", 3, departmentId, -1);
 
-			return ResponseEntity.ok(
-					new ApiResponse<>(
-							true,
-							"Department deleted successfully",
-							null));
+			return ResponseEntity.ok(new ApiResponse<>(true, "Department deleted successfully", null));
 		} else {
-			return ResponseEntity
-					.status(
-							HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(
-							new ApiResponse<>(
-									false,
-									"Failed to delete department",
-									null));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ApiResponse<>(false, "Failed to delete department", null));
 		}
 	}
 
 	public List<DepartmentDTO> getActiveDepartments() {
-		List<DepartmentEntity> departments =
-				departmentRepository
-						.findByStatus(1);
-		return departments
-				.stream()
-				.map(d ->
-						new DepartmentDTO(
-								d.getDepartmentId(),
-								d.getName()))
-				.collect(
-						Collectors.toList());
+		List<DepartmentEntity> departments = departmentRepository.findByStatus(1);
+		return departments.stream().map(d -> new DepartmentDTO(d.getDepartmentId(), d.getName()))
+				.collect(Collectors.toList());
 	}
 }

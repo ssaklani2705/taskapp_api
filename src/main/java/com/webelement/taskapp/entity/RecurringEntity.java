@@ -47,7 +47,7 @@ public class RecurringEntity {
 
 	@Column(name = "i_status")
 	private Short status;
-	
+
 	@Column(name = "i_priority")
 	private Short priority;
 
@@ -56,8 +56,8 @@ public class RecurringEntity {
 
 	@Column(name = "ts_moddate")
 	private Timestamp modDate;
-	
+
 	@Column(name = "t_time")
-	private LocalTime time;   // java.time.LocalTime, parses "10:30:00"
+	private LocalTime time; // java.time.LocalTime, parses "10:30:00"
 
 }

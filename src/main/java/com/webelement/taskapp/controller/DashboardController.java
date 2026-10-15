@@ -23,20 +23,18 @@ import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.DashboardService;
 import com.webelement.taskapp.service.TaskService;
 
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/dashboard")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class DashboardController {
 	private final DashboardService dashboardService;
 	private final UserLoginRepository userLoginRepository;
 	private final ClientRepository clientRepository;
 	private final TaskService taskService;
-	
-	
+
 	@GetMapping("/dashboard")
 	public ResponseEntity<TaskDashboardResponse> getDashboard(@RequestParam(defaultValue = "0") Integer userId,
 			@RequestParam(required = false) String isAdmin, @RequestParam(defaultValue = "0") Integer selectedClientId,
@@ -140,18 +138,17 @@ public class DashboardController {
 	public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId,
 			@RequestParam("userId") Integer userId) {
 		Map<String, Object> map = new HashMap<>();
-        return ResponseEntity.ok(map);
-    }
-    
-    @GetMapping("/countOfUnAssigneeTask")
-    public ResponseEntity<Map<String, Object>> countOfUnAssigneeTask(@RequestParam Integer clientId,
-            @RequestParam("userId") Integer userId) {
-        Map<String, Object> map = new HashMap<>();
-        int count = dashboardService.countOfUnAssigneeTask(clientId, userId);
-        map.put("count", count);
-        return ResponseEntity.ok(map);
-    }
-    
+		return ResponseEntity.ok(map);
+	}
+
+	@GetMapping("/countOfUnAssigneeTask")
+	public ResponseEntity<Map<String, Object>> countOfUnAssigneeTask(@RequestParam Integer clientId,
+			@RequestParam("userId") Integer userId) {
+		Map<String, Object> map = new HashMap<>();
+		int count = dashboardService.countOfUnAssigneeTask(clientId, userId);
+		map.put("count", count);
+		return ResponseEntity.ok(map);
+	}
 
 	@GetMapping("/getTaskClient")
 	public Map<String, Object> getTaskClient(@RequestParam("userId") Integer userId) {
@@ -174,8 +171,7 @@ public class DashboardController {
 
 		return response;
 	}
-	
-	
+
 	@GetMapping("/client/check-assignment/{managerId}")
 	public ClientAssignmentCheckDTO checkClientAssignment(@PathVariable Integer managerId) {
 

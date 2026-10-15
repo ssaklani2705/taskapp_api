@@ -1,6 +1,5 @@
 package com.webelement.taskapp.entity;
 
-
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -24,32 +23,32 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskNoteEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "i_tasknoteid", nullable = false)
-    private Integer taskNoteId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "i_tasknoteid", nullable = false)
+	private Integer taskNoteId;
 
-    @Column(name = "i_taskid")
-    private Integer taskId;
+	@Column(name = "i_taskid")
+	private Integer taskId;
 
-    @Column(name = "i_createdby")
-    private Integer createdBy;
+	@Column(name = "i_createdby")
+	private Integer createdBy;
 
-    @Column(name = "s_note", columnDefinition = "LONGTEXT")
-    private String note;
+	@Column(name = "s_note", columnDefinition = "LONGTEXT")
+	private String note;
 
-    @Column(name = "ts_regdate")
-    private LocalDateTime registrationDate;
+	@Column(name = "ts_regdate")
+	private LocalDateTime registrationDate;
 
-    @Column(name = "ts_moddate")
-    private LocalDateTime modificationDate;
+	@Column(name = "ts_moddate")
+	private LocalDateTime modificationDate;
 
-    @Column(name = "i_status")
-    private Short status;
-    
-    @Transient
-    private Integer userId;
-    
-    @Transient
-    private String isAdmin;
+	@Column(name = "i_status")
+	private Short status;
+
+	@Transient
+	private Integer userId;
+
+	@Transient
+	private String isAdmin;
 }

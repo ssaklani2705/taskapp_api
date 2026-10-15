@@ -51,7 +51,7 @@ public interface HolidayRepo extends JpaRepository<HolidayEntity, Integer> {
 	boolean existsByStartDateAndHolidayIdNotAndStatusNot(LocalDate startDate, Integer holidayId, Integer status);
 
 	Optional<HolidayEntity> findByNameIgnoreCaseAndStatusNot(String name, Integer status);
-	
+
 	@Query("SELECT COUNT(h) " + "FROM HolidayEntity h " + "WHERE h.status = 1 " + "AND h.startDate <= :startDate "
 			+ "AND h.endDate >= :endDate")
 	long countHolidayOverlap(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

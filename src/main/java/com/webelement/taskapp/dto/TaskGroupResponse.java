@@ -1,6 +1,5 @@
 package com.webelement.taskapp.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TaskGroupResponse {
 
-    private int count;
-    private List<TaskDashboardItem> tasks;
+	private int count;
+	private List<TaskDashboardItem> tasks;
 }

@@ -28,13 +28,7 @@ public class DepartmentDTO {
 	// CONSTRUCTOR USED BY JPQL QUERY
 	// =========================================================
 
-	public DepartmentDTO(
-			int departmentId,
-			String name,
-			int sequence,
-			int status,
-			int userId,
-			Date regdate,
+	public DepartmentDTO(int departmentId, String name, int sequence, int status, int userId, Date regdate,
 			Date moddate) {
 
 		this.departmentId = departmentId;
@@ -50,9 +44,7 @@ public class DepartmentDTO {
 	// CONSTRUCTOR FOR ACTIVE DEPARTMENT
 	// =========================================================
 
-	public DepartmentDTO(
-			Integer departmentId,
-			String name) {
+	public DepartmentDTO(Integer departmentId, String name) {
 
 		this.departmentId = departmentId;
 		this.name = name;
@@ -122,8 +114,7 @@ public class DepartmentDTO {
 		return transactionHistory;
 	}
 
-	public void setTransactionHistory(
-			List<TransactionEntity> transactionHistory) {
+	public void setTransactionHistory(List<TransactionEntity> transactionHistory) {
 
 		this.transactionHistory = transactionHistory;
 	}

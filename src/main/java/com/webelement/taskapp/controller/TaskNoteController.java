@@ -11,16 +11,15 @@ import com.webelement.taskapp.service.TaskNoteService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 
 @RequestMapping("/admin/taskNote")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class TaskNoteController {
 
-	private final SimpMessagingTemplate messagingTemplate;
-    private final TaskNoteService taskNoteService;
+	
+	private final TaskNoteService taskNoteService;
 
 	// =====================================================
 	// ADD NOTE
@@ -29,15 +28,16 @@ public class TaskNoteController {
 	public ResponseEntity<TaskNoteDTO> addTaskNote(@RequestBody TaskNoteRequestDTO request) throws Exception {
 		TaskNoteDTO response = taskNoteService.addTaskNote(request);
 
-		messagingTemplate.convertAndSend("/topic/task-notes/" + request.getTaskId(), response);
+		
 		return ResponseEntity.ok(response);
 	}
-    // =====================================================
-    // GET NOTES BY TASK ID
-    // =====================================================
-    @GetMapping("/getByTaskId/{taskId}")
-    public ResponseEntity<List<TaskNoteDTO>> getTaskNotes(@PathVariable Integer taskId) {
-        List<TaskNoteDTO> response =taskNoteService.getTaskNotes(taskId);
-        return ResponseEntity.ok(response);
-    }
+
+	// =====================================================
+	// GET NOTES BY TASK ID
+	// =====================================================
+	@GetMapping("/getByTaskId/{taskId}")
+	public ResponseEntity<List<TaskNoteDTO>> getTaskNotes(@PathVariable Integer taskId) {
+		List<TaskNoteDTO> response = taskNoteService.getTaskNotes(taskId);
+		return ResponseEntity.ok(response);
+	}
 }

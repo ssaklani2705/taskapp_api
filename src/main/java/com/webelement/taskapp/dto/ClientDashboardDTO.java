@@ -11,6 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ClientDashboardDTO {
 
-    private Integer clientId;
-    private String clientName;
+	private Integer clientId;
+	private String clientName;
 }

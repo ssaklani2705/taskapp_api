@@ -28,28 +28,27 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class UserManagementController {
-	
+
 	private final UserManagementService userService;
 
 	@GetMapping("/getUserManagementDetails")
 	public Map<String, Object> findBasicUserInfo(@RequestParam() int page, @RequestParam() int size,
-	        @RequestParam() int statusIndex, @RequestParam() String search,
-	        @RequestParam() int departmentId, @RequestParam() int designationId,
-	        @RequestParam() int selectedCategoryId,
-	        @RequestParam(defaultValue = "0") int weeklyOff) {
+			@RequestParam() int statusIndex, @RequestParam() String search, @RequestParam() int departmentId,
+			@RequestParam() int designationId, @RequestParam() int selectedCategoryId,
+			@RequestParam(defaultValue = "0") int weeklyOff) {
 
-	    Page<UserInfo> userPage = userService.findBasicUserInfo(page, size, statusIndex, search, departmentId,
-	            designationId, selectedCategoryId, weeklyOff);
+		Page<UserInfo> userPage = userService.findBasicUserInfo(page, size, statusIndex, search, departmentId,
+				designationId, selectedCategoryId, weeklyOff);
 
-	    Map<String, Object> response = new HashMap<>();
-	    response.put("data", userPage.getContent());
-	    response.put("totalElements", userPage.getTotalElements());
-	    return response;
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", userPage.getContent());
+		response.put("totalElements", userPage.getTotalElements());
+		return response;
 	}
-	
+
 	@GetMapping("/getUserManagementDetails/{userId}")
 	public ResponseEntity<?> getUserById(@PathVariable int userId) {
 		UserLoginEntity user = userService.getUserById(userId);

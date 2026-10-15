@@ -23,18 +23,16 @@ import com.webelement.taskapp.service.UserAccessLogService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class LogoutController {
-	
+
 	private final JwtUtil jwtUtil;
 	private final TokenBlacklistService tokenBlacklistService;
 	private final JwtService jwtService;
 	private final UserAccessLogService accessLogService;
-
 
 	@PostMapping("/refreshtoken")
 	public ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {

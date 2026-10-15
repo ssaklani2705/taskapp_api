@@ -61,7 +61,7 @@ public class PermissionEntity {
 
 	@Column(name = "ts_moddate")
 	private Timestamp modDate;
-	
+
 	@Column(name = "s_exportexcel")
 	private String exportExcel;
 }

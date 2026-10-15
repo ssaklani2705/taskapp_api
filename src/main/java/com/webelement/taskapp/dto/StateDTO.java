@@ -15,8 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StateDTO {
-	
-	
+
 	public StateDTO(Integer stateId, String name, String code, Short status, Integer userId) {
 		super();
 		this.stateId = stateId;
@@ -35,9 +34,7 @@ public class StateDTO {
 	private LocalDateTime registrationDate;
 
 	private LocalDateTime modificationDate;
-	
-	 private List<TransactionEntity> transactionHistory;
-	 
-	
+
+	private List<TransactionEntity> transactionHistory;
 
 }

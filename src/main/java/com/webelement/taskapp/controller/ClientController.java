@@ -32,15 +32,14 @@ import com.webelement.taskapp.repo.ClientRepository;
 
 import com.webelement.taskapp.service.ClientService;
 
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins =  "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 @RequiredArgsConstructor
 public class ClientController {
-	
+
 	private final ClientService clientService;
 	private final ClientRepository clientRepository;
 
@@ -50,6 +49,7 @@ public class ClientController {
 		ApiResponse<ClientEntity> response = clientService.addOrUpdateClient(client, httpRequest);
 		return ResponseEntity.ok(response);
 	}
+
 	@GetMapping("/clientDetails/{clientId}")
 	public ResponseEntity<?> getClientDetailsById(@PathVariable int clientId) {
 		ClientDTO client = clientService.getClientDetailsById(clientId);
@@ -59,6 +59,7 @@ public class ClientController {
 			return ResponseEntity.notFound().build();
 		}
 	}
+
 	@GetMapping("getClient/{clientId}")
 	public ApiResponse<ClientEntity> getCClientById(@PathVariable Integer clientId) {
 		Optional<ClientEntity> company = clientRepository.findById(clientId);
@@ -68,40 +69,44 @@ public class ClientController {
 			return new ApiResponse<>(false, "Client not found", null);
 		}
 	}
+
 	private static final Map<String, String> CLIENT_SORT_MAP = Map.of("name", "c.name", "code", "c.code", "status",
 			"c.status", "managerName", "u.firstName", "stateName", "s.name", "contactName", "c.contactName",
 			"contactEmail", "c.contactEmail", "city", "c.city", "regdate", "c.regdate");
+
 	@GetMapping("/getClientDetails")
-    public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
-            @RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
-            @RequestParam(defaultValue = "0") Integer stateId, @RequestParam(required = false) Short gstFlag,
-            @RequestParam(required = false) Short taxFlag, @RequestParam(defaultValue = "0") Integer planId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fromDate,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate toDate,
-            @RequestParam(required = false) String clientName, @RequestParam(required = false) String clientCode,
-            @RequestParam(required = false) String contactName, @RequestParam(required = false) String contactEmail,
-            @RequestParam(required = false) String search, @RequestParam(defaultValue = "name") String sortColumn,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
-        String sortBy = CLIENT_SORT_MAP.getOrDefault(sortColumn, "c.name");
-        Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
-        sortBy = sortBy.replace("c.", "").replace("u.", "").replace("s.", "");
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<ClientDTO> clientPage = clientService.findClientDetails(pageable, status, managerId, stateId, gstFlag,
-                taxFlag, planId, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", clientPage.getContent());
-        response.put("totalElements", clientPage.getTotalElements());
-        response.put("totalPages", clientPage.getTotalPages());
-        response.put("currentPage", clientPage.getNumber());
-        response.put("pageSize", clientPage.getSize());
-        return response;
-    }
+	public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
+			@RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
+			@RequestParam(defaultValue = "0") Integer stateId, @RequestParam(required = false) Short gstFlag,
+			@RequestParam(required = false) Short taxFlag, @RequestParam(defaultValue = "0") Integer planId,
+			@RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate fromDate,
+			@RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate toDate,
+			@RequestParam(required = false) String clientName, @RequestParam(required = false) String clientCode,
+			@RequestParam(required = false) String contactName, @RequestParam(required = false) String contactEmail,
+			@RequestParam(required = false) String search, @RequestParam(defaultValue = "name") String sortColumn,
+			@RequestParam(defaultValue = "asc") String sortDirection) {
+		String sortBy = CLIENT_SORT_MAP.getOrDefault(sortColumn, "c.name");
+		Sort.Direction direction = sortDirection.trim().equalsIgnoreCase("desc") ? Sort.Direction.DESC
+				: Sort.Direction.ASC;
+		sortBy = sortBy.replace("c.", "").replace("u.", "").replace("s.", "");
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		Page<ClientDTO> clientPage = clientService.findClientDetails(pageable, status, managerId, stateId, gstFlag,
+				taxFlag, planId, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", clientPage.getContent());
+		response.put("totalElements", clientPage.getTotalElements());
+		response.put("totalPages", clientPage.getTotalPages());
+		response.put("currentPage", clientPage.getNumber());
+		response.put("pageSize", clientPage.getSize());
+		return response;
+	}
+
 	@PostMapping("/deleteClient")
 	public ResponseEntity<ResponseApi<String>> deleteClient(@RequestParam int clientId, @RequestParam int userId,
 			HttpServletRequest httpRequest) throws Exception {
 		return clientService.deleteClient(clientId, userId, httpRequest);
 	}
+
 	@PostMapping("/uploadClientsExcel")
 	public ResponseEntity<ApiResponse<List<ClientEntity>>> uploadClientsExcel(@RequestParam("file") MultipartFile file,
 			@RequestParam("userId") Integer userId, HttpServletRequest request) {
@@ -122,18 +127,20 @@ public class ClientController {
 					e.getMessage() != null ? e.getMessage() : "Failed to upload Excel file", null));
 		}
 	}
+
 	@PutMapping("/client/{clientId}/manager")
 	public ResponseEntity<ApiResponse<String>> changeClientManager(@PathVariable Integer clientId,
 			@RequestBody Map<String, Integer> request, HttpServletRequest httpRequest) {
 		Integer managerId = request.get("managerId");
 		Integer userId = request.get("userId");
-		clientService.changeClientManager(clientId, managerId,userId, httpRequest);
+		clientService.changeClientManager(clientId, managerId, userId, httpRequest);
 		return ResponseEntity.ok(new ApiResponse<>(true, "Manager changed successfully", null));
 	}
+
 	@PostMapping("/updateClientOutstanding")
-    public ResponseEntity<ApiResponse<ClientEntity>> updateClientOutstanding(@RequestBody ClientDTO dto,
-            @RequestParam("managerId") Integer managerId, HttpServletRequest httpRequest) {
-        ApiResponse<ClientEntity> response = clientService.updateClientOutstanding(dto, managerId, httpRequest);
-        return ResponseEntity.ok(response);
-    }
+	public ResponseEntity<ApiResponse<ClientEntity>> updateClientOutstanding(@RequestBody ClientDTO dto,
+			@RequestParam("managerId") Integer managerId, HttpServletRequest httpRequest) {
+		ApiResponse<ClientEntity> response = clientService.updateClientOutstanding(dto, managerId, httpRequest);
+		return ResponseEntity.ok(response);
+	}
 }
