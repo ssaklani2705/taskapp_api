@@ -33,15 +33,14 @@ public class DashboardService {
 	private static final short IN_PROGRESS = 2;
 	private static final short DONE = 5;
 	
-	
-	private static final short ST_UNASSIGNED         = 0;  // also null
-	private static final short ST_ASSIGNED           = 1;  // TODO: confirm
-	private static final short ST_ASSIGNEE_CLOSURE   = 2;  // TODO: confirm
-	private static final short ST_REOPEN             = 3;  // TODO: confirm
-	private static final short ST_ASSIGNEE_RECLOSURE = 4;  // TODO: confirm
-	private static final short ST_ASSIGNOR_CLOSURE   = 5;  // TODO: confirm
-	
+	private static final short ST_UNASSIGNED         = 0;  
+	private static final short ST_ASSIGNED           = 1;  
+	private static final short ST_ASSIGNEE_CLOSURE   = 2;  
+	private static final short ST_REOPEN             = 3;  
+	private static final short ST_ASSIGNEE_RECLOSURE = 4;  
+	private static final short ST_ASSIGNOR_CLOSURE   = 5;  
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	
 	@Autowired
 	private TaskRepository taskRepository;
 	
