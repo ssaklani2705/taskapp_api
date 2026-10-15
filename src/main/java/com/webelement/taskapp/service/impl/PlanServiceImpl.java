@@ -5,8 +5,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.webelement.taskapp.common.CommonFunction;
@@ -17,6 +15,7 @@ import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.service.PlanService;
 import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -25,49 +24,35 @@ public class PlanServiceImpl implements PlanService {
 	private final PlanRepo planRepo;
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
-
+	
 	@Override
 	public ApiResponse<PlanDTO> addOrUpdate(PlanDTO request) {
 		LocalDateTime now = LocalDateTime.now();
-
 		String name = request.getName() != null ? request.getName().trim() : "";
-
 		boolean isNew = request.getPlanId() == null || request.getPlanId() == 0;
-
 		if (isNew) {
-
 			if (planRepo.existsByNameIgnoreCaseAndStatusNot(name, (short) 3)) {
 				return new ApiResponse<>(false, "A plan with this name already exists", null);
 			}
-
 		} else {
-
 			List<PlanEntity> duplicates = planRepo.findByNameIgnoreCase(name);
-
 			boolean exists = duplicates.stream().anyMatch(
 					duplicate -> !duplicate.getPlanId().equals(request.getPlanId()) && duplicate.getStatus() != 3);
-
 			if (exists) {
 				return new ApiResponse<>(false, "A plan with this name already exists", null);
 			}
 		}
 
-		// Build entity (new or updated)
 		PlanEntity entity;
-
 		if (!isNew) {
-
 			entity = planRepo.findById(request.getPlanId())
 					.orElseThrow(() -> new RuntimeException("Plan record not found"));
-
 			entity.setName(name);
 			entity.setRate(request.getRate());
 			entity.setDescription(request.getDescription());
 			entity.setStatus(request.getStatus());
 			entity.setModificationDate(now);
-
 		} else {
-
 			entity = new PlanEntity();
 			entity.setName(name);
 			entity.setRate(request.getRate());
@@ -75,9 +60,7 @@ public class PlanServiceImpl implements PlanService {
 			entity.setStatus(request.getStatus() != null ? request.getStatus() : (short) 1);
 			entity.setRegistrationDate(now);
 		}
-
 		PlanEntity saved = planRepo.save(entity);
-
 		String action = isNew ? "Plan Added" : "Plan Updated";
 		commonFunction.createHistoryAccess(request.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 9, saved.getPlanId(), -1);
@@ -86,9 +69,7 @@ public class PlanServiceImpl implements PlanService {
 
 	@Override
 	public ApiResponse<PlanDTO> delete(PlanDTO request) {
-		
 		Integer planId = request.getPlanId();
-		
 		Integer PlainExitsInClient = planRepo.existsByPlanId(planId);
 		if (PlainExitsInClient != null && PlainExitsInClient > 0) {
 			return new ApiResponse<>(false,"Plan is assigned to one or more client and cannot be deleted", null);
@@ -125,9 +106,7 @@ public class PlanServiceImpl implements PlanService {
 	public Page<PlanDTO> findPlanList(int page, int size, int statusIndex, String search) {
 		return planRepo.findPlanDetails(PageRequest.of(page, size), statusIndex, search);
 	}
-
 	public List<PlanEntity> getPlan() {
         return planRepo.findByStatus((short) 1);
     }
-
 }

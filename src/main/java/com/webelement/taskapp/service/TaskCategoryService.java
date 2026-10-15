@@ -228,15 +228,8 @@ public class TaskCategoryService {
 				.collect(Collectors.toList());
 	}
 
-//	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId,String isAdmin,String loginType) {
-//		List<TaskCategoryEntity> list = taskCategoryRepository.findByStatus(1);
-//		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName()))
-//		.collect(Collectors.toList());
-//	}
-
-	
-	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId, String isAdmin,
-			String loginType, String isHod) {
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId, String isAdmin, String loginType,
+			String isHod) {
 
 		// All active categories, with department already joined
 		List<TaskCategoryDTO> list = taskCategoryRepository.findByStatusWithDepartment(1);
@@ -253,21 +246,16 @@ public class TaskCategoryService {
 			return Collections.emptyList();
 		}
 
-		Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(","))
-				.map(String::trim)
-				.filter(value -> !value.isEmpty())
-				.map(value -> {
+		Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(",")).map(String::trim)
+				.filter(value -> !value.isEmpty()).map(value -> {
 					try {
 						return Integer.valueOf(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
-				})
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet());
+				}).filter(Objects::nonNull).collect(Collectors.toSet());
 
-		return list.stream()
-				.filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
+		return list.stream().filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
 				.collect(Collectors.toList());
 	}
 
@@ -289,21 +277,16 @@ public class TaskCategoryService {
 			return Collections.emptyList();
 		}
 
-		Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(","))
-				.map(String::trim)
-				.filter(value -> !value.isEmpty())
-				.map(value -> {
+		Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(",")).map(String::trim)
+				.filter(value -> !value.isEmpty()).map(value -> {
 					try {
 						return Integer.valueOf(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
-				})
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet());
+				}).filter(Objects::nonNull).collect(Collectors.toSet());
 
-		return list.stream()
-				.filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
+		return list.stream().filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
 				.collect(Collectors.toList());
 	}
 
@@ -317,21 +300,21 @@ public class TaskCategoryService {
 		}
 		return taskCategoryRepository.findCategoriesByDepartmentIds(departmentIds);
 	}
-	
+
 	public boolean isEmployeeAvailableForTaskCategory(Integer taskCategoryId) {
-        if (taskCategoryId == null) {
-            return false;
-        }
-        long count = userLoginRepository.countEmployeesByTaskCategoryId(taskCategoryId);
-        return count > 0;
-    }
-	
-    public boolean isEmployeeAvailableForTaskCategoryForTask(Integer taskCategoryId) {
-        if (taskCategoryId == null) {
-            return false;
-        }
-        long count = userLoginRepository.countEmployeesByTaskCategoryIdForTask(taskCategoryId);
-        return count > 0;
-    }
+		if (taskCategoryId == null) {
+			return false;
+		}
+		long count = userLoginRepository.countEmployeesByTaskCategoryId(taskCategoryId);
+		return count > 0;
+	}
+
+	public boolean isEmployeeAvailableForTaskCategoryForTask(Integer taskCategoryId) {
+		if (taskCategoryId == null) {
+			return false;
+		}
+		long count = userLoginRepository.countEmployeesByTaskCategoryIdForTask(taskCategoryId);
+		return count > 0;
+	}
 
 }

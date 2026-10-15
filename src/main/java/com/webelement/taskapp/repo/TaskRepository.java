@@ -1,15 +1,12 @@
 package com.webelement.taskapp.repo;
 
 import org.springframework.data.domain.Pageable;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -18,8 +15,6 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import com.webelement.taskapp.dto.AssigneeWorkloadDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.entity.TaskEntity;
@@ -130,9 +125,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     @Query("UPDATE TaskEntity t SET t.status = :status WHERE t.taskId = :taskId")
     int deleteTask(@Param("status") Short status, @Param("taskId") int taskId);
 
-    
-    
-
     List<TaskEntity> findByAssignedTo(Integer assignedTo);
 
     @Query("SELECT tc.duedatetime FROM TaskCategoryEntity tc WHERE tc.taskcategoryId = :taskCategoryId")
@@ -141,20 +133,15 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     @EntityGraph(attributePaths = { "client", "taskCategory", "assignedUser", "assignedByUser" })
     @Query("SELECT t " + "FROM TaskEntity t "
             + "WHERE t.status = 1 AND (:selectedClientId = 0 OR t.clientId = :selectedClientId) " + "AND ("
-
             // ADMIN LOGIN
             + "    :isAdmin = 'Y' "
-
             + "    OR "
-
             // HOD: all tasks of own task categories
             + "    (" + "        :isHod = 'Y' " + "        AND EXISTS (" + "            SELECT 1 "
             + "            FROM UserLoginEntity h " + "            WHERE h.userId = :userId "
             + "            AND CONCAT(',', REPLACE(h.taskcategoryIds, ' ', ''), ',') "
             + "                LIKE CONCAT('%,', t.taskCategoryId, ',%') " + "        )" + "    )"
-
             + "    OR "
-
             // NON-MANAGER LOGIN
             + "    ("
             + "        :loginType <> 'manager' "
@@ -186,8 +173,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             @Param("selectedClientId") Integer selectedClientId,
             @Param("isHod") String isHod);
     
-
-    // NEW
     @Query("SELECT COUNT(t) " + "FROM TaskEntity t " + "JOIN t.client c " + "WHERE t.status = 1 "
             + "AND (:clientId = 0 OR t.clientId = :clientId) " + "AND (" + "    t.assignedTo = :userId "
             + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId " + "    OR c.userId = :userId" + ")")
@@ -226,7 +211,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
         int countOfAssigneeClosureTask(
                 @Param("clientId") Integer clientId,
                 @Param("userId") Integer userId);
-
 
         @Query("SELECT COUNT(t) " +
                "FROM TaskEntity t " +
@@ -267,42 +251,14 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
                 + "    OR t.addedBy = :userId " + "    OR c.managerId = :userId " + "    OR c.userId = :userId" + ")")
         int countOfUnassignedTask(@Param("clientId") Integer clientId, @Param("userId") Integer userId);
 
-
-        
-    // For CREATE: any task with same title for this client
     boolean existsByTitleIgnoreCaseAndClientId(String title, Integer clientId);
 
-    // For UPDATE: same title for this client, but a different taskId
     boolean existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(String title, Integer clientId, Integer taskId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM TaskEntity t WHERE t.taskId = :taskId")
     Optional<TaskEntity> findByIdForUpdate(@Param("taskId") Integer taskId);
 
-    
-//    @Query(value = "SELECT i_assignedto, SUM(TIMESTAMPDIFF(HOUR, d_date, d_enddate)) AS hours FROM t_task "
-//            + "WHERE i_assignedto IN (SELECT i_userid FROM t_userlogin "
-//            + "     WHERE FIND_IN_SET(:taskCatId, s_taskcategoryIds) AND i_status = 1 "
-//            + "     AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek)) "
-//            + "AND ((:startDateTime >= d_date AND :startDateTime <= d_enddate) "
-//            + "     OR DATE_FORMAT(d_date, '%Y-%m-%d') = :startDate) "
-////            + "AND i_assignedto IN (SELECT i_userid FROM t_attendance "
-////            + "     WHERE DATE_FORMAT(ts_intime, '%Y-%m-%d') = :startDate) "
-//            + "AND i_taskcategoryid = :taskCatId AND i_taskstatus IN (1,3) "
-//            + "GROUP BY i_assignedto ORDER BY hours", nativeQuery = true)
-//    List<Object[]> findWorkloadByCategory(@Param("taskCatId") int taskCatId,
-//                                          @Param("dayOfWeek") int dayOfWeek,
-//                                          @Param("startDateTime") LocalDateTime startDateTime,
-//                                          @Param("startDate") String startDate);
-//    
-//    // Fallback: random eligible user
-//    @Query(value = "SELECT i_userid FROM t_userlogin WHERE i_status = 1 "
-//            + "AND FIND_IN_SET(:taskCatId, s_taskcategoryIds) "
-//            + "AND (i_weekly_off IS NULL OR i_weekly_off != :dayOfWeek) "
-//            + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
-//    Optional<Integer> findRandomEligibleUser(@Param("taskCatId") int taskCatId,
-//                                             @Param("dayOfWeek") int dayOfWeek);
-    
     @Query(value = "SELECT u.i_userid, COALESCE(SUM(TIMESTAMPDIFF(HOUR, t.d_date, t.d_enddate)), 0) AS hours "
             + "FROM t_userlogin u "
             + "LEFT JOIN t_task t ON t.i_assignedto = u.i_userid "
@@ -321,7 +277,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
                                           @Param("startDateTime") LocalDateTime startDateTime,
                                           @Param("startDate") String startDate);
 
-    // Fallback: random eligible user
     @Query(value = "SELECT i_userid FROM t_userlogin WHERE i_status = 1 "
             + "AND s_ishod = 'N' "
             + "AND FIND_IN_SET(:taskCatId, s_taskcategoryIds) "
@@ -329,7 +284,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
             + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
     Optional<Integer> findRandomEligibleUser(@Param("taskCatId") int taskCatId,
                                              @Param("dayOfWeek") int dayOfWeek);
-    
     
     @Query("SELECT new com.webelement.taskapp.dto.TaskEditDTO(" + "t.taskId, " + "t.assignedTo, "
             + "COALESCE(NULLIF(u.firstName,''),'-'), " + "COALESCE(NULLIF(t.title,''),'-'), " + "t.taskStatus, "

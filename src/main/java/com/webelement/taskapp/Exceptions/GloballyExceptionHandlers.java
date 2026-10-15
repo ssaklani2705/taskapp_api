@@ -3,12 +3,8 @@ package com.webelement.taskapp.Exceptions;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.webelement.taskapp.common.ResponseApi;
-
-import java.lang.System.Logger;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

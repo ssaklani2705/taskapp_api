@@ -1,8 +1,6 @@
 package com.webelement.taskapp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,6 @@ public class TaskappApiApplication {
 	
 	static String countOccuranceString(final byte[] byteArray) {
 		Map<Byte,Integer> cacheMemory = new HashMap<>();
-		Integer cnt =0;
 		for(int i=0;i<byteArray.length;i++) {
 			cacheMemory.merge(byteArray[i], 1, Integer::sum);
 		}
@@ -40,22 +37,9 @@ public class TaskappApiApplication {
 		return sb.toString().trim();
 	}
 	public static void main(String[] args) {
-		String[] email = {"qqqq", "apap", "dddd"};
 
-//		byte[] bt = email.getBytes();
-//		
-//		byte[] makeChar = {64,65,66,67,68,69,70,71,72,73,74,75,76,88};
-//		char[] convert = new char[makeChar.length];
-//		
-//		for(int i=0;i<makeChar.length;i++) {
-//			convert[i] = (char) (makeChar[i] & 0xFF);
-//		}
-//		
-//		String mkString = new String(convert);	
 		SpringApplication.run(TaskappApiApplication.class, args);
-		int[] sumTar = {0,0,0,1, 0,0,0,0, 2, 3,0,0,0,0, 4, 6, 8, 10};
-		//System.err.println(moveZero(sumTar));
-		//System.err.println(countOccuranceString(email.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+		
 	}
 	
 	static List<Integer> twoSum(int[] arr,int target) {

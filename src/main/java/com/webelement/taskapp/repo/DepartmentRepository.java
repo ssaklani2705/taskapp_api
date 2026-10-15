@@ -21,12 +21,6 @@ import com.webelement.taskapp.entity.DepartmentEntity;
 public interface DepartmentRepository
 		extends JpaRepository<DepartmentEntity, Integer> {
 	
-	
-
-	// =========================================================
-	// SOFT DELETE
-	// =========================================================
-
 	@Transactional
 	@Modifying
 	@Query("UPDATE DepartmentEntity d "
@@ -36,10 +30,6 @@ public interface DepartmentRepository
 	int softDelete(
 			@Param("status") Integer status,
 			@Param("departmentId") Integer departmentId);
-
-	// =========================================================
-	// PAGINATION + SEARCH
-	// =========================================================
 
 	@Query("SELECT new com.webelement.taskapp.dto.DepartmentDTO("
 			+ "d.departmentId, "
@@ -60,15 +50,7 @@ public interface DepartmentRepository
 			@Param("statusIndex") int statusIndex,
 			@Param("search") String search);
 
-	// =========================================================
-	// ACTIVE DEPARTMENTS
-	// =========================================================
-
 	List<DepartmentEntity> findByStatus(Integer status);
-
-	// =========================================================
-	// NAME VALIDATION
-	// =========================================================
 
 	boolean existsByNameIgnoreCase(String name);
 
@@ -86,8 +68,6 @@ public interface DepartmentRepository
 	            Integer status);
 	DepartmentEntity findBySequence(
             Integer sequence);
-	
-//	boolean existsByNameIgnoreCaseAndStatusNot(String name, Integer status);
 
 	boolean existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(
 	        String name,

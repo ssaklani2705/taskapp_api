@@ -12,7 +12,6 @@ public class TokenBlacklistService {
 	public void blacklistToken(String jti) {
 		blacklist.add(jti);
 	}
-
 	public boolean isBlacklisted(String jti) {
 		return blacklist.contains(jti);
 	}

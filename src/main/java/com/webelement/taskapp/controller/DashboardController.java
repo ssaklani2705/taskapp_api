@@ -139,11 +139,7 @@ public class DashboardController {
 	@GetMapping("/countOfAssigneeReClosureTask")
 	public ResponseEntity<Map<String, Object>> countOfAssigneeReClosureTask(@RequestParam Integer clientId,
 			@RequestParam("userId") Integer userId) {
-
 		Map<String, Object> map = new HashMap<>();
-
-		int count = dashboardService.countOfAssigneeReClosureTask(clientId, userId);
-
         return ResponseEntity.ok(map);
     }
     

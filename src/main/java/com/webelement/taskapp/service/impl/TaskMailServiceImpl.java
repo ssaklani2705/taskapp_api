@@ -1,12 +1,7 @@
 package com.webelement.taskapp.service.impl;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -18,21 +13,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.dto.TaskMailDTO;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.SmtpEntity;
-import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
-import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.MailService;
-import com.webelement.taskapp.repo.TaskCategoryRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TaskMailServiceImpl implements TaskMailService {
 
-	private final TaskCategoryRepository TaskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
 	private final ClientRepository clientRepository;
 	private final MailService mailService;
@@ -57,10 +47,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String filePath = commonFunction.createFolder(file_maillog);
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
 		Set<Integer> userIds = new HashSet<>();
-
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
-
 		if (client != null) {
 			Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
 		}
@@ -71,10 +59,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
 		Set<String> toSet = new LinkedHashSet<>();
 		Set<String> ccSet = new LinkedHashSet<>();
-
-//		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus);
 		boolean isClose = "Assignor Closure".equalsIgnoreCase(newStatus) || "Re-Open".equalsIgnoreCase(newStatus);
-
 		String assignedBy = "";
 		String submittedOn = "";
 		String reopenedOn = "";
@@ -89,37 +74,28 @@ public class TaskMailServiceImpl implements TaskMailService {
 			recipientName = commonFunction.getFirstName(assignedUser);
 			assignedBy = commonFunction.getFirstName(addedByUser);
 			submittedOn = commonFunction.formatNow();
-
 			if ("Re-Open".equalsIgnoreCase(newStatus)) {
 				reopenedBy = commonFunction.getFirstName(addedByUser);
 				reopenedOn = commonFunction.formatNow();
 			}
-
 		} else {
-
 			commonFunction.addEmail(toSet, addedByUser); // addBy user
 			commonFunction.addEmail(ccSet, assignedUser); // assignee user
 			commonFunction.addEmail(ccSet, societyManager);
 			assignedBy = recipientName = commonFunction.getFirstName(addedByUser);
-
-//			assignedBy = addedByUser != null ? addedByUser.getFirstName() : "";
-
 			reClosedBy = closedBy = commonFunction.getFirstName(assignedUser);
 			submittedOn = commonFunction.formatNow();
 		}
-
 		ccSet.removeAll(toSet);
 		if (toSet.isEmpty()) {
 			logger.warn("No recipient found for task {}", task.getTaskId());
 			return;
 		}
-//		String recipientName = assignedUser != null ? assignedUser.getFirstName() : "";
 		TaskMailDTO taskMailDTO = TaskMailDTO.builder().name(recipientName).taskName(task.getTitle())
 				.clientName(client.getName()).assignedBy(assignedBy).previousStatus(oldStatus).currentStatus(newStatus)
 				.reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
 				.priority(commonFunction.getPriorityName(task.getPriority())).reClosedBy(reClosedBy)
 				.dueDate(task.getEndDate()).closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
-
 		String mailBody = commonFunction.getTaskStatusMailTemplate(taskMailDTO);
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
@@ -163,12 +139,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 			return;
 		}
 		String recipientName = commonFunction.getFirstName(newAssignee);
-
 		String mailBody = commonFunction.getTaskReAssignedMailTemplate(recipientName, task.getTitle(),
 				commonFunction.getFirstName(assignor), client != null ? client.getName() : "",
 				commonFunction.getPriorityName(task.getPriority()), commonFunction.formatDate(task.getDate()),
 				commonFunction.formatDate(task.getEndDate()), task.getCloseRemarks());
-
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
@@ -185,7 +159,6 @@ public class TaskMailServiceImpl implements TaskMailService {
 	@Override
 	public void sendTaskAssignedMail(TaskEntity task) throws Exception {
 		String filePath = commonFunction.createFolder(file_maillog);
-
 		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
@@ -209,12 +182,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 		commonFunction.addEmail(ccSet, societyManager);
 		ccSet.removeAll(toSet);
 		String recipientName = commonFunction.getFirstName(assignedUser);
-
 		String mailBody = commonFunction.getTaskAssignedMailTemplate(recipientName, task.getTitle(),
 				commonFunction.getFirstName(addedByUser), client != null ? client.getName() : "",
 				commonFunction.getPriorityName(task.getPriority()), commonFunction.formatDate(task.getDate()),
 				commonFunction.formatDate(task.getEndDate()), task.getDescription());
-
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		String subject = "Task App :: New Task Assigned";

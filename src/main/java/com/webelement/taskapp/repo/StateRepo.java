@@ -1,9 +1,7 @@
 package com.webelement.taskapp.repo;
 
 import java.util.List;
-
 import javax.transaction.Transactional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,15 +9,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.webelement.taskapp.dto.DesignationDTO;
 import com.webelement.taskapp.dto.StateDTO;
 import com.webelement.taskapp.entity.StateEntity;
+
 @Repository
 public interface StateRepo extends JpaRepository<StateEntity, Integer>{
 
 	StateEntity save(StateDTO state);
-	
 	
     boolean existsByNameIgnoreCaseAndStatusNot(
             String name,
@@ -54,7 +50,6 @@ public interface StateRepo extends JpaRepository<StateEntity, Integer>{
     	        @Param("statusIndex") int statusIndex,
     	        @Param("search") String search);
     
-    
     @Modifying
     @Transactional
     @Query("UPDATE StateEntity s SET s.status = 3, s.modificationDate = CURRENT_TIMESTAMP WHERE s.stateId = :stateId")
@@ -62,11 +57,8 @@ public interface StateRepo extends JpaRepository<StateEntity, Integer>{
     
     List<StateEntity> findByStatus(Short status);
 
-
 	boolean existsByCodeIgnoreCaseAndStatusNot(String code, short s);
 
-
 	List<StateEntity> findByCodeIgnoreCase(String code);
-
 
 }

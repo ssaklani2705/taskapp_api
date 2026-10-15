@@ -1,15 +1,13 @@
 package com.webelement.taskapp.service;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
@@ -33,7 +31,6 @@ import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
-
 @Service
 public class AuthService {
 
@@ -41,22 +38,16 @@ public class AuthService {
 	private CommonFunction commonFunction;
 	@Autowired
 	UserLoginRepository userLoginRepository;
-
 	@Autowired
 	private MailLogRepo logRepo;
-
 	@Autowired
 	private SmtpRepo smtpRepo;
-
 	@Autowired
 	private UserAccessLogService accessLogService;
-
 	@Autowired
 	private MyUserDetailsService detailsService;
-
 	@Autowired
 	private JwtUtil jwtUtil;
-
 	@Value("${file_maillog:}")
 	private String file_maillog;
 	@Value("${paths:}")
@@ -72,12 +63,10 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseApi<>(false, "Invalid captcha code.", null));
 		}
-
 		String loginId = request.getUsername() != null ? request.getUsername().trim().toLowerCase() : "";
 		String password = request.getPassword() != null ? request.getPassword() : "";
 		String iplocal = commonFunction.getLocalIp();
 		String logintype = request.getLogintype();
-
 		UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
 		String permission = "N";
 		if (info != null) {
@@ -98,21 +87,17 @@ public class AuthService {
 					List<ModulePermissionDTO> modules = getModuleListByName(userId, b);
 					UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(),
 							httpRequest);
-					
+
 					List<Integer> categoryIds = new ArrayList<>();
 
-					if (info.getTaskcategoryIds() != null
-					        && !info.getTaskcategoryIds().trim().isEmpty()) {
+					if (info.getTaskcategoryIds() != null && !info.getTaskcategoryIds().trim().isEmpty()) {
 
-					    categoryIds = Arrays.stream(info.getTaskcategoryIds().split(","))
-					            .map(String::trim)
-					            .filter(s -> !s.isEmpty())
-					            .map(Integer::parseInt)
-					            .collect(Collectors.toList());
+						categoryIds = Arrays.stream(info.getTaskcategoryIds().split(",")).map(String::trim)
+								.filter(s -> !s.isEmpty()).map(Integer::parseInt).collect(Collectors.toList());
 					}
-					
 					LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-							accessLogEntity.getLogId(), permission,info.getDesignationName(), modules,info.getIsHod(),info.getEmail(),categoryIds);
+							accessLogEntity.getLogId(), permission, info.getDesignationName(), modules, info.getIsHod(),
+							info.getEmail(), categoryIds);
 					session.removeAttribute("captcha");
 					return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
 				} else {
@@ -142,28 +127,22 @@ public class AuthService {
 			default:
 				message = "Invalid username or password.";
 			}
-
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseApi<>(false, message, null));
-
 		}
-
 	}
 
 	public int getLoginIdMatch(String userName, String password) throws Exception {
 		int cc = 0;
 		List<Map<String, Object>> result = userLoginRepository.findLoginByEmail(userName);
-
 		if (result.isEmpty()) {
 			cc = 4;
 		} else {
 			for (Map<String, Object> row : result) {
 				String e = row.get("s_email") != null ? row.get("s_email").toString() : "";
 				String p = row.get("s_password") != null ? row.get("s_password").toString() : "";
-
 				if (!p.isEmpty()) {
 					p = commonFunction.decipher(p); // You must implement this method
 				}
-
 				if (!e.equals(userName) && !p.equals(password)) {
 					cc = 1;
 				} else if (!e.equals(userName)) {
@@ -173,7 +152,6 @@ public class AuthService {
 				}
 			}
 		}
-
 		return cc;
 	}
 
@@ -181,32 +159,26 @@ public class AuthService {
 		String newPassword = "";
 		try {
 			newPassword = commonFunction.cipher(escapeApostrophes(password));
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword, logintype);
-
 		UserInfo info = null;
 		if (!results.isEmpty()) {
 			Map<String, Object> row = results.get(0);
-
 			Integer userId = ((Number) row.get("i_userid")).intValue();
 			String firstName = (String) row.get("s_firstname");
 			String email = (String) row.get("s_email");
 			String mobileNo = (String) row.get("s_mobileno");
 			Integer i_status = ((Number) row.get("d_expirydate")).intValue();
 			String s_permission = (String) row.get("s_permission");
-			String designationName  = (String) row.get("designationName");
-			String isHod  = (String) row.get("isHod");
-			
+			String designationName = (String) row.get("designationName");
+			String isHod = (String) row.get("isHod");
 			// Get category IDs from database
-	        String taskcategoryIds = (String) row.get("taskcategoryIds");
-
-			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission,designationName,isHod);
+			String taskcategoryIds = (String) row.get("taskcategoryIds");
+			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission, designationName, isHod);
 			// Set category IDs
-	        info.setTaskcategoryIds(taskcategoryIds);
+			info.setTaskcategoryIds(taskcategoryIds);
 		}
 		return info;
 	}
@@ -221,7 +193,6 @@ public class AuthService {
 	public List<ModulePermissionDTO> getModuleListByName(int userId, boolean isFullList) {
 		List<Map<String, Object>> rows = userLoginRepository.getModuleListByName(userId);
 		List<ModulePermissionDTO> list = new ArrayList<>();
-
 		for (Map<String, Object> row : rows) {
 			ModulePermissionDTO dto = new ModulePermissionDTO(userId, getInt(row.get("i_moduleid")),
 					getString(row.get("s_name")), getInt(row.get("i_type")), getString(row.get("s_add")),
@@ -236,14 +207,11 @@ public class AuthService {
 				dto.setAdminApprovePer("Y");
 				dto.setViewPer("Y");
 				dto.setExportExcel("Y");
-
 				list.add(dto); // always include in full list
 			} else if (anyPermissionGranted(dto)) {
 				list.add(dto);
 			}
-
 		}
-
 		return list; // Return actual list
 	}
 
@@ -263,36 +231,20 @@ public class AuthService {
 	}
 
 	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId, HttpServletRequest httpRequest,
-			Boolean isManager,String loginType) throws Exception {
-
+			Boolean isManager, String loginType) throws Exception {
 		Optional<UserLoginEntity> userOpt;
-		System.err.println(emailId);
-		System.err.println(loginType);
-//		String loginType1 = commonFunction.decipher(loginType).trim();
-//		System.err.println(loginType1);
-//		if (Boolean.TRUE.equals(isManager)) {
-//			userOpt = userLoginRepository.findByEmailExcludeStatuses1(emailId);
-//		} else {
-//			userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
-//		}
-		
 		if (loginType.equals("manager")) {
 			userOpt = userLoginRepository.findByEmailExcludeStatuses1(emailId);
 		} else {
 			userOpt = userLoginRepository.findByEmailExcludeStatuses(emailId);
 		}
-
 		if (!userOpt.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, "Email not found", null));
 		}
-
 		UserLoginEntity user = userOpt.get();
 		Integer userId = user.getUserId();
-
 		String ip = commonFunction.resolveClientIp(httpRequest);
-
 		int ccv = sendUserCreationEmail(user, "", userId, ip, loginType);
-
 		if (ccv == 1) {
 			return ResponseEntity.ok(new ResponseApi<>(true, "Password reset link sent successfully.", null));
 		} else {
@@ -312,14 +264,14 @@ public class AuthService {
 					+ commonFunction.cipher(isManager);
 			String mailBody = commonFunction.getForgotMessageCreate(userRequest.getFirstName(), link, websitePath);
 			String filePath = commonFunction.createFolder(file_maillog);
-			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,"np-" + System.currentTimeMillis());
+			String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
+					"np-" + System.currentTimeMillis());
 			String[] to = { usernameN };
 			String cc[] = new String[0];
 			String bcc[] = new String[0];
 			String subject = "";
 			subject = "Society Task App :: Forgot Password";
 			SmtpEntity findLatestSmtpDetail = smtpRepo.findLatestSmtpDetails();
-
 			ccv = mailService.postMailAttach(to, cc, bcc, mailBody, subject, "", "", -1, "", findLatestSmtpDetail);
 			String iplocal = commonFunction.getLocalIp();
 			if (ccv > 0) {
@@ -329,7 +281,6 @@ public class AuthService {
 				updateForgotpasswordlink(userRequest.getEmail(), "", linksentdate);
 				createMailLog(2, userRequest.getFirstName(), usernameN, "", "", "", subject, filePath + "/" + fname, ip,
 						iplocal, 1);
-
 			} else {
 				createMailLog(2, userRequest.getFirstName(), usernameN, "", "", "", subject, filePath + "/" + fname, ip,
 						iplocal, 2);
@@ -360,7 +311,6 @@ public class AuthService {
 	@Transactional
 	public int updateForgotpasswordlink(String username, String password, String linksentdate) throws Exception {
 		Timestamp linkDateTs = linksentdate != null && !linksentdate.isEmpty() ? Timestamp.valueOf(linksentdate) : null;
-
 		return userLoginRepository.updateForgotPasswordLink(username, commonFunction.cipher(password), linkDateTs);
 	}
 
@@ -371,13 +321,9 @@ public class AuthService {
 		String decodedUserId = commonFunction.decipher(userId).trim();
 		String encodedPassword = commonFunction.cipher(password);
 		String isManger = null;
-
-		
-	    if (isManager != null && !isManager.trim().isEmpty()) {
-	        isManger = commonFunction.decipher(isManager);
-	    }
-
-	 
+		if (isManager != null && !isManager.trim().isEmpty()) {
+			isManger = commonFunction.decipher(isManager);
+		}
 		// Validate if userId is numeric before parsing
 		int result = 0;
 		try {
@@ -395,7 +341,8 @@ public class AuthService {
 				int count = userLoginRepository.updateForgotPassword(Integer.parseInt(decodedUserId), encodedPassword,
 						null);
 				if (count == 1) {
-					return ResponseEntity.ok(new ResponseApi<>(true, "Password has been created successfully.", isManger));
+					return ResponseEntity
+							.ok(new ResponseApi<>(true, "Password has been created successfully.", isManger));
 				} else {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 							.body(new ResponseApi<>(false, "Something went wrong while updating the password.", null));
@@ -413,7 +360,6 @@ public class AuthService {
 	}
 
 	public int checkURLValidity(String email, int userId) {
-		// Assuming repository returns Optional<Integer>
 		return userLoginRepository.checkURLValidity(email, userId).orElse(0);
 	}
 
