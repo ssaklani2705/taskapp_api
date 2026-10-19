@@ -1,13 +1,5 @@
 package com.webelement.taskapp.service;
 
-<<<<<<< HEAD
-import com.webelement.taskapp.dto.CaptchaDto;
-
-public interface CaptchaService {
-	public CaptchaDto generateCaptcha();
-
-	public boolean validateCaptcha(CaptchaDto request);
-=======
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -77,5 +69,5 @@ public class CaptchaService {
         ImageIO.write(img, "png", out);
         return "data:image/png;base64," + Base64.getEncoder().encodeToString(out.toByteArray());
     }
->>>>>>> 2091ee1a8941f1ad8e748fefa1285a546fb8b178
+
 }

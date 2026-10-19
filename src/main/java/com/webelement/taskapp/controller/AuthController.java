@@ -24,11 +24,7 @@ import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
 
 import com.webelement.taskapp.service.AuthService;
-<<<<<<< HEAD
-import com.webelement.taskapp.service.impl.CaptchaServiceImpl;
-=======
 import com.webelement.taskapp.service.CaptchaService;
->>>>>>> 2091ee1a8941f1ad8e748fefa1285a546fb8b178
 import com.webelement.taskapp.service.impl.ChangePasswordImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -41,38 +37,14 @@ public class AuthController {
 	private final AuthService authService;
 	private final CaptchaService captchaService;
 	private final ChangePasswordImpl changePasswordService;
-	private final CaptchaServiceImpl captchaService;
+	
 	private Boolean isManager = false;
 
-	@GetMapping("/generat_captcha")
-	public ResponseEntity<ResponseApi<CaptchaDto>> generateCaptcha() {
-		CaptchaDto captchaDto = captchaService.generateCaptcha();
-		ResponseApi<CaptchaDto> response = new ResponseApi<>(true, "CAPTCHA Generated Successfully", captchaDto);
-		return ResponseEntity.ok(response);
-	}
 
-<<<<<<< HEAD
-	@PostMapping("/validate_captcha")
-	public ResponseEntity<ResponseApi<String>> validateCaptcha(@RequestBody CaptchaDto request) {
- 
-		boolean isValid = captchaService.validateCaptcha(request);
-
-		ResponseApi<String> response = new ResponseApi<>(isValid, "CAPTCHA Verified Successfully", "VALID");
-
-		return ResponseEntity.ok(response);
-=======
-//	@GetMapping("/captcha")
-//	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
-//		int captcha = 100000 + secureRandom.nextInt(900000);
-//		session.setAttribute("captcha", String.valueOf(captcha));
-//		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
-//		return ResponseEntity.ok(response);
-//	}
-	
 	@GetMapping("/captcha")
 	public ResponseEntity<ResponseApi<Map<String, String>>> generateCaptcha() throws IOException {
 	    return ResponseEntity.ok(new ResponseApi<>(true, "CAPTCHA Generated", captchaService.create()));
->>>>>>> 2091ee1a8941f1ad8e748fefa1285a546fb8b178
+
 	}
 
 	@PostMapping("/login")
