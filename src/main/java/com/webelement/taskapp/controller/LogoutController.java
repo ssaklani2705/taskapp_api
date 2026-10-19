@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.RefreshTokenResponse;
+import com.webelement.taskapp.jwttoken.AppUser;
+import com.webelement.taskapp.jwttoken.CurrentUser;
 import com.webelement.taskapp.jwttoken.JwtUtil;
 import com.webelement.taskapp.service.JwtService;
-
+import com.webelement.taskapp.service.MyUserDetailsService;
 import com.webelement.taskapp.service.TokenBlacklistService;
 import com.webelement.taskapp.service.UserAccessLogService;
 
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,73 +36,61 @@ public class LogoutController {
 	private final TokenBlacklistService tokenBlacklistService;
 	private final JwtService jwtService;
 	private final UserAccessLogService accessLogService;
+	private final MyUserDetailsService detailsService;
 
 	@PostMapping("/refreshtoken")
 	public ApiResponse<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
-		try {
-			// 🔹 Extract old token from Authorization header
-			String oldToken = jwtService.extractTokenFromRequest(request);
-			if (oldToken == null) {
-				return new ApiResponse<>(false, "Authorization header missing", null);
-			}
+	    try {
+	        String oldToken = jwtService.extractTokenFromRequest(request);
+	        if (oldToken == null) {
+	            return new ApiResponse<>(false, "Authorization header missing", null);
+	        }
 
-			// 🔹 Validate old token
-			if (!jwtService.validateToken(oldToken)) {
-				return new ApiResponse<>(false, "Invalid or expired token", null);
-			}
+	        // Throws if the signature is bad or the token is expired
+	        Claims claims = jwtUtil.extractAllClaims(oldToken);
+	        String username = claims.getSubject();
 
-			// ✅ Allow refresh even if expired — only verify signature
-			if (!jwtService.isTokenSignatureValid(oldToken)) {
-				return new ApiResponse<>(false, "Invalid token signature", null);
-			}
+	        // Covers expiry and the logout blacklist
+	        if (!jwtUtil.validateToken(oldToken, username)) {
+	            return new ApiResponse<>(false, "Invalid or expired token", null);
+	        }
 
-			// 🔹 Extract username (subject)
-			String username = jwtService.extractUsername(oldToken);
+	        String loginType = claims.get("lt", String.class);
+	        if (loginType == null) {
+	            return new ApiResponse<>(false, "Please login again", null);   // pre-upgrade token
+	        }
 
-			// 🔹 Generate new JWT
-			String newToken = jwtUtil.generateAccessToken(username);
+	        // Fails if the user was deactivated, so refresh can't keep them alive
+	        AppUser user = detailsService.loadAppUser(username, loginType);
 
-			// 🔹 Return refreshed token
-			RefreshTokenResponse data = new RefreshTokenResponse(newToken);
-			return new ApiResponse<>(true, "Token refreshed successfully", data);
+	        String newToken = jwtUtil.generateAccessToken(username, user.getUserId(), loginType);
+	        return new ApiResponse<>(true, "Token refreshed successfully", new RefreshTokenResponse(newToken));
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ApiResponse<>(false, "Token refresh failed", null);
-		}
+	    } catch (Exception e) {
+	        return new ApiResponse<>(false, "Token refresh failed", null);
+	    }
 	}
 
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(@RequestHeader("Authorization") String token,
-			@RequestBody Map<String, String> body) {
-		String sessionIdStr = body.get("sessionId");
-		Integer sessionId = 0;
+	        @RequestBody Map<String, String> body) {
+	    Integer sessionId;
+	    try {
+	        sessionId = Integer.parseInt(body.get("sessionId"));
+	    } catch (NumberFormatException e) {
+	        return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Invalid sessionId"));
+	    }
+	    try {
+	        int userId = CurrentUser.get().getUserId();
+	        accessLogService.updateLogout(sessionId, userId);     // only this user's own session
 
-		try {
-			sessionId = Integer.parseInt(sessionIdStr);
-		} catch (NumberFormatException e) {
-			return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Invalid sessionId"));
-		}
+	        Claims claims = jwtUtil.extractAllClaims(token.substring(7));
+	        tokenBlacklistService.blacklistToken(claims.getId(), claims.getExpiration());
 
-		try {
-			// update logout in user access logs
-			accessLogService.updateLogout(sessionId);
-
-			// strip Bearer prefix
-			String jwt = token.substring(7);
-
-			// extract claims
-			String jti = jwtUtil.extractAllClaims(jwt).getId();
-
-			// blacklist token
-			tokenBlacklistService.blacklistToken(jti);
-
-			return ResponseEntity.ok(Collections.singletonMap("message", "Logged out successfully"));
-
-		} catch (Exception ex) {
-			// if token invalid or expired
-			return ResponseEntity.status(401).body(Collections.singletonMap("error", "Invalid token"));
-		}
+	        return ResponseEntity.ok(Collections.singletonMap("message", "Logged out successfully"));
+	    } catch (Exception ex) {
+	        return ResponseEntity.status(401).body(Collections.singletonMap("error", "Invalid token"));
+	    }
 	}
 
 }

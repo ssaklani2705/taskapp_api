@@ -54,6 +54,8 @@ import com.webelement.taskapp.repo.HolidayRepo;
 import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.TaskService;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -157,11 +159,21 @@ public class TaskServiceImpl implements TaskService {
 
 	@Transactional
 	@Override
-	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
+	public TaskEntity saveTask(Integer taskId,Integer userType, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception {
 		boolean isUpdate = taskId != null;
-		if (title != null) {
+//		if (title != null) {
+//			String trimmedTitle = title.trim();
+//			boolean isDuplicate = isUpdate
+//					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
+//					: taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
+//			if (isDuplicate) {
+//				throw new DuplicateTaskTitleException(
+//						"A task with the title '" + trimmedTitle + "' already exists for this client");
+//			}
+//		}
+		if (title != null && clientId != null) {
 			String trimmedTitle = title.trim();
 			boolean isDuplicate = isUpdate
 					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
@@ -191,6 +203,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setAssignedTo(assignedTo);
 		task.setPriority(priority);
 		task.setEndDate(endDate);
+		task.setUserType(userType);
 		if (isUpdate) {
 			if (status != null) {
 				task.setStatus(status);
@@ -222,13 +235,25 @@ public class TaskServiceImpl implements TaskService {
 		}
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+//		if (!isUpdate) {
+//			try {
+//				taskMailService.sendTaskAssignedMail(savedTask);
+//			} catch (Exception e) {
+//				logger.debug("{} ERROR FOUND ", e.getMessage());
+//				e.printStackTrace();
+//			}
+//		}
 		if (!isUpdate) {
-			try {
-				taskMailService.sendTaskAssignedMail(savedTask);
-			} catch (Exception e) {
-				logger.debug("{} ERROR FOUND ", e.getMessage());
-				e.printStackTrace();
-			}
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					try {
+						taskMailService.sendTaskAssignedMail(savedTask);
+					} catch (Exception e) {
+						logger.error("Task assigned mail failed for task {}", savedTask.getTaskId(), e);
+					}
+				}
+			});
 		}
 		return savedTask;
 	}

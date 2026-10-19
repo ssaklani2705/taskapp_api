@@ -54,6 +54,12 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 "
 			+ "ORDER BY d.name ASC, tc.name ASC")
 	List<TaskCategoryDTO> findAllActiveTaskCategories();
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+			+ "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
+			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 AND (tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
+			+ "ORDER BY d.name ASC, tc.name ASC")
+	List<TaskCategoryDTO> findAllActiveTaskCategoriesExcludingDepartments(@Param("departmentIds") List<Integer> departmentIds);
 
 	@Query("SELECT tc FROM TaskCategoryEntity tc " + "WHERE tc.status = 1 " + "AND EXISTS ("
 			+ "    SELECT 1 FROM UserLoginEntity ul " + "    WHERE ul.userId = ("

@@ -71,13 +71,15 @@ public class JwtUtil {
 
 	// ================== GENERATION ==================
 
-	public String generateAccessToken(String username) {
-		String jti = UUID.randomUUID().toString();
-		Date now = new Date();
-		Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
+	public String generateAccessToken(String username, int userId, String loginType) {
+	    String jti = UUID.randomUUID().toString();
+	    Date now = new Date();
+	    Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
 
-		return Jwts.builder().setId(jti).setSubject(username).setIssuedAt(now).setExpiration(expiryDate)
-				.signWith(SignatureAlgorithm.HS512, secretKey).compact();
+	    return Jwts.builder().setId(jti).setSubject(username)
+	            .claim("uid", userId).claim("lt", loginType)
+	            .setIssuedAt(now).setExpiration(expiryDate)
+	            .signWith(SignatureAlgorithm.HS512, secretKey).compact();
 	}
 
 	public String generateRefreshToken(String username) {

@@ -1,8 +1,6 @@
 package com.webelement.taskapp.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,12 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -118,5 +113,8 @@ public class TaskEntity {
 
 	@Column(name = "i_systemflag")
 	private Integer systemFlag;
+	
+	@Column(name = "i_usertype")
+	private Integer userType;   // 1 = Employee, 2 = Manager
 
 }

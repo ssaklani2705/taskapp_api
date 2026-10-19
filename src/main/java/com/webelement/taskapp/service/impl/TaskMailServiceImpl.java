@@ -45,7 +45,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 	@Override
 	public void sendTaskStatusMail(TaskEntity task, String oldStatus, String newStatus) throws Exception {
 		String filePath = commonFunction.createFolder(file_maillog);
-		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+//		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+		ClientEntity client = task.getClientId() != null
+				? clientRepository.findById(task.getClientId()).orElse(null)
+				: null;
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
@@ -91,8 +94,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 			logger.warn("No recipient found for task {}", task.getTaskId());
 			return;
 		}
+		String clientName = (client != null && client.getName() != null) ? client.getName() : "-";
+
 		TaskMailDTO taskMailDTO = TaskMailDTO.builder().name(recipientName).taskName(task.getTitle())
-				.clientName(client.getName()).assignedBy(assignedBy).previousStatus(oldStatus).currentStatus(newStatus)
+				.clientName(clientName).assignedBy(assignedBy).previousStatus(oldStatus).currentStatus(newStatus)
 				.reopenedOn(reopenedOn).reopendBy(reopenedBy).submittedOn(submittedOn)
 				.priority(commonFunction.getPriorityName(task.getPriority())).reClosedBy(reClosedBy)
 				.dueDate(task.getEndDate()).closedBy(closedBy).remark(task.getCloseRemarks()).url("").build();
@@ -159,7 +164,10 @@ public class TaskMailServiceImpl implements TaskMailService {
 	@Override
 	public void sendTaskAssignedMail(TaskEntity task) throws Exception {
 		String filePath = commonFunction.createFolder(file_maillog);
-		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+//		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+		ClientEntity client = task.getClientId() != null
+				? clientRepository.findById(task.getClientId()).orElse(null)
+				: null;
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
