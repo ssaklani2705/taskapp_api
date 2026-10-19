@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.webelement.taskapp.dto.ApiResponse;
@@ -22,6 +23,7 @@ public class TaskCategoryController {
 
 	private final TaskCategoryService taskCategoryService;
 
+	@PreAuthorize("@perm.has(5)")
 	@GetMapping("/getTaskCategoryDetails")
 	public Map<String, Object> findTaskCategoryDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam int statusIndex,
@@ -61,6 +63,7 @@ public class TaskCategoryController {
 		}
 	}
 
+	@PreAuthorize("@perm.has(5)")
 	@GetMapping("/{taskcategoryId}")
 	public ApiResponse<TaskCategoryDTO> getTaskCategoryById(@PathVariable Integer taskcategoryId) {
 		try {
@@ -70,6 +73,7 @@ public class TaskCategoryController {
 		}
 	}
 
+	@PreAuthorize("@perm.has(5, 'delete')")
 	@PostMapping("/deleteTaskCategory")
 	public ResponseEntity<ApiResponse<String>> deleteTaskCategory(@RequestBody TaskCategoryDTO dto,
 			HttpServletRequest httpRequest) {

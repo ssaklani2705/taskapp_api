@@ -17,7 +17,7 @@ public interface TaskService {
 
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO request) throws Exception;
 
-	public TaskEntity saveTask(Integer taskId, Integer clientId, LocalDateTime date, Integer taskCategoryId,
+	public TaskEntity saveTask(Integer taskId,Integer userType, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception;
 

@@ -113,5 +113,8 @@ public class TaskEntity {
 
 	@Column(name = "i_systemflag")
 	private Integer systemFlag;
+	
+	@Column(name = "i_usertype")
+	private Integer userType;   // 1 = Employee, 2 = Manager
 
 }

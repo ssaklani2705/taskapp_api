@@ -37,15 +37,21 @@ public class UserAccessLogService {
 		return accessLogRepo.save(log);
 	}
 
-	public void updateLogout(int sessionId) {
-		Optional<UserAccessLogEntity> optionalLog = accessLogRepo.findByLogId(sessionId);
+	public void updateLogout(int sessionId, int userId) {
+	    Optional<UserAccessLogEntity> optionalLog = accessLogRepo.findByLogId(sessionId);
 
-		if (optionalLog.isPresent()) {
-			UserAccessLogEntity log = optionalLog.get();
-			log.setLogoutTime(LocalDateTime.now());
-			log.setStatus(1); // mark session as logged out
-			accessLogRepo.save(log);
-		}
+	    if (optionalLog.isPresent()) {
+	        UserAccessLogEntity log = optionalLog.get();
+
+	        // Ignore sessions that belong to another user
+	        if (log.getUserId() == null || log.getUserId() != userId) {
+	            return;
+	        }
+
+	        log.setLogoutTime(LocalDateTime.now());
+	        log.setStatus(1); // mark session as logged out
+	        accessLogRepo.save(log);
+	    }
 	}
 
 	public Page<UserAccessLogDTO> getUserAccessDetails(int page, int size, String search) {

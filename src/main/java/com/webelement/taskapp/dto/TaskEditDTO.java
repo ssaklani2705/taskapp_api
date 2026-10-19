@@ -38,6 +38,8 @@ public class TaskEditDTO {
 	private String addedByName;
 
 	private Short taskStatus;
+	private Integer userType;
+	
 
 //	private String dueDatetime;
 	private List<TransactionEntity> transactionHistory;
@@ -46,7 +48,7 @@ public class TaskEditDTO {
 			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3,
 			String fileName4, Short priority, Short status, Integer taskCategoryId, String title, String clientName,
 			String taskCategoryName, String assignedUserName, String addedByName, Short taskStatus,
-			LocalDateTime dueDatetime) {
+			LocalDateTime dueDatetime,Integer userType) {
 
 		super();
 
@@ -71,6 +73,7 @@ public class TaskEditDTO {
 		this.addedByName = addedByName;
 		this.taskStatus = taskStatus;
 		this.dueDateTime = dueDatetime;
+		this.userType = userType;
 	}
 
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,

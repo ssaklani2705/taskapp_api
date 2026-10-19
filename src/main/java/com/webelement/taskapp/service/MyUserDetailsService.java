@@ -1,8 +1,12 @@
 package com.webelement.taskapp.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -11,29 +15,31 @@ import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.entity.UserLoginEntity;
+import com.webelement.taskapp.jwttoken.AppUser;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
-	@Autowired
-	private UserLoginRepository loginRepository;
+    @Autowired
+    private UserLoginRepository loginRepository;
 
-	LoginRequest loginReq = new LoginRequest();
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return loadAppUser(username, "other");
+    }
 
-	HashMap<String, String> users = new HashMap<String, String>();
+    public AppUser loadAppUser(String username, String loginType) {
+        UserLoginEntity u = loginRepository.findByEmailAndStatus(username, 1)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        boolean admin = "Y".equalsIgnoreCase(u.getPermission());
+        boolean hod = "Y".equalsIgnoreCase(u.getIsHod());
 
-	public void setUser(LoginRequest req) {
-		this.loginReq = req;
+        List<GrantedAuthority> auth = new ArrayList<>();
+        auth.add(new SimpleGrantedAuthority("manager".equals(loginType) ? "ROLE_MANAGER" : "ROLE_EMPLOYEE"));
+        if (admin) auth.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        if (hod) auth.add(new SimpleGrantedAuthority("ROLE_HOD"));
 
-	}
-
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserLoginEntity user = loginRepository.findByEmailAndStatus(username, 1)
-				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
-				new java.util.ArrayList<>());
-	}
-
+        return new AppUser(u.getEmail(), auth, u.getUserId(), loginType, admin, hod);
+    }
 }

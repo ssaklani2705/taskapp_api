@@ -235,8 +235,22 @@ public class TaskCategoryService {
 		List<TaskCategoryDTO> list = taskCategoryRepository.findByStatusWithDepartment(1);
 
 		// ADMIN / MANAGER: all active categories
-		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
+//		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
+//			return list;
+//		}
+		
+		// ADMIN: all active categories
+		if ("Y".equalsIgnoreCase(isAdmin)) {
 			return list;
+		}
+
+		// MANAGER: all active categories except departments 2, 3, 4, 5
+		if ("manager".equalsIgnoreCase(loginType)) {
+			Set<Integer> excludedDepartments = Set.of(2, 3, 4, 5);
+
+			return list.stream()
+					.filter(t -> t.getDepartmentId() == null || !excludedDepartments.contains(t.getDepartmentId()))
+					.collect(Collectors.toList());
 		}
 
 		// EMPLOYEE: only the categories assigned in t_userlogin

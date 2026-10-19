@@ -1,6 +1,9 @@
 package com.webelement.taskapp.controller;
 
+import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -20,6 +23,7 @@ import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
 
 import com.webelement.taskapp.service.AuthService;
+import com.webelement.taskapp.service.CaptchaService;
 import com.webelement.taskapp.service.impl.ChangePasswordImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
+	private final CaptchaService captchaService;
 	private final ChangePasswordImpl changePasswordService;
 	private Boolean isManager = false;
 	private final SecureRandom secureRandom = new SecureRandom();
@@ -39,18 +44,23 @@ public class AuthController {
 		return "20-08-2026 10:53";
 	}
 
+//	@GetMapping("/captcha")
+//	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
+//		int captcha = 100000 + secureRandom.nextInt(900000);
+//		session.setAttribute("captcha", String.valueOf(captcha));
+//		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
+//		return ResponseEntity.ok(response);
+//	}
+	
 	@GetMapping("/captcha")
-	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
-		int captcha = 100000 + secureRandom.nextInt(900000);
-		session.setAttribute("captcha", String.valueOf(captcha));
-		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
-		return ResponseEntity.ok(response);
+	public ResponseEntity<ResponseApi<Map<String, String>>> generateCaptcha() throws IOException {
+	    return ResponseEntity.ok(new ResponseApi<>(true, "CAPTCHA Generated", captchaService.create()));
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request, HttpSession session,
+	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request,
 			HttpServletRequest httpRequest, HttpServletResponse response) throws Exception {
-		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request, session, httpRequest);
+		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request, httpRequest);
 		return loginResponse;
 	}
 

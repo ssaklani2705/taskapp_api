@@ -122,20 +122,35 @@ public class TaskController {
 
 	@GetMapping("/getTaskFilterDataOnChange")
 	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType, @RequestParam Integer clientId, @RequestParam String isHod) {
+			@RequestParam String loginType, @RequestParam(required = false) Integer clientId, @RequestParam String isHod,
+			@RequestParam(value = "userType", required = false) Integer userType) {
 		Map<String, Object> response = new HashMap<>();
 //		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
 		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+		boolean managerLogin = "manager".equalsIgnoreCase(loginType);
+	    boolean managerType = userType != null && userType == 2;      // 1 = Employee, 2 = Manager
 
+//		if ("manager".equalsIgnoreCase(loginType)) {
+	    if (managerLogin || managerType) {
+			// managers do not see categories of departments 2, 3, 4, 5
+			response.put("taskCategories",
+					taskCategoryRepository.findAllActiveTaskCategoriesExcludingDepartments(List.of(2, 3, 4, 5)));
+		} else {
+			response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+		}
+		
+		// Assigned users depend on the client, so load them only when one is selected
+		if (clientId != null && clientId > 0) {
+			response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+		}
 		return response;
 	}
 
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
-			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam Integer clientId,
+			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam(required = false) Integer clientId,
 			@RequestParam Integer categoryId, @RequestParam String startDate, @RequestParam String endDate,
-			int systemFlag) {
+			int systemFlag,@RequestParam(required = false) Integer userType) {
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -146,8 +161,11 @@ public class TaskController {
 			weeklyOffDays = getWeeklyOffDays(start, end);
 			System.err.println("Weekly Off Days : " + weeklyOffDays);
 		}
+		int safeClientId = (clientId != null) ? clientId : 0;
+
+		
 		response.put("assignedUsers",
-				userLoginRepository.findActiveUsers(clientId, categoryId, weeklyOffDays, systemFlag));
+				userLoginRepository.findActiveUsers(safeClientId, categoryId, weeklyOffDays, systemFlag,userType));
 		response.put("maxHours", taskCategoryRepository.findDueTimeByCategoryId(categoryId));
 		return response;
 	}
@@ -203,7 +221,7 @@ public class TaskController {
 	}
 
 	@PostMapping(value = "/saveTask", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> saveTask(@RequestParam(required = false) Integer taskId, @RequestParam Integer clientId,
+	public ResponseEntity<?> saveTask(@RequestParam(required = false) Integer taskId,@RequestParam Integer userType, @RequestParam(required = false) Integer clientId,
 			@RequestParam String startDate, @RequestParam Integer taskCategoryId, @RequestParam String description,
 			@RequestParam Integer assignedTo, @RequestParam Short priority, @RequestParam String title,
 			@RequestParam Integer addedBy, @RequestParam(required = false) Short status,
@@ -215,7 +233,7 @@ public class TaskController {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			LocalDateTime taskStartDate = LocalDateTime.parse(startDate, formatter);
 			LocalDateTime taskEndDate = LocalDateTime.parse(endDate, formatter);
-			TaskEntity savedTask = taskService.saveTask(taskId, clientId, taskStartDate, taskCategoryId, description,
+			TaskEntity savedTask = taskService.saveTask(taskId, userType, clientId, taskStartDate, taskCategoryId, description,
 					assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate);
 			response.put("success", true);
 			response.put("message", isUpdate ? "Task updated successfully" : "Task created successfully");

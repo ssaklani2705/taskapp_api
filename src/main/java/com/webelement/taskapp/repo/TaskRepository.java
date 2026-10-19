@@ -3,6 +3,7 @@ package com.webelement.taskapp.repo;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.persistence.LockModeType;
@@ -45,7 +46,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
 			+ "c.name, " + "tc.name, " + "u.firstName, " // assignedTo user
 			+ "a.firstName, " // addedBy user
-			+ "t.taskStatus," + "t.endDate " + ") " + "FROM TaskEntity t " + "LEFT JOIN ClientEntity c "
+			+ "t.taskStatus," + "t.endDate,t.userType " + ") " + "FROM TaskEntity t " + "LEFT JOIN ClientEntity c "
 			+ "ON c.clientId = t.clientId " + "LEFT JOIN TaskCategoryEntity tc "
 			+ "ON tc.taskcategoryId = t.taskCategoryId " + "LEFT JOIN UserLoginEntity u "
 			+ "ON u.userId = t.assignedTo " + "LEFT JOIN UserLoginEntity a " + "ON a.userId = t.addedBy "
@@ -241,5 +242,25 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "ORDER BY t.date DESC, t.status ASC")
 	Page<TaskEditDTO> findTasksByStatus(Pageable pageable, @Param("clientId") Integer clientId,
 			@Param("userId") Integer userId);
+	
+	@Query(value = "SELECT u.i_userid AS userId, u.s_firstname AS userName, "
+		    + "COUNT(t.i_taskid) AS totalTasks, "
+		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) THEN 1 ELSE 0 END),0) AS openTasks, "
+		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (2,4) THEN 1 ELSE 0 END),0) AS pendingReview, "
+		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus = 5 THEN 1 ELSE 0 END),0) AS completedTasks, "
+		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus <> 5 AND t.d_enddate < NOW() THEN 1 ELSE 0 END),0) AS overdueTasks, "
+		    + "ROUND(COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) "
+		    + "    THEN TIMESTAMPDIFF(MINUTE, t.d_date, t.d_enddate) ELSE 0 END),0) / 60, 1) AS openHours "
+		    + "FROM t_userlogin u "
+		    + "LEFT JOIN t_task t ON t.i_assignedto = u.i_userid "
+		    + "  AND t.d_date >= :fromDate AND t.d_date < :toDate "
+		    + "  AND (:allCats = 1 OR t.i_taskcategoryid IN (:catIds)) "
+		    + "WHERE u.i_status = 1 AND u.i_designationid <> 1 "
+		    + "GROUP BY u.i_userid, u.s_firstname "
+		    + "ORDER BY openHours DESC, u.s_firstname", nativeQuery = true)
+		List<Map<String, Object>> findWorkloadPerUser(@Param("fromDate") java.sql.Timestamp fromDate,
+		        @Param("toDate") java.sql.Timestamp toDate,
+		        @Param("allCats") int allCats,
+		        @Param("catIds") List<Integer> catIds);
 
 }
