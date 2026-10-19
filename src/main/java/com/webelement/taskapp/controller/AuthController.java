@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.common.ResponseApi;
+import com.webelement.taskapp.dto.CaptchaDto;
 import com.webelement.taskapp.dto.ChangePassWordDTO;
 import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
 
 import com.webelement.taskapp.service.AuthService;
+import com.webelement.taskapp.service.impl.CaptchaServiceImpl;
 import com.webelement.taskapp.service.impl.ChangePasswordImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -31,19 +33,23 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 	private final AuthService authService;
 	private final ChangePasswordImpl changePasswordService;
+	private final CaptchaServiceImpl captchaService;
 	private Boolean isManager = false;
-	private final SecureRandom secureRandom = new SecureRandom();
 
-	@GetMapping("/test")
-	public String test() {
-		return "20-08-2026 10:53";
+	@GetMapping("/generat_captcha")
+	public ResponseEntity<ResponseApi<CaptchaDto>> generateCaptcha() {
+		CaptchaDto captchaDto = captchaService.generateCaptcha();
+		ResponseApi<CaptchaDto> response = new ResponseApi<>(true, "CAPTCHA Generated Successfully", captchaDto);
+		return ResponseEntity.ok(response);
 	}
 
-	@GetMapping("/captcha")
-	public ResponseEntity<ResponseApi<String>> generateCaptcha(HttpSession session, HttpServletRequest httpRequest) {
-		int captcha = 100000 + secureRandom.nextInt(900000);
-		session.setAttribute("captcha", String.valueOf(captcha));
-		ResponseApi<String> response = new ResponseApi<>(true, "CAPTCHA Generated", String.valueOf(captcha));
+	@PostMapping("/validate_captcha")
+	public ResponseEntity<ResponseApi<String>> validateCaptcha(@RequestBody CaptchaDto request) {
+ 
+		boolean isValid = captchaService.validateCaptcha(request);
+
+		ResponseApi<String> response = new ResponseApi<>(isValid, "CAPTCHA Verified Successfully", "VALID");
+
 		return ResponseEntity.ok(response);
 	}
 

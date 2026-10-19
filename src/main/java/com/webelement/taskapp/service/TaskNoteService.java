@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class TaskNoteService {
+
 	private final TaskNoteRepo taskNoteRepo;
 	private final TaskNotesMailService taskNoteMailService;
 
