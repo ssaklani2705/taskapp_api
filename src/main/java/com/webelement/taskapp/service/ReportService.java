@@ -27,7 +27,9 @@ public class ReportService {
     private final TaskRepository taskRepo;                       // whichever repository you put the query in
     private final UserLoginRepository userLoginRepository;
 
-    public List<Map<String, Object>> workloadPerUser(LocalDate from, LocalDate to, List<Integer> requestedCatIds) {
+    public List<Map<String, Object>> workloadPerUser(LocalDate from, LocalDate to,
+            List<Integer> requestedDeptIds, List<Integer> requestedCatIds) {
+
         AppUser me = CurrentUser.get();
         if (!me.isAdmin() && !me.isHod()) {
             throw new org.springframework.security.access.AccessDeniedException("Forbidden");
@@ -36,12 +38,18 @@ public class ReportService {
             throw new IllegalArgumentException("Choose a valid date range (maximum one year).");
         }
 
-        List<Integer> requested = requestedCatIds == null ? Collections.emptyList() : requestedCatIds;
+        List<Integer> requestedCats = requestedCatIds == null ? Collections.emptyList() : requestedCatIds;
+        List<Integer> requestedDepts = requestedDeptIds == null ? Collections.emptyList() : requestedDeptIds;
 
+        // ---- department filter ----
+        int allDepts = requestedDepts.isEmpty() ? 1 : 0;
+        List<Integer> deptIds = requestedDepts.isEmpty() ? Collections.singletonList(-1) : requestedDepts;
+
+        // ---- category filter ----
         int allCats = 1;
-        List<Integer> catIds = Collections.singletonList(-1);     // placeholder, never used when allCats = 1
+        List<Integer> catIds = Collections.singletonList(-1);   // placeholder, unused when allCats = 1
 
-        if (!me.isAdmin()) {                                        // HOD: only their own categories
+        if (!me.isAdmin()) {                                      // HOD: only their own categories
             UserLoginEntity user = userLoginRepository.findById(me.getUserId()).orElseThrow();
             List<Integer> mine = new ArrayList<>();
             if (user.getTaskcategoryIds() != null) {
@@ -50,21 +58,21 @@ public class ReportService {
                 }
             }
 
-            List<Integer> allowed = requested.isEmpty()
+            List<Integer> allowed = requestedCats.isEmpty()
                     ? mine
-                    : mine.stream().filter(requested::contains).collect(Collectors.toList());
+                    : mine.stream().filter(requestedCats::contains).collect(Collectors.toList());
 
             allCats = 0;
             catIds = allowed.isEmpty() ? Collections.singletonList(-1) : allowed;
 
-        } else if (!requested.isEmpty()) {                          // admin: only the selected categories
+        } else if (!requestedCats.isEmpty()) {                    // admin: only the selected categories
             allCats = 0;
-            catIds = requested;
+            catIds = requestedCats;
         }
 
         return taskRepo.findWorkloadPerUser(
-                java.sql.Timestamp.valueOf(from.atStartOfDay()),
-                java.sql.Timestamp.valueOf(to.plusDays(1).atStartOfDay()),
-                allCats, catIds);
+                Timestamp.valueOf(from.atStartOfDay()),
+                Timestamp.valueOf(to.plusDays(1).atStartOfDay()),
+                allCats, catIds, allDepts, deptIds);
     }
 }

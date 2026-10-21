@@ -56,7 +56,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, c.managerId, " + "c.name, " + "t.date, "
 			+ "t.endDate, " + "tc.name, " + "COALESCE(u.firstName, '0'), " + "COALESCE(t.priority, 0), " + "t.status, "
 			+ "t.title, " + "COALESCE(t.taskStatus, 0), " + "COALESCE(t.assignedTo, 0), " + "COALESCE(t.addedBy, 0), "
-			+ "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId,t.systemFlag" + ") "
+			+ "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId,t.systemFlag,t.userType" + ") "
 			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
 			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
@@ -244,23 +244,29 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			@Param("userId") Integer userId);
 	
 	@Query(value = "SELECT u.i_userid AS userId, u.s_firstname AS userName, "
-		    + "COUNT(t.i_taskid) AS totalTasks, "
-		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) THEN 1 ELSE 0 END),0) AS openTasks, "
-		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (2,4) THEN 1 ELSE 0 END),0) AS pendingReview, "
-		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus = 5 THEN 1 ELSE 0 END),0) AS completedTasks, "
-		    + "COALESCE(SUM(CASE WHEN t.i_taskstatus <> 5 AND t.d_enddate < NOW() THEN 1 ELSE 0 END),0) AS overdueTasks, "
-		    + "ROUND(COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) "
-		    + "    THEN TIMESTAMPDIFF(MINUTE, t.d_date, t.d_enddate) ELSE 0 END),0) / 60, 1) AS openHours "
-		    + "FROM t_userlogin u "
-		    + "LEFT JOIN t_task t ON t.i_assignedto = u.i_userid "
-		    + "  AND t.d_date >= :fromDate AND t.d_date < :toDate "
-		    + "  AND (:allCats = 1 OR t.i_taskcategoryid IN (:catIds)) "
-		    + "WHERE u.i_status = 1 AND u.i_designationid <> 1 "
-		    + "GROUP BY u.i_userid, u.s_firstname "
-		    + "ORDER BY openHours DESC, u.s_firstname", nativeQuery = true)
-		List<Map<String, Object>> findWorkloadPerUser(@Param("fromDate") java.sql.Timestamp fromDate,
-		        @Param("toDate") java.sql.Timestamp toDate,
-		        @Param("allCats") int allCats,
-		        @Param("catIds") List<Integer> catIds);
+	        + "COUNT(t.i_taskid) AS totalTasks, "
+	        + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) THEN 1 ELSE 0 END),0) AS openTasks, "
+	        + "COALESCE(SUM(CASE WHEN t.i_taskstatus IN (2,4) THEN 1 ELSE 0 END),0) AS pendingReview, "
+	        + "COALESCE(SUM(CASE WHEN t.i_taskstatus = 5 THEN 1 ELSE 0 END),0) AS completedTasks, "
+	        + "COALESCE(SUM(CASE WHEN t.i_taskstatus <> 5 AND t.d_enddate < NOW() THEN 1 ELSE 0 END),0) AS overdueTasks, "
+	        + "ROUND(COALESCE(SUM(CASE WHEN t.i_taskstatus IN (1,3) "
+	        + "    THEN TIMESTAMPDIFF(MINUTE, t.d_date, t.d_enddate) ELSE 0 END),0) / 60, 1) AS openHours "
+	        + "FROM t_userlogin u "
+	        + "LEFT JOIN t_task t ON t.i_assignedto = u.i_userid "
+	        + "  AND t.d_date >= :fromDate AND t.d_date < :toDate "
+	        + "  AND (:allCats = 1 OR t.i_taskcategoryid IN (:catIds)) "
+	        + "  AND (:allDepts = 1 OR t.i_taskcategoryid IN "
+	        + "       (SELECT c.i_taskcategoryid FROM t_taskcategory c WHERE c.i_departmentid IN (:deptIds))) "
+	        + "WHERE u.i_status = 1 AND u.i_designationid <> 1 "
+	        + "GROUP BY u.i_userid, u.s_firstname "
+	        + "HAVING (:allCats = 1 AND :allDepts = 1) OR COUNT(t.i_taskid) > 0 "
+	        + "ORDER BY openHours DESC, u.s_firstname", nativeQuery = true)
+	List<Map<String, Object>> findWorkloadPerUser(
+	        @Param("fromDate") java.sql.Timestamp fromDate,
+	        @Param("toDate") java.sql.Timestamp toDate,
+	        @Param("allCats") int allCats,
+	        @Param("catIds") List<Integer> catIds,
+	        @Param("allDepts") int allDepts,
+	        @Param("deptIds") List<Integer> deptIds);
 
 }

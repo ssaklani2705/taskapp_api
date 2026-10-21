@@ -30,7 +30,9 @@ public class ReportController {
     public ApiResponse<List<Map<String, Object>>> workload(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) List<Integer> departmentIds,
             @RequestParam(required = false) List<Integer> categoryIds) {
-        return new ApiResponse<>(true, "OK", reportService.workloadPerUser(from, to, categoryIds));
+        return new ApiResponse<>(true, "OK",
+                reportService.workloadPerUser(from, to, departmentIds, categoryIds));
     }
 }

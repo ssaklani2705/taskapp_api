@@ -25,11 +25,12 @@ public class TaskDetailsDTO {
 	private Integer clientId;
 	private Integer taskCategoryId;
 	private Integer systemFlag;
+	private Integer userType; 
 
 	public TaskDetailsDTO(Integer taskId, Integer managerId, String clientName, LocalDateTime date,
 			LocalDateTime dueDateTime, String taskCategoryName, String assignedToName, Short priority, Short status,
 			String title, Short taskStatus, Integer assignedTo, Integer addedBy, String assignedbyName,
-			String description, Integer clientId, Integer taskCategoryId, Integer systemFlag) {
+			String description, Integer clientId, Integer taskCategoryId, Integer systemFlag,Integer userType) {
 		this.taskId = taskId;
 		this.managerId = managerId;
 		this.clientName = clientName;
@@ -48,5 +49,6 @@ public class TaskDetailsDTO {
 		this.clientId = clientId;
 		this.taskCategoryId = taskCategoryId;
 		this.systemFlag = systemFlag;
+		this.userType = userType;
 	}
 }
