@@ -6,13 +6,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-@Service
+// rate limiter service
+@Service 
 public class LoginAttemptService {
     private static final int MAX_FAILS = 5;
     private static final long LOCK_MS = 5 * 60 * 1000L;
 
     private static class Info { int fails; long lockedUntil; }
-    private final Map<String, Info> attempts = new ConcurrentHashMap<>();
+    private final Map<String, Info> attempts = new ConcurrentHashMap<>(); // in memory stored //
 
     public boolean isBlocked(String key) {
         Info i = attempts.get(key);
@@ -31,7 +32,7 @@ public class LoginAttemptService {
 
     public void succeeded(String key) { attempts.remove(key); }
 
-    @Scheduled(fixedRate = 3_600_000)
+    @Scheduled(fixedRate = 3_600_000) // remove from memory // 
     public void purge() {
         long now = System.currentTimeMillis();
         attempts.values().removeIf(i -> i.lockedUntil != 0 && i.lockedUntil < now);
