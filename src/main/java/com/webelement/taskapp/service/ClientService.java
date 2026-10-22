@@ -862,7 +862,8 @@ public class ClientService {
 		}
 		// NON-MANAGER + NON-ADMIN
 		else {
-			clients = clientRepository.findByUserIdAndStatus(userId, activeStatus);
+//			clients = clientRepository.findByUserIdAndStatus(userId, activeStatus);
+			clients = clientRepository.findByStatus(activeStatus);
 		}
 		return clients.stream().map(client -> new ClientDTO(client.getClientId(), client.getName()))
 				.collect(Collectors.toList());
