@@ -510,8 +510,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime end = parseStartDateTime(endDateTime);
 		String startDate = start.toLocalDate().toString();
 		String endDate = end.toLocalDate().toString();
-		System.err.println("startDate  " + startDate);
-		System.err.println("endDate  " + endDate);
+		
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
 		Integer pickedUserId = null;
 		Double pickedHours = null;
@@ -560,7 +559,9 @@ public class TaskServiceImpl implements TaskService {
 		if (value == null || value.trim().isEmpty()) {
 			return LocalDateTime.now();
 		}
+		
 		String v = value.trim();
+		
 		try {
 			return v.length() == 10 ? LocalDate.parse(v).atStartOfDay() : LocalDateTime.parse(v, DATE_TIME_FMT);
 		} catch (DateTimeParseException e) {

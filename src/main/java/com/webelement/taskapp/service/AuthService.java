@@ -16,6 +16,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.webelement.taskapp.Exceptions.AccountExpiredException;
+import com.webelement.taskapp.Exceptions.InvalidCaptchaException;
+import com.webelement.taskapp.Exceptions.InvalidRequestException;
+import com.webelement.taskapp.Exceptions.TooManyAttemptsException;
+import com.webelement.taskapp.Exceptions.UnauthorizedUserException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.LoginRequest;
@@ -27,190 +33,90 @@ import com.webelement.taskapp.entity.SmtpEntity;
 import com.webelement.taskapp.entity.UserAccessLogEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.jwttoken.JwtUtil;
+import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-	@Autowired
-	private CommonFunction commonFunction;
-	@Autowired
-	UserLoginRepository userLoginRepository;
-	@Autowired
-	private MailLogRepo logRepo;
-	@Autowired
-	private SmtpRepo smtpRepo;
-	@Autowired
-	private UserAccessLogService accessLogService;
-	@Autowired
-	private MyUserDetailsService detailsService;
-	@Autowired
-	private JwtUtil jwtUtil;
+	private final CommonFunction commonFunction;
+	private final UserLoginRepository userLoginRepository;
+	private final  MailLogRepo logRepo;
+	private final SmtpRepo smtpRepo;
+	private final UserAccessLogService accessLogService;
+	private final MyUserDetailsService detailsService;
+	private final MailService mailService;
+	private final CaptchaService captchaService;
+	private final PasswordService passwordService;
+	private final LoginAttemptService attemptService;
+	private final JwtUtil jwtUtil;
+	
 	@Value("${file_maillog:}")
 	private String file_maillog;
+	
 	@Value("${paths:}")
 	private String paths;
-	@Autowired
-	private MailService mailService;
-	@Autowired
-	private CaptchaService captchaService;
-	@Autowired
-	private PasswordService passwordService;
-	@Autowired
-	private LoginAttemptService attemptService;
 	
-	public ResponseEntity<ResponseApi<LoginResponse>> login(LoginRequest request,
-	        HttpServletRequest httpRequest) throws Exception {
+	private  HttpServletRequest httpRequest;
 
-	    if (!captchaService.verifyAndConsume(request.getCaptchaId(), request.getCaptcha())) {
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-	                .body(new ResponseApi<>(false, "Invalid captcha code.", null));
-	    }
+	public ResponseEntity<ResponseApi<LoginResponse>> login(LoginRequest request) throws Exception {
+		if (!captchaService.verifyAndConsume(request.getCaptchaId(), request.getCaptcha())) {
+			throw new InvalidCaptchaException("Invalid captcha code.");
+		}
+		String loginId = request.getUsername() != null ? request.getUsername().trim().toLowerCase() : "";
+		String password = request.getPassword() != null ? request.getPassword() : "";
+		
+		if (attemptService.isBlocked(loginId)) {
+			throw new TooManyAttemptsException("Too many failed attempts. Please try again in 15 minutes.");
+		}
 
-	    String loginId = request.getUsername() != null ? request.getUsername().trim().toLowerCase() : "";
-	    String password = request.getPassword() != null ? request.getPassword() : "";
+		
 
-	    if (attemptService.isBlocked(loginId)) {
-	        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-	                .body(new ResponseApi<>(false, "Too many failed attempts. Please try again in 15 minutes.", null));
-	    }
+		String iplocal = commonFunction.getLocalIp();
+		String logintype = request.getLogintype();
+		UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
 
-	    String iplocal = commonFunction.getLocalIp();
-	    String logintype = request.getLogintype();
-	    UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
+		if (info == null) {
+			attemptService.failed(loginId);
+			throw new UnauthorizedUserException("Invalid email or password.");
+		}
 
-	    if (info == null) {
-	        attemptService.failed(loginId);
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                .body(new ResponseApi<>(false, "Invalid email or password.", null));
-	    }
+		if (info.getStatus() < 1) {
+			throw new AccountExpiredException("Your account has been expired, please contact the administrator.");
+		}
 
-	    if (info.getStatus() < 1) {
-	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseApi<>(false,
-	                "Your account has been expired, please contact the administrator.", null));
-	    }
+		int userId = info.getUserId();
+		if (userId <= 0) {
+			attemptService.failed(loginId);
+			throw new UnauthorizedUserException("Invalid email or password.");
+		}
 
-	    int userId = info.getUserId();
-	    if (userId <= 0) {
-	        attemptService.failed(loginId);
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                .body(new ResponseApi<>(false, "Invalid email or password.", null));
-	    }
+		String permission = info.getPermission() != null ? info.getPermission() : "";
+		String loginTypeNorm = "manager".equals(logintype) ? "manager" : "other";
+		String token = jwtUtil.generateAccessToken(loginId, userId, loginTypeNorm);
 
-	    String permission = info.getPermission() != null ? info.getPermission() : "";
-	    String loginTypeNorm = "manager".equals(logintype) ? "manager" : "other";
-	    String token = jwtUtil.generateAccessToken(loginId, userId, loginTypeNorm);
+		List<ModulePermissionDTO> modules = getModuleListByName(userId, "Y".equals(permission));
+		UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(), httpRequest);
 
-	    List<ModulePermissionDTO> modules = getModuleListByName(userId, "Y".equals(permission));
-	    UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(), httpRequest);
+		List<Integer> categoryIds = new ArrayList<>();
+		if (info.getTaskcategoryIds() != null && !info.getTaskcategoryIds().trim().isEmpty()) {
+			categoryIds = Arrays.stream(info.getTaskcategoryIds().split(",")).map(String::trim)
+					.filter(s -> !s.isEmpty()).map(Integer::parseInt).collect(Collectors.toList());
+		}
 
-	    List<Integer> categoryIds = new ArrayList<>();
-	    if (info.getTaskcategoryIds() != null && !info.getTaskcategoryIds().trim().isEmpty()) {
-	        categoryIds = Arrays.stream(info.getTaskcategoryIds().split(","))
-	                .map(String::trim)
-	                .filter(s -> !s.isEmpty())
-	                .map(Integer::parseInt)
-	                .collect(Collectors.toList());
-	    }
+		LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(), accessLogEntity.getLogId(),
+				permission, info.getDesignationName(), modules, info.getIsHod(), info.getEmail(), categoryIds);
 
-	    LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-	            accessLogEntity.getLogId(), permission, info.getDesignationName(), modules, info.getIsHod(),
-	            info.getEmail(), categoryIds);
-
-	    attemptService.succeeded(loginId);
-	    return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
+		attemptService.succeeded(loginId);
+		return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
 	}
 
-//	public ResponseEntity<ResponseApi<LoginResponse>> login(LoginRequest request, 
-//			HttpServletRequest httpRequest) throws Exception {
-//		String userCaptcha = request.getCaptcha();
-////		String serverCaptcha = request.getCaptchaAns();
-////		if (userCaptcha == null || serverCaptcha == null || !userCaptcha.equalsIgnoreCase(serverCaptcha)) {
-////			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-////					.body(new ResponseApi<>(false, "Invalid captcha code.", null));
-////		}
-//		
-//		if (!captchaService.verifyAndConsume(request.getCaptchaId(), request.getCaptcha())) {
-//		    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//		            .body(new ResponseApi<>(false, "Invalid captcha code.", null));
-//		}
-//		
-//		String loginId = request.getUsername() != null ? request.getUsername().trim().toLowerCase() : "";
-//		String password = request.getPassword() != null ? request.getPassword() : "";
-//		
-//		if (attemptService.isBlocked(loginId)) {
-//		    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-//		            .body(new ResponseApi<>(false, "Too many failed attempts. Please try again in 15 minutes.", null));
-//		}
-//		
-//		String iplocal = commonFunction.getLocalIp();
-//		String logintype = request.getLogintype();
-//		UserInfo info = getUserAccess(loginId, password, iplocal, logintype);
-//		String permission = "N";
-//		if (info != null) {
-//			if (info.getStatus() < 1) {
-//				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseApi<>(false,
-//						"Your account has been expired, please contact the administrator.", null));
-//			} else {
-//				int userId = 0;
-//				userId = info.getUserId();
-//				permission = info.getPermission() != null ? info.getPermission() : "";
-//				if (userId > 0) {
-////					detailsService.setUser(request);
-//					String loginTypeNorm = "manager".equals(logintype) ? "manager" : "other";
-//					String token = jwtUtil.generateAccessToken(loginId,userId, loginTypeNorm);
-//					boolean b = false;
-//					if (permission.equals("Y")) {
-//						b = true;
-//					}
-//					List<ModulePermissionDTO> modules = getModuleListByName(userId, b);
-//					UserAccessLogEntity accessLogEntity = accessLogService.saveLogin(userId, info.getFirstName(),
-//							httpRequest);
-//
-//					List<Integer> categoryIds = new ArrayList<>();
-//
-//					if (info.getTaskcategoryIds() != null && !info.getTaskcategoryIds().trim().isEmpty()) {
-//
-//						categoryIds = Arrays.stream(info.getTaskcategoryIds().split(",")).map(String::trim)
-//								.filter(s -> !s.isEmpty()).map(Integer::parseInt).collect(Collectors.toList());
-//					}
-//					LoginResponse loginResponse = new LoginResponse(token, userId, info.getFirstName(),
-//							accessLogEntity.getLogId(), permission, info.getDesignationName(), modules, info.getIsHod(),
-//							info.getEmail(), categoryIds);
-////					session.removeAttribute("captcha");
-//					return ResponseEntity.ok(new ResponseApi<>(true, "Login successful", loginResponse));
-//				} else {
-//					return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//							.body(new ResponseApi<>(false, "Invalid login credentials.", null));
-//				}
-//
-//			}
-//
-//		} else {
-//			int ccc = getLoginIdMatch(loginId, password);
-//
-//			String message;
-//			switch (ccc) {
-//			case 1:
-//				message = "Email ID and Password both are incorrect. Please enter correct Email ID and Password.";
-//				break;
-//			case 2:
-//				message = "Email ID is incorrect. Please enter correct Email ID.";
-//				break;
-//			case 3:
-//				message = "Your Password is incorrect. Please enter correct Password.";
-//				break;
-//			case 4:
-//				message = "Your Email ID is not registered. Please contact to Task App Team.";
-//				break;
-//			default:
-//				message = "Invalid username or password.";
-//			}
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseApi<>(false, message, null));
-//		}
-//	}
+
 
 	public int getLoginIdMatch(String userName, String password) throws Exception {
 		int cc = 0;
@@ -236,33 +142,7 @@ public class AuthService {
 		return cc;
 	}
 
-//	private UserInfo getUserAccess(String username, String password, String ip, String logintype) {
-//		String newPassword = "";
-//		try {
-//			newPassword = commonFunction.cipher(escapeApostrophes(password));
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		List<Map<String, Object>> results = userLoginRepository.findActiveLogin(username, newPassword, logintype);
-//		UserInfo info = null;
-//		if (!results.isEmpty()) {
-//			Map<String, Object> row = results.get(0);
-//			Integer userId = ((Number) row.get("i_userid")).intValue();
-//			String firstName = (String) row.get("s_firstname");
-//			String email = (String) row.get("s_email");
-//			String mobileNo = (String) row.get("s_mobileno");
-//			Integer i_status = ((Number) row.get("d_expirydate")).intValue();
-//			String s_permission = (String) row.get("s_permission");
-//			String designationName = (String) row.get("designationName");
-//			String isHod = (String) row.get("isHod");
-//			// Get category IDs from database
-//			String taskcategoryIds = (String) row.get("taskcategoryIds");
-//			info = new UserInfo(userId, firstName, email, mobileNo, i_status, s_permission, designationName, isHod);
-//			// Set category IDs
-//			info.setTaskcategoryIds(taskcategoryIds);
-//		}
-//		return info;
-//	}
+
 	
 	private UserInfo getUserAccess(String username, String password, String ip, String logintype) {
 	    List<Map<String, Object>> results = userLoginRepository.findActiveLoginByEmail(username, logintype);
@@ -334,7 +214,7 @@ public class AuthService {
 		return obj instanceof Number ? ((Number) obj).intValue() : 0;
 	}
 
-	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId, HttpServletRequest httpRequest,
+	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(String emailId,
 			Boolean isManager, String loginType) throws Exception {
 		Optional<UserLoginEntity> userOpt;
 		if (loginType.equals("manager")) {

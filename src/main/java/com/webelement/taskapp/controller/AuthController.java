@@ -48,17 +48,15 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request,
-			HttpServletRequest httpRequest, HttpServletResponse response) throws Exception {
-		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request, httpRequest);
+	public ResponseEntity<ResponseApi<LoginResponse>> checkLogin(@RequestBody LoginRequest request ) throws Exception {
+		ResponseEntity<ResponseApi<LoginResponse>> loginResponse = authService.login(request);
 		return loginResponse;
 	}
 
 	@PostMapping("/forgotpasswordMail")
-	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(@RequestParam String emailId,
-			@RequestParam String loginType, HttpServletRequest httpRequest) throws Exception {
+	public ResponseEntity<ResponseApi<String>> forgotpasswordMail(@RequestParam String emailId,@RequestParam String loginType) throws Exception {
 		isManager = false;
-		return authService.forgotpasswordMail(emailId, httpRequest, isManager, loginType);
+		return authService.forgotpasswordMail(emailId, isManager, loginType);
 	}
 
 	@PostMapping("/forgotpassword")
