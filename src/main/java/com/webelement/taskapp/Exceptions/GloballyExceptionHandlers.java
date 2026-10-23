@@ -6,7 +6,6 @@ import com.webelement.taskapp.common.ResponseApi;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -59,10 +58,7 @@ public class GloballyExceptionHandlers {
 				.body(new ResponseApi<String>(false, "Unable to change password. Please try again.", null));
 	}
 
-	@ExceptionHandler(AccountExpiredException.class)
-	public ResponseEntity<ResponseApi<Object>> handleAccountExpired(AccountExpiredException ex) {
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseApi<>(false, ex.getMessage(), null));
-	}
+	
 
 	@ExceptionHandler(UnauthorizedUserException.class)
 	public ResponseEntity<ResponseApi<Object>> handleUnauthorized(UnauthorizedUserException ex) {

@@ -45,12 +45,15 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskReassigneDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
+import com.webelement.taskapp.entity.ReassignEntity;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.HolidayRepo;
+import com.webelement.taskapp.repo.TaskReassignRepo;
 import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.TaskService;
@@ -72,6 +75,7 @@ public class TaskServiceImpl implements TaskService {
 	private final ClientRepository clientRepository;
 	private final HolidayRepo holidayRepository;
 	private final UserLoginRepository userLoginRepository;
+	private final TaskReassignRepo taskReassigned;
 	
 	
 	@Value("${task.upload-dir}")
@@ -116,6 +120,9 @@ public class TaskServiceImpl implements TaskService {
 		task.setModificationDate(LocalDateTime.now());
 		task.setCloseRemarks(remark);
 		TaskEntity savedTask = taskRepository.save(task);
+		
+		saveTaskReassignment(taskId,oldAssigneeId,assignedTo);
+		
 		String assignedUserName = "Unknown";
 		if (savedTask.getAssignedTo() != null) {
 			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
@@ -457,5 +464,29 @@ public class TaskServiceImpl implements TaskService {
 		return (date.getDayOfWeek().getValue() % 7) + 1;
 	}
 
+
+	public ReassignEntity objectMapper(TaskReassigneDTO dto) {
+		if (dto == null) {
+			return null;
+		}
+
+		return ReassignEntity.builder().reassignId(dto.getReassignId()).taskId(dto.getTaskId())
+				.previousAssigneeId(dto.getPreviousAssigneeId()).newAssigneeId(dto.getNewAssigneeId())
+				.status(dto.getStatus()).registrationDate(LocalDateTime.now()).modificationDate(LocalDateTime.now())
+				.build();
+	}
+	
+	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo) {
+
+		TaskReassigneDTO dto = new TaskReassigneDTO();
+		dto.setNewAssigneeId(assignedTo);
+		dto.setPreviousAssigneeId(oldAssigneeId);
+		dto.setTaskId(taskId);
+		dto.setStatus((short) 1);
+
+		ReassignEntity entity = objectMapper(dto);
+		taskReassigned.save(entity);
+	}
+	
 	
 }

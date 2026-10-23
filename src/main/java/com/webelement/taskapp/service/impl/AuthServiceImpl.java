@@ -1,7 +1,5 @@
 package com.webelement.taskapp.service.impl;
-
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,43 +7,30 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.webelement.taskapp.Exceptions.AccountExpiredException;
 import com.webelement.taskapp.Exceptions.ApiException;
-import com.webelement.taskapp.Exceptions.FileDownloadException;
-import com.webelement.taskapp.Exceptions.InvalidCaptchaException;
-import com.webelement.taskapp.Exceptions.InvalidRequestException;
 import com.webelement.taskapp.Exceptions.ResourceNotFoundException;
-import com.webelement.taskapp.Exceptions.TooManyAttemptsException;
-import com.webelement.taskapp.Exceptions.UnauthorizedUserException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.LoginRequest;
 import com.webelement.taskapp.dto.LoginResponse;
 import com.webelement.taskapp.dto.ModulePermissionDTO;
 import com.webelement.taskapp.dto.UserInfo;
-import com.webelement.taskapp.entity.MailLogEntity;
+
 import com.webelement.taskapp.entity.SmtpEntity;
 import com.webelement.taskapp.entity.UserAccessLogEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.jwttoken.JwtUtil;
-import com.webelement.taskapp.repo.ClientRepository;
-import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.SmtpRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.AuthService;
 import com.webelement.taskapp.service.CaptchaService;
 import com.webelement.taskapp.service.LoginAttemptService;
 import com.webelement.taskapp.service.MailService;
-import com.webelement.taskapp.service.MyUserDetailsService;
-import com.webelement.taskapp.service.PasswordService;
 import com.webelement.taskapp.service.UserAccessLogService;
 
 import lombok.RequiredArgsConstructor;
@@ -54,16 +39,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-
 	private final CommonFunction commonFunction;
 	private final UserLoginRepository userLoginRepository;
-	private final MailLogRepo logRepo;
 	private final SmtpRepo smtpRepo;
 	private final UserAccessLogService accessLogService;
-	private final MyUserDetailsService detailsService;
 	private final MailService mailService;
 	private final CaptchaService captchaService;
-	private final PasswordService passwordService;
 	private final LoginAttemptService attemptService;
 	private final JwtUtil jwtUtil;
 	
@@ -151,13 +132,10 @@ public class AuthServiceImpl implements AuthService {
 		} else {
 			throw ApiException.internal("Failed to send password reset link.", null);
 		}
-
 	}
 
 	@Override
-	public ResponseEntity<ResponseApi<String>> forgotpassword(String emailId, String userId, String password,
-			String isManager) throws Exception {
-		// Decode inputs
+	public ResponseEntity<ResponseApi<String>> forgotpassword(String emailId, String userId, String password,String isManager) throws Exception {
 		String decodedEmail = commonFunction.decipher(emailId).trim();
 		String decodedUserId = commonFunction.decipher(userId).trim();
 		String encodedPassword = commonFunction.cipher(password);
@@ -165,7 +143,6 @@ public class AuthServiceImpl implements AuthService {
 		if (isManager != null && !isManager.trim().isEmpty()) {
 			isManger = commonFunction.decipher(isManager);
 		}
-		// Validate if userId is numeric before parsing
 		int result = 0;
 		try {
 			int parsedUserId = Integer.parseInt(decodedUserId);
@@ -190,9 +167,7 @@ public class AuthServiceImpl implements AuthService {
 				throw new ResourceNotFoundException("Invalid user details.");
 			}
 		} else {
-			// Invalid URL → error response
-			String message = "URL is no longer valid or has expired. "
-					+ "Please go to the Login Page, enter your email ID, and use the Forgot Password link again.";
+			String message = "URL is no longer valid or has expired. " + "Please go to the Login Page, enter your email ID, and use the Forgot Password link again.";
 			throw ApiException.badRequest(message);
 		}
 
