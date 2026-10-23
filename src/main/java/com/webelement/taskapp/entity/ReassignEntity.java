@@ -30,11 +30,11 @@ public class ReassignEntity {
 	@Column(name = "i_taskid", nullable = false)
 	private Integer taskId;
 
-	@Column(name = "i_previousassigneeid", nullable = false)
-	private Integer previousAssigneeId;
+	@Column(name = "i_currentuserid", nullable = false)
+	private Integer currentUserId;
 	
-	@Column(name = "i_newassigneeid", nullable = false)
-	private Integer newAssigneeId;
+	@Column(name = "i_newuserid", nullable = false)
+	private Integer newUserId;
 	@Column(name = "i_status")
 	private Short status;
 

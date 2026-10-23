@@ -471,7 +471,7 @@ public class TaskServiceImpl implements TaskService {
 		}
 
 		return ReassignEntity.builder().reassignId(dto.getReassignId()).taskId(dto.getTaskId())
-				.previousAssigneeId(dto.getPreviousAssigneeId()).newAssigneeId(dto.getNewAssigneeId())
+				.currentUserId(dto.getPreviousAssigneeId()).newUserId(dto.getNewAssigneeId())
 				.status(dto.getStatus()).registrationDate(LocalDateTime.now()).modificationDate(LocalDateTime.now())
 				.build();
 	}

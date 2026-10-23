@@ -31,11 +31,7 @@ import com.webelement.taskapp.service.AuthService;
 import com.webelement.taskapp.service.CaptchaService;
 import com.webelement.taskapp.service.LoginAttemptService;
 import com.webelement.taskapp.service.MailService;
-<<<<<<< HEAD
-=======
-import com.webelement.taskapp.service.MyUserDetailsService;
 
->>>>>>> c38d05af7f3da85ab4aef1698c7e9dd404507c68
 import com.webelement.taskapp.service.UserAccessLogService;
 
 import lombok.RequiredArgsConstructor;
