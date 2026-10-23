@@ -297,6 +297,7 @@ public class CommonFunction {
 		log.setModDate(LocalDateTime.now());
 		log.setIpAddress(ip);
 		log.setLocalIp(iplocal);
+		log.setSentflag((short) status);
 		logRepo.save(log);
 	}
 

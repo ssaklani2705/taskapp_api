@@ -31,6 +31,6 @@ public class MailLogDTO {
 	private LocalDateTime modDate;
 	private String ipAddress;
 	private String localIp;
-	private Integer status;
+	private short status;
 
 }

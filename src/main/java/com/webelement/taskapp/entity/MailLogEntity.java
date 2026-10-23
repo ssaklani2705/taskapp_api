@@ -65,4 +65,7 @@ public class MailLogEntity {
 
 	@Column(name = "i_status")
 	private Integer status;
+	
+	@Column(name = "i_sentflag")
+	private Short sentflag;
 }
