@@ -45,7 +45,7 @@ import com.webelement.taskapp.service.CaptchaService;
 import com.webelement.taskapp.service.LoginAttemptService;
 import com.webelement.taskapp.service.MailService;
 import com.webelement.taskapp.service.MyUserDetailsService;
-import com.webelement.taskapp.service.PasswordService;
+
 import com.webelement.taskapp.service.UserAccessLogService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,16 +57,12 @@ public class AuthServiceImpl implements AuthService {
 
 	private final CommonFunction commonFunction;
 	private final UserLoginRepository userLoginRepository;
-	private final MailLogRepo logRepo;
 	private final SmtpRepo smtpRepo;
 	private final UserAccessLogService accessLogService;
-	private final MyUserDetailsService detailsService;
 	private final MailService mailService;
 	private final CaptchaService captchaService;
-	private final PasswordService passwordService;
 	private final LoginAttemptService attemptService;
 	private final JwtUtil jwtUtil;
-	
 	private final CommonFunction helper;
 
 	@Value("${file_maillog:}")
