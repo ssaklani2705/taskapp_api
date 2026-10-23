@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.StateDTO;
 import com.webelement.taskapp.entity.StateEntity;
-
+import com.webelement.taskapp.service.StateService;
 import com.webelement.taskapp.service.impl.StateServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/state")
 public class StateController {
 
-	private final StateServiceImpl stateService;
+	private final StateService stateService;
 
 	@PostMapping("/addOrUpdate")
 	public ResponseEntity<ApiResponse<StateDTO>> addOrUpdate(@RequestBody StateDTO dto) {

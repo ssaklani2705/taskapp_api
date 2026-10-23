@@ -1,5 +1,4 @@
 package com.webelement.taskapp.service.impl;
-
 import javax.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.webelement.taskapp.Exceptions.PasswordValidationException;
@@ -18,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class ChangePasswordImpl implements ChangePassword {
 
 	private final UserLoginRepository userReposatroy;
+	
 	private final CommonFunction commonFunction;
 	private final PasswordService passwordService;
 	
@@ -50,60 +50,7 @@ public class ChangePasswordImpl implements ChangePassword {
 	    return "Password changed successfully.";
 	}
 
-//	@Override
-//	@Transactional
-//	public String changePassword(ChangePassWordDTO request) {
-//		validateChangePasswordRequest(request);
-//		String emailId;
-//		String oldPassword;
-//		String newPassword;
-//		String decryptedUserId;
-//		try {
-//			emailId = commonFunction.decipher(request.getUsername()).trim();
-//			oldPassword = commonFunction.decipher(request.getOldPassword());
-//			newPassword = commonFunction.decipher(request.getNewPassword());
-//			decryptedUserId = commonFunction.decipher(request.getUserId());
-//		} catch (Exception e) {
-//			throw new PasswordValidationException("Invalid encrypted request data.", e);
-//		}
-//		validateDecryptedValues(emailId, oldPassword, newPassword);
-//		validateNewPassword(oldPassword, newPassword);
-//		Integer requestedUserId;
-//		try {
-//			requestedUserId = Integer.valueOf(decryptedUserId.trim());
-//		} catch (Exception e) {
-//			throw new PasswordValidationException("Invalid user ID.");
-//		}
-//		Integer actualUserId = userReposatroy.findUserIdByEmailAndStatusAndUserId(emailId, requestedUserId).orElseThrow(
-//				() -> new PasswordValidationException("Email ID and user ID do not match, or the user is inactive."));
-//		String storedPassword = userReposatroy.findPasswordByUserId(requestedUserId);
-//		if (isBlank(storedPassword)) {
-//			throw new IllegalStateException("Unable to retrieve the existing password.");
-//		}
-//		String existingPassword;
-//		try {
-//			existingPassword = commonFunction.decipher(storedPassword);
-//		} catch (Exception e) {
-//			throw new IllegalStateException("Unable to verify the existing password.", e);
-//		}
-//		if (existingPassword == null || !existingPassword.equals(oldPassword)) {
-//			throw new PasswordValidationException("Old password is incorrect.");
-//		}
-//		String encryptedPassword;
-//		try {
-//			encryptedPassword = commonFunction.cipher(newPassword);
-//		} catch (Exception e) {
-//			throw new IllegalStateException("Unable to encrypt the new password.", e);
-//		}
-//		if (isBlank(encryptedPassword)) {
-//			throw new IllegalStateException("Unable to encrypt the new password.");
-//		}
-//		int updatedRows = userReposatroy.updateForgotPassword(actualUserId, encryptedPassword, null);
-//		if (updatedRows != 1) {
-//			throw new IllegalStateException("Password update failed. Please try again.");
-//		}
-//		return "Password changed successfully.";
-//	}
+
 
 	private void validateChangePasswordRequest(ChangePassWordDTO request) {
 		if (request == null) {

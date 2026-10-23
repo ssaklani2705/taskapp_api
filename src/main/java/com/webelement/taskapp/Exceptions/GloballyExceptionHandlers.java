@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.webelement.taskapp.common.ResponseApi;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -56,28 +58,37 @@ public class GloballyExceptionHandlers {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(new ResponseApi<String>(false, "Unable to change password. Please try again.", null));
 	}
-	
-	
+
 	@ExceptionHandler(AccountExpiredException.class)
 	public ResponseEntity<ResponseApi<Object>> handleAccountExpired(AccountExpiredException ex) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseApi<>(false, ex.getMessage(), null));
 	}
-	
-	 @ExceptionHandler(UnauthorizedUserException.class)
-	    public ResponseEntity<ResponseApi<Object>> handleUnauthorized(UnauthorizedUserException ex) {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                .body(new ResponseApi<>(false, ex.getMessage(), null));
-	    }
-	 
-		@ExceptionHandler(TooManyAttemptsException.class)
-		public ResponseEntity<ResponseApi<Object>> handleTooManyAttempts(TooManyAttemptsException ex) {
-			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-					.body(new ResponseApi<>(false, ex.getMessage(), null));
-		}
-		
-		@ExceptionHandler(InvalidCaptchaException.class)
-		public ResponseEntity<ResponseApi<Void>> handleInvalidCaptcha(InvalidCaptchaException ex) {
 
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, ex.getMessage(), null));
-		}
+	@ExceptionHandler(UnauthorizedUserException.class)
+	public ResponseEntity<ResponseApi<Object>> handleUnauthorized(UnauthorizedUserException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseApi<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(TooManyAttemptsException.class)
+	public ResponseEntity<ResponseApi<Object>> handleTooManyAttempts(TooManyAttemptsException ex) {
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+				.body(new ResponseApi<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidCaptchaException.class)
+	public ResponseEntity<ResponseApi<Void>> handleInvalidCaptcha(InvalidCaptchaException ex) {
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseApi<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ResponseApi<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(ApiException.class)
+	public ResponseEntity<ResponseApi<Object>> handleApi(ApiException ex) {
+
+		return ResponseEntity.status(ex.getStatus()).body(new ResponseApi<>(false, ex.getMessage(), null));
+	}
 }

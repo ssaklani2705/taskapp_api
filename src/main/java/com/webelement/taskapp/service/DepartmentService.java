@@ -20,15 +20,14 @@ import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
-@Service
-public class DepartmentService {
+import lombok.AllArgsConstructor;
 
-	@Autowired
-	private DepartmentRepository departmentRepository;
-	@Autowired
-	private CommonFunction commonFunction;
-	@Autowired
-	private UserLoginRepository userLoginRepository;
+@Service
+@AllArgsConstructor
+public class DepartmentService {
+	private  final DepartmentRepository departmentRepository;
+	private  final CommonFunction commonFunction;
+	private  final UserLoginRepository userLoginRepository;
 
 	public ApiResponse<DepartmentDTO> addOrUpdate(DepartmentDTO dto, HttpServletRequest httpRequest) {
 		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());

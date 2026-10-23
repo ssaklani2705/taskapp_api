@@ -71,17 +71,12 @@ public class TaskServiceImpl implements TaskService {
 	private final TaskMailService taskMailService;
 	private final ClientRepository clientRepository;
 	private final HolidayRepo holidayRepository;
-
-	private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-	private final Random random = new Random();
-
-	@Autowired
-	private UserLoginRepository userLoginRepository;
-
+	private final UserLoginRepository userLoginRepository;
+	
+	
 	@Value("${task.upload-dir}")
 	private String uploadDir;
 
-	private static final short ACTIVE_STATUS = 1;
 
 	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId) {
 		boolean hasActiveClient = clientRepository.existsByManagerIdAndStatus(managerId, ACTIVE_STATUS);
@@ -138,7 +133,8 @@ public class TaskServiceImpl implements TaskService {
 		}
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
-
+	
+	@Override
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
@@ -163,16 +159,7 @@ public class TaskServiceImpl implements TaskService {
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
 			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception {
 		boolean isUpdate = taskId != null;
-//		if (title != null) {
-//			String trimmedTitle = title.trim();
-//			boolean isDuplicate = isUpdate
-//					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
-//					: taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
-//			if (isDuplicate) {
-//				throw new DuplicateTaskTitleException(
-//						"A task with the title '" + trimmedTitle + "' already exists for this client");
-//			}
-//		}
+
 		if (title != null && clientId != null) {
 			String trimmedTitle = title.trim();
 			boolean isDuplicate = isUpdate
@@ -212,13 +199,13 @@ public class TaskServiceImpl implements TaskService {
 		}
 
 		if (pdfFile != null && !pdfFile.isEmpty()) {
-			validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
-			String fileName = saveFile(pdfFile, getExtension(pdfFile));
+			commonFunction.validateFile(pdfFile, ALLOWED_EXTENSIONS_DOC_ONLY);
+			String fileName = commonFunction.saveFile(pdfFile, getExtension(pdfFile));
 			task.setFileName1(fileName);
 		}
 		if (zipFile != null && !zipFile.isEmpty()) {
-			validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
-			String fileName = saveFile(zipFile, getExtension(zipFile));
+			commonFunction.validateFile(zipFile, ALLOWED_EXTENSIONS_DOC_OR_ZIP);
+			String fileName = commonFunction.saveFile(zipFile, getExtension(zipFile));
 			task.setFileName2(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
@@ -234,15 +221,8 @@ public class TaskServiceImpl implements TaskService {
 			action = "Task Added and Assigned to " + assignedUserName;
 		}
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
-//		if (!isUpdate) {
-//			try {
-//				taskMailService.sendTaskAssignedMail(savedTask);
-//			} catch (Exception e) {
-//				logger.debug("{} ERROR FOUND ", e.getMessage());
-//				e.printStackTrace();
-//			}
-//		}
+		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+
 		if (!isUpdate) {
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
@@ -258,101 +238,7 @@ public class TaskServiceImpl implements TaskService {
 		return savedTask;
 	}
 
-	private void validateFile(MultipartFile file, Set<String> allowedExtensions) throws IOException {
-		if (file.getSize() > MAX_FILE_SIZE) {
-			throw new FileValidationException("File size must not exceed 10 MB");
-		}
-		String originalFilename = file.getOriginalFilename();
-		if (originalFilename == null || !originalFilename.contains(".")) {
-			throw new FileValidationException("Invalid file name");
-		}
-		String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
-		if (!allowedExtensions.contains(extension)) {
-			throw new FileValidationException(
-					"Invalid file type. Allowed types: " + String.join(", ", allowedExtensions));
-		}
-		byte[] header = new byte[8];
-		int bytesRead;
-		InputStream is = file.getInputStream();
-		try {
-			bytesRead = is.read(header);
-		} finally {
-			is.close();
-		}
-		if (bytesRead < 4) {
-			throw new FileValidationException("Corrupted or empty file");
-		}
-		if ("pdf".equals(extension)) {
-			String magic = new String(header, 0, 4);
-			if (!magic.startsWith("%PDF")) {
-				throw new FileValidationException("Corrupted PDF file");
-			}
-		} else if ("zip".equals(extension) || "docx".equals(extension) || "xlsx".equals(extension)) {
-			if (header[0] != 'P' || header[1] != 'K') {
-				throw new FileValidationException("Corrupted " + extension.toUpperCase() + " file");
-			}
-		} else if ("doc".equals(extension)) {
-			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
-					&& (header[3] & 0xFF) == 0xE0;
-			String headerText = new String(header).toLowerCase();
-			boolean isHtmlDoc = headerText.contains("<html") || headerText.contains("<head");
-			boolean isRtfDoc = headerText.startsWith("{\\rtf");
-			if (!isOle2 && !isHtmlDoc && !isRtfDoc) {
-				throw new FileValidationException("Corrupted DOC file");
-			}
-		} else if ("xls".equals(extension)) {
-			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
-					&& (header[3] & 0xFF) == 0xE0;
-			String headerText = new String(header).toLowerCase();
-			boolean isHtmlExcel = headerText.contains("<html") || headerText.contains("<!doctyp")
-					|| headerText.contains("<head");
-			if (!isOle2 && !isHtmlExcel) {
-				throw new FileValidationException("Corrupted XLS file");
-			}
-		} else {
-			throw new FileValidationException("Unsupported file type: " + extension);
-		}
-	}
-
-	private String saveFileNew(MultipartFile file, String type, String statusPrefix) throws IOException {
-		Path directory = Paths.get(uploadDir, type);
-		Files.createDirectories(directory);
-		String originalName = file.getOriginalFilename();
-		String extension = "";
-		String fileNameWithoutExtension = "file";
-		if (originalName != null && !originalName.trim().isEmpty()) {
-			int index = originalName.lastIndexOf(".");
-			if (index >= 0) {
-				extension = originalName.substring(index);
-				fileNameWithoutExtension = originalName.substring(0, index);
-			} else {
-				fileNameWithoutExtension = originalName;
-			}
-		}
-		// Clean original file name
-		fileNameWithoutExtension = fileNameWithoutExtension.replaceAll("[^a-zA-Z0-9_-]", "_");
-		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + extension;
-		Path target = directory.resolve(newFileName);
-		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-		return newFileName;
-	}
-
-	private String saveFile(MultipartFile file, String type) throws IOException {
-		Path directory = Paths.get(uploadDir, type);
-		Files.createDirectories(directory);
-		String originalName = file.getOriginalFilename();
-		String extension = "";
-		if (originalName != null) {
-			int index = originalName.lastIndexOf(".");
-			if (index >= 0) {
-				extension = originalName.substring(index);
-			}
-		}
-		String newFileName = UUID.randomUUID().toString() + extension;
-		Path target = directory.resolve(newFileName);
-		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-		return newFileName;
-	}
+	
 
 	public TaskEditDTO getTaskById(Integer taskId) {
 		List<TransactionEntity> history = commonFunction.getTransactionLogs(10, taskId);
@@ -362,7 +248,7 @@ public class TaskServiceImpl implements TaskService {
 		return taskDto;
 	}
 
-	public ResponseEntity<ResponseApi<String>> deleteTask(int taskId, int createdBy, HttpServletRequest httpRequest) {
+	public ResponseEntity<ResponseApi<String>> deleteTask(int taskId, int createdBy) {
 		Optional<TaskEntity> existingTask = taskRepository.findById(taskId);
 		if (!existingTask.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseApi<>(false, "Task not found", null));
@@ -378,9 +264,7 @@ public class TaskServiceImpl implements TaskService {
 		}
 	}
 
-	private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10 MB
-	private static final Set<String> ALLOWED_EXTENSIONS_DOC_ONLY = Set.of("pdf", "xls", "xlsx", "doc", "docx");
-	private static final Set<String> ALLOWED_EXTENSIONS_DOC_OR_ZIP = Set.of("pdf", "xls", "xlsx", "doc", "docx", "zip");
+	
 
 	@Transactional
 	@Override
@@ -421,13 +305,13 @@ public class TaskServiceImpl implements TaskService {
 		task.setCloseRemarks(dto.getDescription());
 		task.setModificationDate(LocalDateTime.now());
 		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
-			validateFile(dto.getFileName3(), ALLOWED_EXTENSIONS_DOC_ONLY);
-			String fileName = saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()), statusPrefix);
+			commonFunction.validateFile(dto.getFileName3(), ALLOWED_EXTENSIONS_DOC_ONLY);
+			String fileName = commonFunction.saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()), statusPrefix);
 			task.setFileName3(fileName);
 		}
 		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
-			validateFile(dto.getFileName4(), ALLOWED_EXTENSIONS_DOC_OR_ZIP);
-			String fileName = saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()), statusPrefix);
+			commonFunction.validateFile(dto.getFileName4(), ALLOWED_EXTENSIONS_DOC_OR_ZIP);
+			String fileName = commonFunction.saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()), statusPrefix);
 			task.setFileName4(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
@@ -572,4 +456,6 @@ public class TaskServiceImpl implements TaskService {
 	private int toWeeklyOffDay(LocalDate date) {
 		return (date.getDayOfWeek().getValue() % 7) + 1;
 	}
+
+	
 }

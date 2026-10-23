@@ -26,6 +26,7 @@ import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
+import com.webelement.taskapp.service.TaskService;
 import com.webelement.taskapp.service.impl.TaskServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TaskController {
 
-	private final TaskServiceImpl taskService;
+	private final TaskService taskService;
 	private final ClientRepository clientRepository;
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
@@ -50,10 +51,9 @@ public class TaskController {
 	}
 
 	@PostMapping("/deleteTask")
-	public ResponseEntity<ResponseApi<String>> deleteTask(@RequestParam int taskId, @RequestParam int createdBy,
-			HttpServletRequest httpRequest) throws Exception {
+	public ResponseEntity<ResponseApi<String>> deleteTask(@RequestParam int taskId, @RequestParam int createdBy) throws Exception {
 
-		return taskService.deleteTask(taskId, createdBy, httpRequest);
+		return taskService.deleteTask(taskId, createdBy);
 	}
 
 	@GetMapping("/getTaskDetailsById")

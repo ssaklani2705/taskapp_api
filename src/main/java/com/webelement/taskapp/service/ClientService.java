@@ -1,5 +1,4 @@
 package com.webelement.taskapp.service;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,7 +33,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,19 +55,18 @@ import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.repo.StateRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
-	@Autowired
-	private ClientRepository clientRepository;
-	@Autowired
-	private StateRepository stateRepository;
-	@Autowired
-	private UserLoginRepository userLoginRepository;
-	@Autowired
-	private PlanRepo planRepo;
-	@Autowired
-	private CommonFunction commonFunction;
+	private final ClientRepository clientRepository;
+	private final StateRepository stateRepository;
+	private final UserLoginRepository userLoginRepository;
+	private final PlanRepo planRepo;	
+	private final CommonFunction commonFunction;
+	
 	@Value("${client_file_path}")
 	private String uploadBasePath;
 
@@ -871,16 +868,13 @@ public class ClientService {
 	// For Index
 	public List<ClientDTO> getClientsForRecurringForIndex(Integer userId, String isAdmin, String loginType) {
 		List<ClientEntity> clients;
-		// MANAGER
+		
 		if ("manager".equalsIgnoreCase(loginType)) {
 			clients = clientRepository.findByManagerIdAndStatusForIndex(userId);
-//			clients = clientRepository.findByStatus(activeStatus);
 		}
-		// NON-MANAGER + ADMIN
 		else if ("Y".equalsIgnoreCase(isAdmin)) {
 			clients = clientRepository.findByStatusForIndex();
 		}
-		// NON-MANAGER + NON-ADMIN
 		else {
 			clients = clientRepository.findByUserIdAndStatusForIndex(userId);
 		}
@@ -888,7 +882,6 @@ public class ClientService {
 				.collect(Collectors.toList());
 	}
 
-	// Manager Change
 	@Transactional
 	public void changeClientManager(Integer clientId, Integer managerId, Integer userId,
 			HttpServletRequest httpRequest) {

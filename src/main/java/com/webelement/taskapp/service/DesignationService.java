@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.webelement.taskapp.Exceptions.ApiException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.DesignationDTO;
@@ -20,16 +22,14 @@ import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class DesignationService {
-
-	@Autowired
-	private DesignationRepository designationRepository;
-	@Autowired
-	private CommonFunction commonFunction;
-	@Autowired
-	private UserLoginRepository userLoginRepository;
-
+	private final DesignationRepository designationRepository;
+	private final CommonFunction commonFunction;
+	private final UserLoginRepository userLoginRepository;
 	public ApiResponse<DesignationDTO> addOrUpdate(DesignationDTO dto, HttpServletRequest httpRequest) {
 		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
 		String name = dto.getName() != null ? dto.getName().trim() : "";
@@ -79,8 +79,7 @@ public class DesignationService {
 		responseDTO.setRegdate(saved.getRegdate());
 		responseDTO.setModdate(saved.getModdate());
 		String action = isNew ? "Designation Added" : "Designation Updated";
-		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 3, saved.getDesignationId(), -1);
+		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 3, saved.getDesignationId(), -1);
 		return new ApiResponse<>(true, "Designation saved successfully", responseDTO);
 	}
 
@@ -110,13 +109,12 @@ public class DesignationService {
 			HttpServletRequest httpRequest) {
 		Optional<DesignationEntity> existing = designationRepository.findById(desigmationId);
 		if (!existing.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ApiResponse<>(false, "Designation not found", null));
+			throw ApiException.notFound("Designation not found");
 		}
 		boolean isDesignationInUse = userLoginRepository.existsByDesignationIdAndStatusNot(desigmationId, 3);
 		if (isDesignationInUse) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
-					"Designation is assigned to one or more users and cannot be deleted", null));
+			
+		throw ApiException.conflictedException("Designation is assigned to one or more users and cannot be deleted");
 		}
 		int updatedRows = designationRepository.softDelete(3, desigmationId);
 		if (updatedRows > 0) {
@@ -124,8 +122,7 @@ public class DesignationService {
 					commonFunction.getLocalIp(), "Designation Deleted", 3, desigmationId, -1);
 			return ResponseEntity.ok(new ApiResponse<>(true, "Designation deleted successfully", null));
 		}
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(new ApiResponse<>(false, "Failed to delete designation", null));
+		throw ApiException.internal("Failed to delete designation",null);
 	}
 
 	public List<DesignationDTO> getActiveDesigmations() {

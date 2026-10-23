@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.PlanDTO;
 import com.webelement.taskapp.entity.PlanEntity;
+import com.webelement.taskapp.service.PlanService;
 import com.webelement.taskapp.service.impl.PlanServiceImpl;
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PlanController {
 
-	private final PlanServiceImpl planService;
+	private final PlanService planService;
 
 	@PostMapping("/add_or_Update")
 	public ResponseEntity<ApiResponse<PlanDTO>> addOrUpdate(@RequestBody PlanDTO dto) {

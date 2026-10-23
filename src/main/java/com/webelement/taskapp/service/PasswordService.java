@@ -2,17 +2,22 @@ package com.webelement.taskapp.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.webelement.taskapp.common.CommonFunction;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class PasswordService {
 
+	private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
     private final CommonFunction commonFunction;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+    
+    public PasswordService(@Lazy CommonFunction commonFunction) {
+		this.commonFunction = commonFunction;
+	}
 
     public String hash(String raw) {
         return encoder.encode(raw);

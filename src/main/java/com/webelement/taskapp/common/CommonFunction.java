@@ -4,10 +4,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -19,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -31,13 +36,20 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.webelement.taskapp.Exceptions.FileValidationException;
+import com.webelement.taskapp.dto.ModulePermissionDTO;
 import com.webelement.taskapp.dto.TaskMailDTO;
+import com.webelement.taskapp.dto.UserInfo;
 import com.webelement.taskapp.entity.MailLogEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.MailLogRepo;
 import com.webelement.taskapp.repo.TransactionRepo;
 import com.webelement.taskapp.repo.UserLoginRepository;
+import com.webelement.taskapp.service.PasswordService;
+
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -45,11 +57,12 @@ import lombok.RequiredArgsConstructor;
 public class CommonFunction {
 
 	static final Logger logger = LoggerFactory.getLogger(CommonFunction.class);
-
+	long MAX_FILE_SIZE = 10L * 1024 * 1024;
 	private final MailLogRepo logRepo;
 	private final ResourceLoader resourceLoader;
 	private final TransactionRepo transactionRepo;
 	private final UserLoginRepository userLoginRepository;
+	private final PasswordService passwordService;
 
 	@Value("${ipflag:}")
 	private String ipFlag;
@@ -62,6 +75,9 @@ public class CommonFunction {
 
 	@Value("${pdffilepath}")
 	private String templatePath;
+
+	@Value("${task.upload-dir}")
+	private String uploadDir;
 
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = userLoginRepository.getTransactionLogs(moduleId, recordId);
@@ -491,4 +507,146 @@ public class CommonFunction {
 	public String formatNow() {
 		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
 	}
+
+	public boolean anyPermissionGranted(ModulePermissionDTO dto) {
+		return "Y".equalsIgnoreCase(dto.getViewPer()) || "Y".equalsIgnoreCase(dto.getAddPer())
+				|| "Y".equalsIgnoreCase(dto.getEditPer()) || "Y".equalsIgnoreCase(dto.getDeletePer())
+				|| "Y".equalsIgnoreCase(dto.getApprovePer()) || "Y".equalsIgnoreCase(dto.getAdminApprovePer())
+				|| "Y".equalsIgnoreCase(dto.getExportExcel());
+	}
+
+	public String getString(Object obj) {
+		return obj != null ? obj.toString() : "";
+	}
+
+	public Integer getInt(Object obj) {
+		return obj instanceof Number ? ((Number) obj).intValue() : 0;
+	}
+
+	public UserInfo getUserAccess(String username, String password, String ip, String logintype) {
+		List<Map<String, Object>> results = userLoginRepository.findActiveLoginByEmail(username, logintype);
+		if (results.isEmpty()) {
+			return null;
+		}
+		Map<String, Object> row = results.get(0);
+		String stored = (String) row.get("storedPassword");
+		if (!passwordService.matches(password, stored)) {
+			return null;
+		}
+
+		Integer userId = ((Number) row.get("i_userid")).intValue();
+		if (!passwordService.isHashed(stored)) { // upgrade on first good login
+			userLoginRepository.updatePasswordHash(userId, passwordService.hash(password));
+		}
+
+		UserInfo info = new UserInfo(userId, (String) row.get("s_firstname"), (String) row.get("s_email"),
+				(String) row.get("s_mobileno"), ((Number) row.get("d_expirydate")).intValue(),
+				(String) row.get("s_permission"), (String) row.get("designationName"), (String) row.get("isHod"));
+		info.setTaskcategoryIds((String) row.get("taskcategoryIds"));
+		return info;
+	}
+
+	public String escapeApostrophes(String input) {
+		if (input == null) {
+			return "";
+		}
+		return input.replace("'", "''");
+	}
+
+	public void validateFile(MultipartFile file, Set<String> allowedExtensions) throws IOException {
+		if (file.getSize() > MAX_FILE_SIZE) {
+			throw new FileValidationException("File size must not exceed 10 MB");
+		}
+		String originalFilename = file.getOriginalFilename();
+		if (originalFilename == null || !originalFilename.contains(".")) {
+			throw new FileValidationException("Invalid file name");
+		}
+		String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+		if (!allowedExtensions.contains(extension)) {
+			throw new FileValidationException(
+					"Invalid file type. Allowed types: " + String.join(", ", allowedExtensions));
+		}
+		byte[] header = new byte[8];
+		int bytesRead;
+		InputStream is = file.getInputStream();
+		try {
+			bytesRead = is.read(header);
+		} finally {
+			is.close();
+		}
+		if (bytesRead < 4) {
+			throw new FileValidationException("Corrupted or empty file");
+		}
+		if ("pdf".equals(extension)) {
+			String magic = new String(header, 0, 4);
+			if (!magic.startsWith("%PDF")) {
+				throw new FileValidationException("Corrupted PDF file");
+			}
+		} else if ("zip".equals(extension) || "docx".equals(extension) || "xlsx".equals(extension)) {
+			if (header[0] != 'P' || header[1] != 'K') {
+				throw new FileValidationException("Corrupted " + extension.toUpperCase() + " file");
+			}
+		} else if ("doc".equals(extension)) {
+			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
+					&& (header[3] & 0xFF) == 0xE0;
+			String headerText = new String(header).toLowerCase();
+			boolean isHtmlDoc = headerText.contains("<html") || headerText.contains("<head");
+			boolean isRtfDoc = headerText.startsWith("{\\rtf");
+			if (!isOle2 && !isHtmlDoc && !isRtfDoc) {
+				throw new FileValidationException("Corrupted DOC file");
+			}
+		} else if ("xls".equals(extension)) {
+			boolean isOle2 = (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF && (header[2] & 0xFF) == 0x11
+					&& (header[3] & 0xFF) == 0xE0;
+			String headerText = new String(header).toLowerCase();
+			boolean isHtmlExcel = headerText.contains("<html") || headerText.contains("<!doctyp")
+					|| headerText.contains("<head");
+			if (!isOle2 && !isHtmlExcel) {
+				throw new FileValidationException("Corrupted XLS file");
+			}
+		} else {
+			throw new FileValidationException("Unsupported file type: " + extension);
+		}
+	}
+
+	public String saveFileNew(MultipartFile file, String type, String statusPrefix) throws IOException {
+		Path directory = Paths.get(uploadDir, type);
+		Files.createDirectories(directory);
+		String originalName = file.getOriginalFilename();
+		String extension = "";
+		String fileNameWithoutExtension = "file";
+		if (originalName != null && !originalName.trim().isEmpty()) {
+			int index = originalName.lastIndexOf(".");
+			if (index >= 0) {
+				extension = originalName.substring(index);
+				fileNameWithoutExtension = originalName.substring(0, index);
+			} else {
+				fileNameWithoutExtension = originalName;
+			}
+		}
+		// Clean original file name
+		fileNameWithoutExtension = fileNameWithoutExtension.replaceAll("[^a-zA-Z0-9_-]", "_");
+		String newFileName = statusPrefix + "_" + System.currentTimeMillis() + extension;
+		Path target = directory.resolve(newFileName);
+		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+		return newFileName;
+	}
+
+	public String saveFile(MultipartFile file, String type) throws IOException {
+		Path directory = Paths.get(uploadDir, type);
+		Files.createDirectories(directory);
+		String originalName = file.getOriginalFilename();
+		String extension = "";
+		if (originalName != null) {
+			int index = originalName.lastIndexOf(".");
+			if (index >= 0) {
+				extension = originalName.substring(index);
+			}
+		}
+		String newFileName = UUID.randomUUID().toString() + extension;
+		Path target = directory.resolve(newFileName);
+		Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+		return newFileName;
+	}
+
 }
