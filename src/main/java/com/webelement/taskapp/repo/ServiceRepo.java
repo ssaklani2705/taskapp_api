@@ -47,4 +47,6 @@ public interface ServiceRepo extends JpaRepository<ServiceEntity, Integer> {
     @Query("SELECT s.serviceId FROM ServiceEntity s "
             + "WHERE LOWER(s.name) = LOWER(:name) AND s.status = 1")
     Integer findIdByName(@Param("name") String name);
+    
+    List<ServiceEntity> findByStatus(Integer status);
 }

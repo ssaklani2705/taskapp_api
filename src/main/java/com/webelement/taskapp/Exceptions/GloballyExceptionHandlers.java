@@ -3,6 +3,7 @@ package com.webelement.taskapp.Exceptions;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.webelement.taskapp.common.ResponseApi;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,11 @@ public class GloballyExceptionHandlers {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(new ResponseApi<>(false, "Something went wrong", ex.getMessage()));
 	}
+	
+	@ExceptionHandler(DuplicateTitleException.class)
+    public ResponseEntity<ResponseApi<String>> handleDuplicateTaskTitleException(DuplicateTaskTitleException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseApi<>(false, ex.getMessage(), null));
+    }
 
 	@ExceptionHandler(FileDownloadException.class)
 	public ResponseEntity<Map<String, Object>> handleFileDownloadException(FileDownloadException ex) {

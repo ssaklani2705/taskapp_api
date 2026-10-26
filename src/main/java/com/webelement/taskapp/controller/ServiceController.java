@@ -29,6 +29,11 @@ import lombok.RequiredArgsConstructor;
 public class ServiceController {
 
     private final ServiceService serviceService;
+    
+    @GetMapping("/active")
+    public ResponseEntity<List<ServiceEntity>> getActiveServices() {
+        return ResponseEntity.ok(serviceService.getActiveServices());
+    }
 
     @PostMapping("/add_or_Update")
     public ResponseEntity<ApiResponse<ServiceDTO>> addOrUpdate(

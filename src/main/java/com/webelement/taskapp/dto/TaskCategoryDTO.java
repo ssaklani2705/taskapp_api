@@ -17,6 +17,8 @@ public class TaskCategoryDTO {
 	private Integer userId;
 	private Timestamp regdate;
 	private Timestamp moddate;
+	
+	private Integer serviceId;
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private String dueDateTime;
@@ -146,6 +148,14 @@ public class TaskCategoryDTO {
 
 		this.transactionHistory = transactionHistory;
 	}
+	
+	public Integer getServiceId() {
+	    return serviceId;
+	}
+
+	public void setServiceId(Integer serviceId) {
+	    this.serviceId = serviceId;
+	}
 
 	/*
 	 * Constructor for active dropdown with department
@@ -167,5 +177,33 @@ public class TaskCategoryDTO {
 		this.departmentId = departmentId;
 		this.departmentName = departmentName;
 		this.dueDateTime = dueDateTime;
+	}
+	
+	public TaskCategoryDTO(
+	        int taskcategoryId,
+	        int departmentId,
+	        String departmentName,
+	        String name,
+	        int status,
+	        int userId,
+	        Date regdate,
+	        Date moddate,
+	        Integer serviceId) {
+
+	    this.taskcategoryId = taskcategoryId;
+	    this.departmentId = departmentId;
+	    this.departmentName = departmentName;
+	    this.name = name;
+	    this.status = status;
+	    this.userId = userId;
+	    this.serviceId = serviceId;
+
+	    if (regdate != null) {
+	        this.regdate = new Timestamp(regdate.getTime());
+	    }
+
+	    if (moddate != null) {
+	        this.moddate = new Timestamp(moddate.getTime());
+	    }
 	}
 }

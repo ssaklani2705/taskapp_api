@@ -24,4 +24,6 @@ public class UpdateTaskStatusDTO {
 
 	private MultipartFile fileName4;
 	private Integer userId;
+	
+	private Double rating; // 0.5 - 5.0, only for Assignor Closure
 }

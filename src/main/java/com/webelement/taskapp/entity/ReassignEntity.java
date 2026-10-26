@@ -24,7 +24,7 @@ public class ReassignEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "i_reassignid", nullable = false)
+	@Column(name = "i_reassignid")
 	private Integer reassignId;
 	
 	@Column(name = "i_taskid", nullable = false)

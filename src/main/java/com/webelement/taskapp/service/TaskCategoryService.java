@@ -86,6 +86,7 @@ public class TaskCategoryService {
 			entity.setDepartmentId(dto.getDepartmentId());
 			entity.setName(name);
 			entity.setUserId(dto.getUserId());
+			entity.setServiceId(dto.getServiceId());
 
 			entity.setDuedatetime(dto.getDueDateTime());
 
@@ -102,6 +103,7 @@ public class TaskCategoryService {
 			entity = new TaskCategoryEntity();
 
 			entity.setDepartmentId(dto.getDepartmentId());
+			entity.setServiceId(dto.getServiceId());
 			entity.setName(name);
 			entity.setUserId(dto.getUserId());
 			entity.setStatus(1);
@@ -152,6 +154,7 @@ public class TaskCategoryService {
 		dto.setRegdate(entity.getRegdate());
 		dto.setModdate(entity.getModdate());
 		dto.setDueDateTime(entity.getDuedatetime());
+		dto.setServiceId(entity.getServiceId());
 		/*
 		 * Get Department Name
 		 */

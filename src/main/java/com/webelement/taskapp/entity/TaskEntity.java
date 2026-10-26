@@ -116,5 +116,8 @@ public class TaskEntity {
 	
 	@Column(name = "i_usertype")
 	private Integer userType;   // 1 = Employee, 2 = Manager
+	
+	@Column(name = "d_rating")
+	private Double rating;
 
 }

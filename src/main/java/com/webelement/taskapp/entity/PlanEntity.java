@@ -43,4 +43,7 @@ public class PlanEntity {
 
 	@Column(name = "ts_moddate")
 	private LocalDateTime modificationDate;
+	
+	@Column(name = "s_serviceids")
+	private String serviceIds;
 }

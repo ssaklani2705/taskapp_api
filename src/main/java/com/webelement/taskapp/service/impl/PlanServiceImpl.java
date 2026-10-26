@@ -1,8 +1,13 @@
 package com.webelement.taskapp.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,8 +17,10 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.PlanDTO;
 import com.webelement.taskapp.entity.PlanEntity;
+import com.webelement.taskapp.entity.ServiceEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.PlanRepo;
+import com.webelement.taskapp.repo.ServiceRepo;
 import com.webelement.taskapp.service.PlanService;
 import lombok.RequiredArgsConstructor;
 
@@ -25,47 +32,89 @@ public class PlanServiceImpl implements PlanService {
 	private final PlanRepo planRepo;
 	private final CommonFunction commonFunction;
 	private final HttpServletRequest httpRequest;
+	private final ServiceRepo serviceRepo;
 
 	@Override
 	public ApiResponse<PlanDTO> addOrUpdate(PlanDTO request) {
-		LocalDateTime now = LocalDateTime.now();
-		String name = request.getName() != null ? request.getName().trim() : "";
-		boolean isNew = request.getPlanId() == null || request.getPlanId() == 0;
-		if (isNew) {
-			if (planRepo.existsByNameIgnoreCaseAndStatusNot(name, (short) 3)) {
-				return new ApiResponse<>(false, "A plan with this name already exists", null);
-			}
-		} else {
-			List<PlanEntity> duplicates = planRepo.findByNameIgnoreCase(name);
-			boolean exists = duplicates.stream().anyMatch(
-					duplicate -> !duplicate.getPlanId().equals(request.getPlanId()) && duplicate.getStatus() != 3);
-			if (exists) {
-				return new ApiResponse<>(false, "A plan with this name already exists", null);
-			}
-		}
 
-		PlanEntity entity;
-		if (!isNew) {
-			entity = planRepo.findById(request.getPlanId())
-					.orElseThrow(() -> new RuntimeException("Plan record not found"));
-			entity.setName(name);
-			entity.setRate(request.getRate());
-			entity.setDescription(request.getDescription());
-			entity.setStatus(request.getStatus());
-			entity.setModificationDate(now);
-		} else {
-			entity = new PlanEntity();
-			entity.setName(name);
-			entity.setRate(request.getRate());
-			entity.setDescription(request.getDescription());
-			entity.setStatus(request.getStatus() != null ? request.getStatus() : (short) 1);
-			entity.setRegistrationDate(now);
-		}
-		PlanEntity saved = planRepo.save(entity);
-		String action = isNew ? "Plan Added" : "Plan Updated";
-		commonFunction.createHistoryAccess(request.getUserId(), commonFunction.resolveClientIp(httpRequest),
-				commonFunction.getLocalIp(), action, 9, saved.getPlanId(), -1);
-		return new ApiResponse<>(true, "Plan saved successfully", null);
+	    LocalDateTime now = LocalDateTime.now();
+	    String name = request.getName() != null
+	            ? request.getName().trim()
+	            : "";
+
+	    boolean isNew = request.getPlanId() == null || request.getPlanId() == 0;
+
+	    if (isNew) {
+	        if (planRepo.existsByNameIgnoreCaseAndStatusNot(name, (short) 3)) {
+	            return new ApiResponse<>(
+	                    false,
+	                    "A plan with this name already exists",
+	                    null);
+	        }
+	    } else {
+	        List<PlanEntity> duplicates = planRepo.findByNameIgnoreCase(name);
+
+	        boolean exists = duplicates.stream().anyMatch(
+	                duplicate -> !duplicate.getPlanId().equals(request.getPlanId())
+	                        && duplicate.getStatus() != 3);
+
+	        if (exists) {
+	            return new ApiResponse<>(
+	                    false,
+	                    "A plan with this name already exists",
+	                    null);
+	        }
+	    }
+
+	    // Convert selected service IDs to comma-separated string: "1,2,34"
+	    String serviceIds = request.getServiceIds() != null
+	            ? request.getServiceIds().stream()
+	                    .filter(Objects::nonNull)
+	                    .distinct()
+	                    .map(String::valueOf)
+	                    .collect(Collectors.joining(","))
+	            : "";
+
+	    PlanEntity entity;
+
+	    if (!isNew) {
+	        entity = planRepo.findById(request.getPlanId())
+	                .orElseThrow(() -> new RuntimeException("Plan record not found"));
+
+	        entity.setName(name);
+	        entity.setRate(request.getRate());
+	        entity.setDescription(request.getDescription());
+	        entity.setStatus(request.getStatus());
+	        entity.setServiceIds(serviceIds);
+	        entity.setModificationDate(now);
+
+	    } else {
+	        entity = new PlanEntity();
+
+	        entity.setName(name);
+	        entity.setRate(request.getRate());
+	        entity.setDescription(request.getDescription());
+	        entity.setStatus(request.getStatus() != null
+	                ? request.getStatus()
+	                : (short) 1);
+	        entity.setServiceIds(serviceIds);
+	        entity.setRegistrationDate(now);
+	    }
+
+	    PlanEntity saved = planRepo.save(entity);
+
+	    String action = isNew ? "Plan Added" : "Plan Updated";
+
+	    commonFunction.createHistoryAccess(
+	            request.getUserId(),
+	            commonFunction.resolveClientIp(httpRequest),
+	            commonFunction.getLocalIp(),
+	            action,
+	            9,
+	            saved.getPlanId(),
+	            -1);
+
+	    return new ApiResponse<>(true, "Plan saved successfully", null);
 	}
 
 	@Override
@@ -88,19 +137,55 @@ public class PlanServiceImpl implements PlanService {
 		return new ApiResponse<>(false, "Plan delete failed", null);
 	}
 
+//	@Override
+//	public ApiResponse<PlanDTO> getById(Integer planId) {
+//		PlanEntity entity = planRepo.findById(planId).orElse(null);
+//		if (entity == null) {
+//			return new ApiResponse<>(false, "Plan record not found", null);
+//		}
+//		PlanDTO dto = PlanDTO.builder().planId(entity.getPlanId()).name(entity.getName()).rate(entity.getRate())
+//				.description(entity.getDescription()).status(entity.getStatus()).build();
+//		List<TransactionEntity> history = commonFunction.getTransactionLogs(9, planId);
+//		if (history != null && !history.isEmpty()) {
+//			dto.setTransactionHistory(history);
+//		}
+//		return new ApiResponse<>(true, "Plan fetched successfully", dto);
+//	}
 	@Override
 	public ApiResponse<PlanDTO> getById(Integer planId) {
-		PlanEntity entity = planRepo.findById(planId).orElse(null);
-		if (entity == null) {
-			return new ApiResponse<>(false, "Plan record not found", null);
-		}
-		PlanDTO dto = PlanDTO.builder().planId(entity.getPlanId()).name(entity.getName()).rate(entity.getRate())
-				.description(entity.getDescription()).status(entity.getStatus()).build();
-		List<TransactionEntity> history = commonFunction.getTransactionLogs(9, planId);
-		if (history != null && !history.isEmpty()) {
-			dto.setTransactionHistory(history);
-		}
-		return new ApiResponse<>(true, "Plan fetched successfully", dto);
+
+	    PlanEntity entity = planRepo.findById(planId).orElse(null);
+
+	    if (entity == null) {
+	        return new ApiResponse<>(false, "Plan record not found", null);
+	    }
+
+	    List<Integer> serviceIds = entity.getServiceIds() == null
+	            || entity.getServiceIds().trim().isEmpty()
+	            ? new ArrayList<>()
+	            : Arrays.stream(entity.getServiceIds().split(","))
+	                    .map(String::trim)
+	                    .filter(id -> !id.isEmpty())
+	                    .map(Integer::valueOf)
+	                    .collect(Collectors.toList());
+
+	    PlanDTO dto = PlanDTO.builder()
+	            .planId(entity.getPlanId())
+	            .name(entity.getName())
+	            .rate(entity.getRate())
+	            .description(entity.getDescription())
+	            .status(entity.getStatus())
+	            .serviceIds(serviceIds)
+	            .build();
+
+	    List<TransactionEntity> history =
+	            commonFunction.getTransactionLogs(9, planId);
+
+	    if (history != null && !history.isEmpty()) {
+	        dto.setTransactionHistory(history);
+	    }
+
+	    return new ApiResponse<>(true, "Plan fetched successfully", dto);
 	}
 
 	@Override

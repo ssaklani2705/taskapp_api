@@ -37,6 +37,9 @@ public class TaskCategoryEntity {
 
 	@Column(name = "ts_duetime")
 	private String duedatetime;
+	
+	@Column(name = "i_serviceid")
+	private Integer serviceId;
 
 	public TaskCategoryEntity() {
 	}
@@ -104,5 +107,15 @@ public class TaskCategoryEntity {
 	public void setDuedatetime(String duedatetime) {
 		this.duedatetime = duedatetime;
 	}
+
+	public Integer getServiceId() {
+		return serviceId;
+	}
+
+	public void setServiceId(Integer serviceId) {
+		this.serviceId = serviceId;
+	}
+	
+	
 
 }

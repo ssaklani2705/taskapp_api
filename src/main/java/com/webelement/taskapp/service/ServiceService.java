@@ -20,4 +20,6 @@ public interface ServiceService {
             int page, int size, int statusIndex, String search);
 
     List<ServiceEntity> getService();
+    
+    List<ServiceEntity> getActiveServices();
 }

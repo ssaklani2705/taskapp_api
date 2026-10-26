@@ -133,7 +133,7 @@ public class TaskServiceImpl implements TaskService {
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		try {
-			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);
+			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);//issue
 		} catch (Exception e) {
 			logger.debug("{} ERROR FOUND ", e.getMessage());
 			e.printStackTrace();
@@ -281,6 +281,7 @@ public class TaskServiceImpl implements TaskService {
 		Short currentStatus = task.getTaskStatus();
 		Short nextStatus;
 		boolean isReopen = false;
+		boolean isAssignorClosure = false;
 		if (currentStatus == 2 || currentStatus == 4) {
 			Short selectedStatus = Short.valueOf(dto.getSelectedTaskStatusId());
 			if (selectedStatus == 3) {
@@ -291,6 +292,13 @@ public class TaskServiceImpl implements TaskService {
 				}
 				task.setReopenCount(reopenCount + 1);
 			}
+			
+			if (selectedStatus == 5) {
+				isAssignorClosure = true;
+				validateRating(dto.getRating());
+			}
+			
+			
 			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
 			if (nextStatus == null) {
 				throw new RuntimeException("Please select a valid task status.");
@@ -304,6 +312,12 @@ public class TaskServiceImpl implements TaskService {
 				throw new RuntimeException("Invalid task status: " + currentStatus);
 			}
 		}
+		
+		// ... after task.setCloseRemarks(...), task.setModificationDate(...)
+		if (isAssignorClosure) {
+			task.setRating(dto.getRating());
+		}
+		
 		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
 		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
 		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
@@ -327,6 +341,19 @@ public class TaskServiceImpl implements TaskService {
 		logger.debug("Sending mail over here {}", savedTask.toString());
 		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
 		return savedTask;
+	}
+	
+	private void validateRating(Double rating) {
+		if (rating == null) {
+			throw new RuntimeException("Please give a rating before closing the task.");
+		}
+		if (rating < 0.5 || rating > 5.0) {
+			throw new RuntimeException("Rating must be between 0.5 and 5.");
+		}
+		double twice = rating * 2;
+		if (Math.abs(twice - Math.rint(twice)) > 1e-9) {
+			throw new RuntimeException("Rating must be in steps of 0.5 (e.g. 3.5).");
+		}
 	}
 
 	private String getExtension(MultipartFile file) {
@@ -464,20 +491,25 @@ public class TaskServiceImpl implements TaskService {
 		return (date.getDayOfWeek().getValue() % 7) + 1;
 	}
 
+	
 
 	public ReassignEntity objectMapper(TaskReassigneDTO dto) {
 		if (dto == null) {
 			return null;
 		}
+		
+		System.err.print(dto.toString() + "reqst dto ");
 
-		return ReassignEntity.builder().reassignId(dto.getReassignId()).taskId(dto.getTaskId())
+		return ReassignEntity.builder().taskId(dto.getTaskId())
 				.currentUserId(dto.getPreviousAssigneeId()).newUserId(dto.getNewAssigneeId())
 				.status(dto.getStatus()).registrationDate(LocalDateTime.now()).modificationDate(LocalDateTime.now())
 				.build();
 	}
 	
 	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo) {
-
+		
+		System.err.println("{  }" + taskId +" " + oldAssigneeId + " " + assignedTo);
+		
 		TaskReassigneDTO dto = new TaskReassigneDTO();
 		dto.setNewAssigneeId(assignedTo);
 		dto.setPreviousAssigneeId(oldAssigneeId);

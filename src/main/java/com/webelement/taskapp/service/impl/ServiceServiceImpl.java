@@ -29,6 +29,12 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceRepo serviceRepo;
     private final CommonFunction commonFunction;
     private final HttpServletRequest httpRequest;
+    private final ServiceRepo serviceRepository;
+    
+    @Override
+    public List<ServiceEntity> getActiveServices() {
+        return serviceRepository.findByStatus((short)1);
+    }
 
     @Override
     public ApiResponse<ServiceDTO> addOrUpdate(ServiceDTO request) {
