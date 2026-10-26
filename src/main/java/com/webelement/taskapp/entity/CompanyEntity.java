@@ -6,10 +6,18 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +32,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompanyEntity {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "i_companyid", nullable = false)
@@ -35,6 +43,31 @@ public class CompanyEntity {
 
 	@Column(name = "s_companysiteoffice", columnDefinition = "LONGTEXT")
 	private String companySiteOffice;
+
+	@Column(name = "s_addressline1",columnDefinition = "LONGTEXT")
+	private String addressLine1;
+
+	@Column(name = "s_addressline2",columnDefinition = "LONGTEXT")
+	private String addressLine2;
+
+	@Column(name = "s_city")
+	private String city;
+
+	@Column(name = "s_pincode")
+	private String pincode;
+
+	@Column(name = "s_location")
+	private String location;
+
+	@Column(name = "i_stateid")
+	private Integer stateId;
+
+	@Column(name = "s_gstno")
+	private String gstNo;
+
+	@Column(name = "s_pan")
+	private String pan;
+
 	@Column(name = "i_status")
 	private Short status;
 
@@ -43,4 +76,11 @@ public class CompanyEntity {
 
 	@Column(name = "ts_moddate")
 	private LocalDateTime modificationDate;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JoinColumn(name = "i_stateid", insertable = false, updatable = false)
+	private StateEntity state;
+
 }
