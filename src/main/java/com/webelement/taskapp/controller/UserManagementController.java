@@ -21,7 +21,7 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.dto.UserInfo;
 import com.webelement.taskapp.entity.UserLoginEntity;
-
+import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.UserManagementService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class UserManagementController {
 
 	private final UserManagementService userService;
-
+	private final UserLoginRepository accessLogRepo;
 	@GetMapping("/getUserManagementDetails")
 	public Map<String, Object> findBasicUserInfo(@RequestParam() int page, @RequestParam() int size,
 			@RequestParam() int statusIndex, @RequestParam() String search, @RequestParam() int departmentId,
@@ -76,5 +76,11 @@ public class UserManagementController {
 	public ResponseEntity<List<UserActiveDTO>> getActiveUsers() {
 		return ResponseEntity.ok(userService.getActiveUsers());
 	}
+	
+	 @GetMapping("/active_users")
+	    public ResponseEntity<List<UserActiveDTO>> getUsersList() {
+	        return ResponseEntity.ok(accessLogRepo.findAllUsers());
+	    }
+	
 
 }

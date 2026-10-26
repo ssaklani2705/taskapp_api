@@ -172,6 +172,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 	@Query("SELECT c FROM ClientEntity c " + "WHERE c.status = 1 " + "AND c.managerId = :managerId "
 			+ "ORDER BY c.name ASC")
 	List<ClientEntity> findAllActiveClientsByManagerId(@Param("managerId") Integer managerId);
+	
+	
+	
 
 	@Query("SELECT COALESCE(SUM(c.outstanding), 0) " + "FROM ClientEntity c "
 			+ "WHERE c.status = 1 AND (:clientId = 0 OR c.clientId = :clientId) "

@@ -932,4 +932,8 @@ public class ClientService {
 				commonFunction.getLocalIp(), "Outstanding Updated", 8, saved.getClientId(), -1);
 		return new ApiResponse<>(true, "Outstanding updated successfully", saved);
 	}
+	
+	public List<ClientEntity> findAllActiveClients() {
+        return clientRepository.findAllActiveClients();
+    }
 }

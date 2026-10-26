@@ -18,4 +18,6 @@ public class TaskReassigneDTO {
 	private Integer previousAssigneeId;
 	private Integer newAssigneeId;
 	private Short status;
+
+	
 }

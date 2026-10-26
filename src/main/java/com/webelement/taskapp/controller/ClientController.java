@@ -143,4 +143,10 @@ public class ClientController {
 		ApiResponse<ClientEntity> response = clientService.updateClientOutstanding(dto, managerId, httpRequest);
 		return ResponseEntity.ok(response);
 	}
+	
+	
+	@GetMapping("/active_clients")
+    public ResponseEntity<List<ClientEntity>> findAllActiveClients() {
+        return ResponseEntity.ok(clientService.findAllActiveClients());
+    }
 }
