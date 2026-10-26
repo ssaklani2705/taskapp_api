@@ -1,5 +1,6 @@
 package com.webelement.taskapp.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
@@ -17,6 +18,7 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.TaskEntity;
 
@@ -36,7 +38,7 @@ public interface TaskService {
 
 	public TaskEntity saveTask(Integer taskId,Integer userType, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception;
+			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate, Integer buddyId) throws Exception;
 
 	public boolean canDisableChangeManager(TaskEntity task, Integer userId);
 
@@ -51,5 +53,8 @@ public interface TaskService {
 			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter);
 	
 	public TaskEditDTO getTaskById(Integer taskId);
+
+	Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
+			int page, int size);
 	
 }
