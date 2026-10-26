@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.dto.TaskReassigneDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.ReassignEntity;
@@ -80,6 +83,16 @@ public class TaskServiceImpl implements TaskService {
 	
 	@Value("${task.upload-dir}")
 	private String uploadDir;
+	
+	
+	public Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
+            int page, int size) {
+        LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime toDateTime = toDate != null ? toDate.plusDays(1).atStartOfDay() : null;
+        String usernameFilter = (username == null || username.trim().isEmpty()) ? null : username.trim();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+        return taskRepository.findTaskRatingSummary(fromDateTime, toDateTime, usernameFilter, pageable);
+    }
 
 
 	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId) {
@@ -164,8 +177,12 @@ public class TaskServiceImpl implements TaskService {
 	@Override
 	public TaskEntity saveTask(Integer taskId,Integer userType, Integer clientId, LocalDateTime date, Integer taskCategoryId,
 			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate) throws Exception {
+			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate, Integer buddyId) throws Exception {
 		boolean isUpdate = taskId != null;
+		
+		 if (buddyId != null && buddyId.equals(assignedTo)) {
+		        throw new IllegalArgumentException("Buddy cannot be the same as the assigned user.");
+		    }
 
 		if (title != null && clientId != null) {
 			String trimmedTitle = title.trim();
@@ -195,6 +212,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setTaskCategoryId(taskCategoryId);
 		task.setDescription(description);
 		task.setAssignedTo(assignedTo);
+		task.setBuddyId(buddyId);      // ADD
 		task.setPriority(priority);
 		task.setEndDate(endDate);
 		task.setUserType(userType);

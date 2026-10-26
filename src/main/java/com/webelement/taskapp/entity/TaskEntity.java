@@ -119,5 +119,8 @@ public class TaskEntity {
 	
 	@Column(name = "d_rating")
 	private Double rating;
+	
+	@Column(name = "i_buddyid")
+	private Integer buddyId;
 
 }

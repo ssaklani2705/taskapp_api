@@ -9,7 +9,9 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,15 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
+import com.webelement.taskapp.entity.ClientEntity;
+import com.webelement.taskapp.entity.PlanEntity;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.repo.ClientRepository;
+import com.webelement.taskapp.repo.PlanRepo;
 import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 import com.webelement.taskapp.service.TaskService;
@@ -43,6 +49,15 @@ public class TaskController {
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final UserLoginRepository userLoginRepository;
 	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
+	
+	@GetMapping("/rating-summary")
+    public Page<TaskRatingSummaryProjection> getTaskRatingSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String username, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return taskService.getTaskRatingSummary(fromDate, toDate, username, page, size);
+    }
 
 	@PutMapping("/updateAssignedUser")
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(@RequestBody UpdateTaskAssignedUserDTO request) {
@@ -119,32 +134,91 @@ public class TaskController {
 		response.put("totalElements", pageData.getTotalElements());
 		return response;
 	}
+	
+//	@Autowired private ClientRepository clientRepository;
+	@Autowired private PlanRepo planRepository;   // JpaRepository<PlanEntity, Integer>
 
 	@GetMapping("/getTaskFilterDataOnChange")
 	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
-			@RequestParam String loginType, @RequestParam(required = false) Integer clientId, @RequestParam String isHod,
-			@RequestParam(value = "userType", required = false) Integer userType) {
-		Map<String, Object> response = new HashMap<>();
-//		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		boolean managerLogin = "manager".equalsIgnoreCase(loginType);
-	    boolean managerType = userType != null && userType == 2;      // 1 = Employee, 2 = Manager
+	        @RequestParam String loginType, @RequestParam(required = false) Integer clientId,
+	        @RequestParam String isHod,
+	        @RequestParam(value = "userType", required = false) Integer userType) {
 
-//		if ("manager".equalsIgnoreCase(loginType)) {
-	    if (managerLogin || managerType) {
-			// managers do not see categories of departments 2, 3, 4, 5
-			response.put("taskCategories",
-					taskCategoryRepository.findAllActiveTaskCategoriesExcludingDepartments(List.of(2, 3, 4, 5)));
-		} else {
-			response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-		}
-		
-		// Assigned users depend on the client, so load them only when one is selected
-		if (clientId != null && clientId > 0) {
-			response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
-		}
-		return response;
+	    Map<String, Object> response = new HashMap<>();
+
+	    boolean managerLogin = "manager".equalsIgnoreCase(loginType);
+	    boolean managerType = userType != null && userType == 2; // 1 = Employee, 2 = Manager
+	    boolean excludeDepts = managerLogin || managerType;
+
+	    boolean clientSelected = clientId != null && clientId > 0;
+
+	    // Plan-based service filter (only when a client is selected)
+	    boolean filterByPlan = false;
+	    List<Integer> serviceIds = List.of(-1);
+
+	    if (clientSelected) {
+	        Integer planId = clientRepository.findById(clientId)
+	                .map(ClientEntity::getPlanId)
+	                .orElse(null);
+
+	        if (planId != null) {
+	            String csv = planRepository.findById(planId)
+	                    .map(PlanEntity::getServiceIds)
+	                    .orElse(null);
+
+	            List<Integer> parsed = parseIds(csv);
+	            if (!parsed.isEmpty()) {
+	                filterByPlan = true;
+	                serviceIds = parsed;
+	            }
+	        }
+	    }
+
+	    response.put("taskCategories", taskCategoryRepository.findActiveTaskCategoriesFiltered(
+	            excludeDepts, List.of(2, 3, 4, 5), filterByPlan, serviceIds));
+
+	    // Assigned users depend on the client, so load them only when one is selected
+	    if (clientSelected) {
+	        response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+	    }
+	    return response;
 	}
+
+	private List<Integer> parseIds(String csv) {
+	    if (csv == null || csv.trim().isEmpty()) return Collections.emptyList();
+	    return Arrays.stream(csv.split(","))
+	            .map(String::trim)
+	            .filter(s -> !s.isEmpty())
+	            .map(s -> { try { return Integer.valueOf(s); } catch (NumberFormatException e) { return null; } })
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toList());
+	}
+
+//	@GetMapping("/getTaskFilterDataOnChange")
+//	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
+//			@RequestParam String loginType, @RequestParam(required = false) Integer clientId, @RequestParam String isHod,
+//			@RequestParam(value = "userType", required = false) Integer userType) {
+//		Map<String, Object> response = new HashMap<>();
+////		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
+//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+//		boolean managerLogin = "manager".equalsIgnoreCase(loginType);
+//	    boolean managerType = userType != null && userType == 2;      // 1 = Employee, 2 = Manager
+//
+////		if ("manager".equalsIgnoreCase(loginType)) {
+//	    if (managerLogin || managerType) {
+//			// managers do not see categories of departments 2, 3, 4, 5
+//			response.put("taskCategories",
+//					taskCategoryRepository.findAllActiveTaskCategoriesExcludingDepartments(List.of(2, 3, 4, 5)));
+//		} else {
+//			response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
+//		}
+//		
+//		// Assigned users depend on the client, so load them only when one is selected
+//		if (clientId != null && clientId > 0) {
+//			response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
+//		}
+//		return response;
+//	}
 
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
@@ -226,7 +300,8 @@ public class TaskController {
 			@RequestParam Integer assignedTo, @RequestParam Short priority, @RequestParam String title,
 			@RequestParam Integer addedBy, @RequestParam(required = false) Short status,
 			@RequestParam(required = false, name = "fileName1") MultipartFile fileName1,
-			@RequestParam(required = false, name = "fileName2") MultipartFile fileName2, @RequestParam String endDate) {
+			@RequestParam(required = false, name = "fileName2") MultipartFile fileName2, @RequestParam String endDate,
+			@RequestParam(value = "buddyId", required = false) Integer buddyId) {
 		Map<String, Object> response = new HashMap<>();
 		try {
 			boolean isUpdate = taskId != null;
@@ -234,7 +309,7 @@ public class TaskController {
 			LocalDateTime taskStartDate = LocalDateTime.parse(startDate, formatter);
 			LocalDateTime taskEndDate = LocalDateTime.parse(endDate, formatter);
 			TaskEntity savedTask = taskService.saveTask(taskId, userType, clientId, taskStartDate, taskCategoryId, description,
-					assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate);
+					assignedTo, priority, title, addedBy, status, fileName1, fileName2, taskEndDate,buddyId);
 			response.put("success", true);
 			response.put("message", isUpdate ? "Task updated successfully" : "Task created successfully");
 			response.put("data", savedTask);

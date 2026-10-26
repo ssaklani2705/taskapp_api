@@ -171,6 +171,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
+//		Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);     // ADD
 		if (client != null) {
 			Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
 		}
@@ -178,6 +179,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
 		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
+//		UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;   // ADD
 		UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
 		if (assignedUser == null || assignedUser.getEmail() == null || assignedUser.getEmail().trim().isEmpty()) {
 			logger.warn("Assigned user email not found for task {}", task.getTaskId());
@@ -187,6 +189,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		Set<String> ccSet = new LinkedHashSet<>();
 		commonFunction.addEmail(toSet, assignedUser);
 		commonFunction.addEmail(ccSet, addedByUser);
+//		commonFunction.addEmail(ccSet, buddyUser);          // ADD
 		commonFunction.addEmail(ccSet, societyManager);
 		ccSet.removeAll(toSet);
 		String recipientName = commonFunction.getFirstName(assignedUser);

@@ -56,6 +56,20 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	List<TaskCategoryDTO> findAllActiveTaskCategories();
 	
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+		     + "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) "
+		     + "FROM TaskCategoryEntity tc "
+		     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+		     + "WHERE tc.status = 1 "
+		     + "AND (:excludeDeptFlag = false OR tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
+		     + "AND (:filterServiceFlag = false OR tc.serviceId IN (:serviceIds)) "
+		     + "ORDER BY d.name ASC, tc.name ASC")
+		List<TaskCategoryDTO> findActiveTaskCategoriesFiltered(
+		        @Param("excludeDeptFlag") boolean excludeDeptFlag,
+		        @Param("departmentIds") List<Integer> departmentIds,
+		        @Param("filterServiceFlag") boolean filterServiceFlag,
+		        @Param("serviceIds") List<Integer> serviceIds);
+	
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
 			+ "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
 			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 AND (tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
 			+ "ORDER BY d.name ASC, tc.name ASC")

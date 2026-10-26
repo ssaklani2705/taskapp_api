@@ -49,11 +49,13 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
+		Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);      // ADD
 		Optional.ofNullable(request.getUserId()).ifPresent(userIds::add);
 		Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
 				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
 		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
+		UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;   // ADD
 		UserLoginEntity actionUser = userMap.get(request.getUserId());
 		Set<String> toEmails = new LinkedHashSet<>();
 		Set<String> ccEmails = new LinkedHashSet<>();
@@ -73,6 +75,10 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 			commonFunction.addEmail(toEmails, assignedUser);
 			commonFunction.addEmail(ccEmails, addedByUser);
 			recipientUser = assignedUser;
+		}
+		
+		if (buddyUser != null) {
+		    commonFunction.addEmail(ccEmails, buddyUser);
 		}
 		ccEmails.removeAll(toEmails);
 		if (toEmails.isEmpty()) {

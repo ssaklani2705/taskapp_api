@@ -18,6 +18,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
+import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.entity.TaskEntity;
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
@@ -46,21 +47,25 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "t.fileName3, " + "t.fileName4, " + "t.priority, " + "t.status, " + "t.taskCategoryId, " + "t.title, "
 			+ "c.name, " + "tc.name, " + "u.firstName, " // assignedTo user
 			+ "a.firstName, " // addedBy user
-			+ "t.taskStatus," + "t.endDate,t.userType " + ") " + "FROM TaskEntity t " + "LEFT JOIN ClientEntity c "
+			+ "t.taskStatus," + "t.endDate,t.userType,t.buddyId, b.firstName " + ") " 
+			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c "
 			+ "ON c.clientId = t.clientId " + "LEFT JOIN TaskCategoryEntity tc "
 			+ "ON tc.taskcategoryId = t.taskCategoryId " + "LEFT JOIN UserLoginEntity u "
 			+ "ON u.userId = t.assignedTo " + "LEFT JOIN UserLoginEntity a " + "ON a.userId = t.addedBy "
+			+ "LEFT JOIN UserLoginEntity b " + "ON b.userId = t.buddyId "              // ADD
 			+ "WHERE t.taskId = :taskId")
 	Optional<TaskEditDTO> findTaskById(@Param("taskId") Integer taskId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskDetailsDTO(" + "t.taskId, c.managerId, " + "c.name, " + "t.date, "
 			+ "t.endDate, " + "tc.name, " + "COALESCE(u.firstName, '0'), " + "COALESCE(t.priority, 0), " + "t.status, "
 			+ "t.title, " + "COALESCE(t.taskStatus, 0), " + "COALESCE(t.assignedTo, 0), " + "COALESCE(t.addedBy, 0), "
-			+ "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId,t.systemFlag,t.userType" + ") "
+			+ "u1.firstName, " + "t.description, " + "t.clientId, " + "t.taskCategoryId,t.systemFlag,t.userType,t.buddyId, u2.firstName " + ") "
 			+ "FROM TaskEntity t " + "LEFT JOIN ClientEntity c ON c.clientId = t.clientId "
 			+ "LEFT JOIN TaskCategoryEntity tc ON tc.taskcategoryId = t.taskCategoryId "
 			+ "LEFT JOIN UserLoginEntity u ON u.userId = t.assignedTo "
-			+ "LEFT JOIN UserLoginEntity u1 ON u1.userId = t.addedBy " + "WHERE t.taskId > 0 "
+			+ "LEFT JOIN UserLoginEntity u1 ON u1.userId = t.addedBy " 
+			+ "LEFT JOIN UserLoginEntity u2 ON u2.userId = t.buddyId "                  // ADD
+			+ "WHERE t.taskId > 0 "
 			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) " + "AND (" + "     :search IS NULL "
 			+ "     OR :search = '' " + "     OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "     OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
@@ -268,5 +273,22 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        @Param("catIds") List<Integer> catIds,
 	        @Param("allDepts") int allDepts,
 	        @Param("deptIds") List<Integer> deptIds);
+
+	@Query(value = "SELECT " + "u.s_firstname AS name, " + "COUNT(*) AS totalTasks, "
+            + "COUNT(t.d_rating) AS ratedTasks, " + "ROUND(AVG(t.d_rating), 2) AS avgRating " + "FROM t_task t "
+            + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
+            + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) " + "AND (:toDate IS NULL OR t.d_date < :toDate) "
+            + "AND (:username IS NULL OR TRIM(:username) = '' "
+            + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+            + "GROUP BY t.i_assignedto, u.s_firstname "
+            + "ORDER BY u.s_firstname ASC", countQuery = "SELECT COUNT(*) FROM ("
+                    + "SELECT t.i_assignedto, u.s_firstname " + "FROM t_task t "
+                    + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
+                    + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) "
+                    + "AND (:toDate IS NULL OR t.d_date < :toDate) " + "AND (:username IS NULL OR TRIM(:username) = '' "
+                    + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+                    + "GROUP BY t.i_assignedto, u.s_firstname " + ") AS grouped_users", nativeQuery = true)
+    Page<TaskRatingSummaryProjection> findTaskRatingSummary(@Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate, @Param("username") String username, Pageable pageable);
 
 }
