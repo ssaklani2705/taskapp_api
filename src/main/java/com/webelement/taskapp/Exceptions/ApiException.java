@@ -19,7 +19,6 @@ public class ApiException extends RuntimeException{
         return status;
     }
 
-    // Shortcuts so you don't write HttpStatus every time
     public static ApiException badRequest(String message) {
         return new ApiException(HttpStatus.BAD_REQUEST, message);
     }

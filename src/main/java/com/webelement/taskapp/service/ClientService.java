@@ -194,7 +194,6 @@ public class ClientService {
 		return clientRepository.findClientDetails(pageable, statusFilter, managerFilter, stateFilter, planFilter,
 				gstFlag, taxFlag, fromDate, toDate, clientName, clientCode, contactName, contactEmail, search);
 	}
-
 	@Transactional
 	public ResponseEntity<ResponseApi<String>> deleteClient(Integer clientId, Integer userId,
 			HttpServletRequest httpRequest) {
