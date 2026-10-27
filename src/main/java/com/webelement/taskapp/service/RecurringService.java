@@ -51,6 +51,20 @@ public class RecurringService {
 			throw new RuntimeException("Please select a time.");
 		}
 		validateRecurringType(dto);
+		
+		String title = dto.getTitle() == null ? null : dto.getTitle().trim();
+
+		if (title != null && !title.isEmpty()) {
+		    boolean isDuplicate = isNew
+		            ? recurringRepository.existsDuplicateTitle(title, dto.getClientId())
+		            : recurringRepository.existsDuplicateTitleExcludingId(title, dto.getClientId(), dto.getRecurringId());
+
+		    if (isDuplicate) {
+		        throw new RuntimeException(
+		                "A recurring task with the title '" + title + "' already exists for this client");
+		    }
+		}
+		
 		RecurringEntity recurring;
 		if (isNew) {
 			recurring = new RecurringEntity();

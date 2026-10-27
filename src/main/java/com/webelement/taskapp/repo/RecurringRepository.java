@@ -47,4 +47,16 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 			+ "ON r.clientId = c.clientId " + "LEFT JOIN TaskCategoryEntity tc " + "ON r.taskCatId = tc.taskcategoryId "
 			+ "WHERE r.recurringId = :recurringId")
 	RecurringDTO getRecurringById(@Param("recurringId") Integer recurringId);
+	
+	@Query("SELECT COUNT(r) > 0 FROM RecurringEntity r "
+		     + "WHERE LOWER(r.title) = LOWER(:title) AND r.clientId = :clientId AND r.status <> 3")
+		boolean existsDuplicateTitle(@Param("title") String title,
+		                             @Param("clientId") Integer clientId);
+
+		@Query("SELECT COUNT(r) > 0 FROM RecurringEntity r "
+		     + "WHERE LOWER(r.title) = LOWER(:title) AND r.clientId = :clientId AND r.status <> 3 "
+		     + "AND r.recurringId <> :recurringId")
+		boolean existsDuplicateTitleExcludingId(@Param("title") String title,
+		                                        @Param("clientId") Integer clientId,
+		                                        @Param("recurringId") Integer recurringId);
 }

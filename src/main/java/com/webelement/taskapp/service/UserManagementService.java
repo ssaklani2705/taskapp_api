@@ -283,7 +283,8 @@ public class UserManagementService {
 						.collect(Collectors.joining(" "));
 			}
 
-			user.setCompanyId(info.getCompanyId());			
+			user.setCompanyId(info.getCompanyId());
+			user.setShiftId(info.getShiftId());
 			user.setFirstName(formattedName);
 			user.setMobileNo(info.getMobileNo());
 			user.setEmail(info.getEmail());
@@ -316,6 +317,7 @@ public class UserManagementService {
 		UserLoginEntity existing = loginRepository.findById(request.getUserId())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 		existing.setCompanyId(request.getCompanyId());
+		existing.setShiftId(request.getShiftId());
 		existing.setFirstName(request.getFirstName());
 		existing.setMobileNo(request.getMobileNo());
 		existing.setExpiryDate(request.getExpiryDate());

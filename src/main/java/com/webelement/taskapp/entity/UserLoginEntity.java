@@ -137,6 +137,9 @@ public class UserLoginEntity {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_companyid", insertable = false, updatable = false)
 	private CompanyEntity company;
+	
+	@Column(name = "i_shiftid")
+	private Integer shiftId;          // NEW
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,
