@@ -43,6 +43,9 @@ public interface CompanyRepo extends JpaRepository<CompanyEntity, Integer> {
 	
 	@Query(value = "SELECT COUNT(*) FROM tbl_client WHERE i_companyid = :companyId AND i_status <> 3", nativeQuery = true)
 	Integer existsByCompanyId(@Param("companyId") Integer companyId);
+	
+	@Query("SELECT c FROM CompanyEntity c WHERE c.status= 1 ORDER BY c.companyName")
+	List<CompanyEntity> activeCompany(); 
 
 	@Modifying
 	@Transactional

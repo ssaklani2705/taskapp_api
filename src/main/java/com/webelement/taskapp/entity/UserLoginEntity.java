@@ -1,6 +1,7 @@
 package com.webelement.taskapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webelement.taskapp.dto.ModulePermissionDTO;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +16,9 @@ import java.util.Date;
 import java.util.List;
 
 import javax.persistence.*;
+
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 @Entity
 @Table(name = "t_userlogin")
@@ -76,7 +80,10 @@ public class UserLoginEntity {
 
 	@Column(name = "s_taskcategoryIds")
 	private String taskcategoryIds;
-
+	
+	@Column(name = "i_companyId")
+	private Integer companyId;
+	
 	@Transient
 	private List<Integer> categoryIds;
 
@@ -123,6 +130,13 @@ public class UserLoginEntity {
 
 	@Transient
 	private List<Integer> weeklyOffIds; // for the edit form
+	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JoinColumn(name = "i_companyid", insertable = false, updatable = false)
+	private CompanyEntity company;
 
 	public UserLoginEntity(Integer userId, String firstName, String mobileNo, String email, String password,
 			String telephone, Date expiryDate, String permission, int status, Timestamp regDate, Timestamp modDate,

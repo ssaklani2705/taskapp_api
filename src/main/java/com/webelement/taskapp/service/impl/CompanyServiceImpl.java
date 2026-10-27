@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.common.CommonFunction;
@@ -153,5 +154,10 @@ public class CompanyServiceImpl implements CompanyService {
 		dto.setPan(e.getPan());
 		dto.setStatus(e.getStatus());
 		return dto;
+	}
+
+	@Override
+	public ResponseEntity<List<CompanyEntity>> findActiveCompany() {
+		  return ResponseEntity.ok(companyRepo.activeCompany());
 	}
 }

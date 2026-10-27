@@ -26,6 +26,7 @@ public class UserInfo {
 	private String taskcategoryIds;
 	private String isHod;
 	private String weeklyOffNames;
+	private String companyName;
 
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
 			String designationName, String isHod) {
@@ -42,7 +43,7 @@ public class UserInfo {
 
 	// Used by findBasicUserInfo query (last argument is u.weeklyOff, a Short)
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
-			String departmentName, String designationName, String isHod, Short weeklyOff) {
+			String departmentName, String designationName, String isHod, Short weeklyOff,String companyName) {
 		super();
 		this.userId = userId;
 		this.firstName = firstName;
@@ -54,5 +55,6 @@ public class UserInfo {
 		this.designationName = designationName;
 		this.isHod = isHod;
 		this.weeklyOffNames = (weeklyOff != null && weeklyOff >= 1 && weeklyOff <= 7) ? WEEK_DAYS[weeklyOff - 1] : "";
+		this.companyName = companyName;
 	}
 }

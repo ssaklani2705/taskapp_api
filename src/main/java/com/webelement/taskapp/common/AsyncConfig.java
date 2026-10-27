@@ -32,4 +32,16 @@ public class AsyncConfig {
 
 		return executor;
 	}
+	
+	
+	 @Bean("mailExecutor")
+	    public Executor mailExecutor() {
+	        ThreadPoolTaskExecutor ex = new ThreadPoolTaskExecutor();
+	        ex.setCorePoolSize(2);
+	        ex.setMaxPoolSize(5);
+	        ex.setQueueCapacity(100);
+	        ex.setThreadNamePrefix("mail-");
+	        ex.initialize();
+	        return ex;
+	    }
 }

@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -79,7 +80,7 @@ public class TaskServiceImpl implements TaskService {
 	private final HolidayRepo holidayRepository;
 	private final UserLoginRepository userLoginRepository;
 	private final TaskReassignRepo taskReassigned;
-	
+	private final Executor mailExecutor;
 	
 	@Value("${task.upload-dir}")
 	private String uploadDir;
@@ -175,14 +176,15 @@ public class TaskServiceImpl implements TaskService {
 
 	@Transactional
 	@Override
-	public TaskEntity saveTask(Integer taskId,Integer userType, Integer clientId, LocalDateTime date, Integer taskCategoryId,
-			String description, Integer assignedTo, Short priority, String title, Integer addedBy, Short status,
-			MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate, Integer buddyId) throws Exception {
+	public TaskEntity saveTask(Integer taskId, Integer userType, Integer clientId, LocalDateTime date,
+			Integer taskCategoryId, String description, Integer assignedTo, Short priority, String title,
+			Integer addedBy, Short status, MultipartFile pdfFile, MultipartFile zipFile, LocalDateTime endDate,
+			Integer buddyId) throws Exception {
 		boolean isUpdate = taskId != null;
-		
-		 if (buddyId != null && buddyId.equals(assignedTo)) {
-		        throw new IllegalArgumentException("Buddy cannot be the same as the assigned user.");
-		    }
+
+		if (buddyId != null && buddyId.equals(assignedTo)) {
+			throw new IllegalArgumentException("Buddy cannot be the same as the assigned user.");
+		}
 
 		if (title != null && clientId != null) {
 			String trimmedTitle = title.trim();
@@ -212,7 +214,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setTaskCategoryId(taskCategoryId);
 		task.setDescription(description);
 		task.setAssignedTo(assignedTo);
-		task.setBuddyId(buddyId);      // ADD
+		task.setBuddyId(buddyId); // ADD
 		task.setPriority(priority);
 		task.setEndDate(endDate);
 		task.setUserType(userType);
@@ -245,21 +247,15 @@ public class TaskServiceImpl implements TaskService {
 			}
 			action = "Task Added and Assigned to " + assignedUserName;
 		}
-		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
-		if (!isUpdate) {
-			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-				@Override
-				public void afterCommit() {
-					try {
-						taskMailService.sendTaskAssignedMail(savedTask);
-					} catch (Exception e) {
-						logger.error("Task assigned mail failed for task {}", savedTask.getTaskId(), e);
-					}
-				}
-			});
-		}
+		  mailExecutor.execute(() -> {
+			try {
+				taskMailService.sendTaskAssignedMail(savedTask);
+			} catch (Exception e) {
+				
+			}
+		});
 		return savedTask;
 	}
 

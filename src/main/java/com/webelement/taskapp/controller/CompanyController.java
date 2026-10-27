@@ -1,5 +1,7 @@
 package com.webelement.taskapp.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.CompanyDTO;
+import com.webelement.taskapp.entity.ClientEntity;
+import com.webelement.taskapp.entity.CompanyEntity;
 import com.webelement.taskapp.service.CompanyService;
 import com.webelement.taskapp.service.DepartmentService;
 
@@ -54,5 +58,10 @@ public class CompanyController {
 
 			return ResponseEntity.ok(response);
 		}
-
+		
+		
+		@GetMapping("/active_company")
+		public ResponseEntity<List<CompanyEntity>> findActiveCompany() {
+			return companyService.findActiveCompany();
+		}
 }

@@ -2,10 +2,14 @@ package com.webelement.taskapp.service;
 
 import java.util.List;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.CompanyDTO;
+import com.webelement.taskapp.entity.ClientEntity;
+import com.webelement.taskapp.entity.CompanyEntity;
 
 
 public interface CompanyService {
@@ -16,4 +20,9 @@ public interface CompanyService {
 	public ApiResponse<CompanyDTO> getById(Integer companyId);
 
 	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search,Integer stateId);
+	
+	
+	
+    public ResponseEntity<List<CompanyEntity>> findActiveCompany();
+        
 }

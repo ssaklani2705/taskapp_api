@@ -179,7 +179,7 @@ public class UserManagementService {
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-		System.out.println("userRequest.getUserId(): " + userRequest.getUserId());
+		System.out.println("userRequest.getUserId(): " + userRequest.toString());
 		boolean isEdit = userRequest.getUserId() > 0;
 		boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
 		if (!hod && userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().size() > 1) {
@@ -272,6 +272,7 @@ public class UserManagementService {
 						.collect(Collectors.joining(" "));
 			}
 
+			user.setCompanyId(info.getCompanyId());			
 			user.setFirstName(formattedName);
 			user.setMobileNo(info.getMobileNo());
 			user.setEmail(info.getEmail());
@@ -303,6 +304,7 @@ public class UserManagementService {
 	private int updateUser(UserLoginEntity request) throws Exception {
 		UserLoginEntity existing = loginRepository.findById(request.getUserId())
 				.orElseThrow(() -> new RuntimeException("User not found"));
+		existing.setCompanyId(request.getCompanyId());
 		existing.setFirstName(request.getFirstName());
 		existing.setMobileNo(request.getMobileNo());
 		existing.setExpiryDate(request.getExpiryDate());
@@ -361,8 +363,7 @@ public class UserManagementService {
 		user.setModule(moduleFuture.join());
 		user.setTransactionhistory(historyFuture.join());
 
-		// Department ids as list for the edit form (Angular reads
-		// response.departmentIds)
+		
 		user.setDepartmentIds(toIdList(user.getDepartmentIdsCsv()));
 
 		if (departmentFuture.join() != null)

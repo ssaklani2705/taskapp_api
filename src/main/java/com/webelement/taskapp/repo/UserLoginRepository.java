@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -72,12 +73,14 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
+	@EntityGraph(attributePaths = { "company" })
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" + "u.userId, " + "u.firstName, " + "u.email, "
 			+ "u.mobileNo, " + "u.status, " + "u.permission, " + "u.departmentIdsCsv, "
-			+ "de.name,u.isHod,u.weeklyOff) " + "FROM UserLoginEntity u "
+			+ "de.name,u.isHod,u.weeklyOff,c.companyName) " + "FROM UserLoginEntity u "
+			+ "LEFT JOIN CompanyEntity c ON c.companyId = u.companyId " 
 			+ "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " + "WHERE u.userId > 0 "
 			+ "AND (:statusIndex = 0 OR u.status = :statusIndex) " + "AND (:departmentId = 0 OR "
 			+ "     FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) "
