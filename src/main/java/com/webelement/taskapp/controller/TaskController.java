@@ -62,7 +62,7 @@ public class TaskController {
 	@PutMapping("/updateAssignedUser")
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(@RequestBody UpdateTaskAssignedUserDTO request) {
 		return taskService.updateTaskAssignedUser(request.getTaskId(), request.getAssignedTo(), request.getUserId(),
-				request.getRemarks(), request.getDate(), request.getEndDate());
+				request.getRemarks(), request.getDate(), request.getEndDate(),request.getBuddyId());
 	}
 
 	@PostMapping("/deleteTask")

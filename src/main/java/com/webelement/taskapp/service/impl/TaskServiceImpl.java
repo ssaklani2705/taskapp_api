@@ -107,7 +107,7 @@ public class TaskServiceImpl implements TaskService {
 
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
-			String remark, LocalDateTime date, LocalDateTime endDate) {
+			String remark, LocalDateTime date, LocalDateTime endDate,Integer buddyId) {
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 		if (optionalTask.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
@@ -122,9 +122,15 @@ public class TaskServiceImpl implements TaskService {
 			return ResponseEntity.badRequest()
 					.body(new ApiResponse<>(false, "End Date & Time cannot be before Start Date & Time", null));
 		}
+		// ADD
+		if (buddyId != null && buddyId.equals(assignedTo)) {
+			return ResponseEntity.badRequest()
+					.body(new ApiResponse<>(false, "Buddy cannot be the same as the assigned user", null));
+		}
 		TaskEntity task = optionalTask.get();
 		Integer oldAssigneeId = task.getAssignedTo();
 		task.setAssignedTo(assignedTo);
+		task.setBuddyId(buddyId);
 		if (task.getAddedBy() == null || task.getAddedBy() == 0) {
 			task.setAddedBy(userId);
 		}
@@ -247,6 +253,7 @@ public class TaskServiceImpl implements TaskService {
 			}
 			action = "Task Added and Assigned to " + assignedUserName;
 		}
+<<<<<<< HEAD
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
 		  mailExecutor.execute(() -> {
@@ -256,6 +263,24 @@ public class TaskServiceImpl implements TaskService {
 				
 			}
 		});
+=======
+		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
+		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		taskMailService.sendTaskAssignedMail(savedTask);
+
+//		if (!isUpdate) {
+//			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//				@Override
+//				public void afterCommit() {
+//					try {
+//						taskMailService.sendTaskAssignedMail(savedTask);
+//					} catch (Exception e) {
+//						logger.error("Task assigned mail failed for task {}", savedTask.getTaskId(), e);
+//					}
+//				}
+//			});
+//		}
+>>>>>>> b530328c7c24f826af602670a9c0d701af296745
 		return savedTask;
 	}
 

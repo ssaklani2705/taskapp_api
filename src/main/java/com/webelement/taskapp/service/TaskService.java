@@ -32,7 +32,7 @@ public interface TaskService {
 	 Random random = new Random();
 
 	ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
-			String remark, LocalDateTime date, LocalDateTime endDate);
+			String remark, LocalDateTime date, LocalDateTime endDate,Integer buddyId);
 
 	public TaskEntity updateTaskStatus(UpdateTaskStatusDTO request) throws Exception;
 
