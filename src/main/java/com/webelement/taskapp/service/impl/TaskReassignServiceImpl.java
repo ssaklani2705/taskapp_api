@@ -1,6 +1,7 @@
 package com.webelement.taskapp.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +33,18 @@ public class TaskReassignServiceImpl implements TaskReassignService  {
 	                tr.getNewUser() != null ? tr.getNewUser().getFirstName() : null);
 	    }
 
-		@Override
-		public Page<TaskReassignReportDto> getTaskReassignReport(int page, int size, LocalDateTime fromDate,
-				LocalDateTime toDate, int taskCategoryId, int clientId, int userId, String search) {
-			LocalDateTime toExclusive = (toDate == null) ? null : toDate.toLocalDate().plusDays(1).atStartOfDay();
+	 @Override
+	 public Page<TaskReassignReportDto> getTaskReassignReport(int page, int size, LocalDateTime fromDate,
+	         LocalDateTime toDate, int taskCategoryId, int clientId, int userId, String search,
+	         List<Integer> deptIds) {
 
-			return reassignRepo.getTaskReassignReport(PageRequest.of(page, size), fromDate, toExclusive, taskCategoryId,
-					clientId, userId, search).map(this::toDto);
-		}
+	     LocalDateTime toExclusive = (toDate == null) ? null : toDate.toLocalDate().plusDays(1).atStartOfDay();
+
+	     int departmentFilter = (deptIds == null || deptIds.isEmpty()) ? 0 : 1;
+	     List<Integer> ids = departmentFilter == 0 ? List.of(-1) : deptIds;
+
+	     return reassignRepo.getTaskReassignReport(PageRequest.of(page, size), fromDate, toExclusive,
+	             taskCategoryId, clientId, userId, search, departmentFilter, ids).map(this::toDto);
+	 }
 
 }

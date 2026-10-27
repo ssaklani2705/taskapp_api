@@ -25,6 +25,7 @@ public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer>
 	       "AND (:taskCategoryId = 0 OR tr.taskEntity.taskCategoryId = :taskCategoryId) " +
 	       "AND (:clientId = 0 OR tr.taskEntity.clientId = :clientId) " +
 	       "AND (:userId = 0 OR tr.currentUserId = :userId OR tr.newUserId = :userId) " +
+	       "AND (:departmentFilter = 0 OR tr.taskEntity.taskCategory.departmentId IN :departmentIds) " +
 	       "AND (LOWER(COALESCE(tr.taskEntity.title, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))) " +
 	       "ORDER BY tr.reassignId DESC")
 	Page<ReassignEntity> getTaskReassignReport(
@@ -34,6 +35,8 @@ public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer>
 	        @Param("taskCategoryId") int taskCategoryId,
 	        @Param("clientId") int clientId,
 	        @Param("userId") int userId,
-	        @Param("search") String search);
+	        @Param("search") String search,
+	        @Param("departmentFilter") int departmentFilter,
+	        @Param("departmentIds") List<Integer> departmentIds);
 
 }

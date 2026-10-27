@@ -76,4 +76,10 @@ public class DepartmentController {
 
 		return departmentService.getActiveDepartments();
 	}
+	
+	@GetMapping("/active_department_list")
+	public List<DepartmentDTO> getActiveDepartmentsList(@RequestParam(required = false) String username) {
+
+		return departmentService.getActiveDepartmentsList(username);
+	}
 }
