@@ -27,6 +27,12 @@ public class TaskCategoryDTO {
 
 	public TaskCategoryDTO() {
 	}
+	public TaskCategoryDTO(Integer taskcategoryId, String name, Integer departmentId, String departmentName) {
+	    this.taskcategoryId = taskcategoryId;
+	    this.name = name;
+	    this.departmentId = departmentId;
+	    this.departmentName = departmentName;
+	}
 
 	/*
 	 * Constructor used by JPQL

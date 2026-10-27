@@ -6,6 +6,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -122,6 +123,7 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	        @Param("search") String search,
 	        @Param("departmentId") int departmentId);
 
+	@EntityGraph(attributePaths = { "department" })
 	@Query("SELECT tc FROM TaskCategoryEntity tc " + "WHERE tc.status = :status "
 			+ "AND LOWER(TRIM(tc.name)) <> 'admin task'")
 	List<TaskCategoryEntity> findByStatus(@Param("status") Integer status);

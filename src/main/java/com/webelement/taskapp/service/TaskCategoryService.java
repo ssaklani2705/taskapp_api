@@ -227,8 +227,8 @@ public class TaskCategoryService {
 
 		List<TaskCategoryEntity> list = taskCategoryRepository.findByStatus(1);
 
-		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName()))
-				.collect(Collectors.toList());
+		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName(), t.getDepartmentId(),
+				t.getDepartment() != null ? t.getDepartment().getName() : null)).collect(Collectors.toList());
 	}
 
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurring(Integer userId, String isAdmin, String loginType,
@@ -241,7 +241,7 @@ public class TaskCategoryService {
 //		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
 //			return list;
 //		}
-		
+
 		// ADMIN: all active categories
 		if ("Y".equalsIgnoreCase(isAdmin)) {
 			return list;

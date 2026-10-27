@@ -24,7 +24,7 @@ public class TaskReassignServiceImpl implements TaskReassignService  {
 	 private TaskReassignReportDto toDto(ReassignEntity tr) {
 	        TaskEntity task = tr.getTaskEntity();
 	        return new TaskReassignReportDto(
-	        		tr.getModificationDate(),
+	        		tr.getRegistrationDate(),
 	                task.getTitle(),
 	                task.getTaskCategory() != null ? task.getTaskCategory().getName() : null,
 	                task.getClient() != null ? task.getClient().getName() : null,

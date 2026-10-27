@@ -3,12 +3,29 @@ package com.webelement.taskapp.entity;
 import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 @Entity
+@Data
+@ToString
 @Table(name = "t_taskcategory")
 public class TaskCategoryEntity {
 
@@ -116,6 +133,21 @@ public class TaskCategoryEntity {
 		this.serviceId = serviceId;
 	}
 	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "i_departmentid", insertable = false, updatable = false)
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JsonIgnore
+	private DepartmentEntity department;
+
+	
+	
+	
+	// output-only, sent to Angular instead of the whole relation
+	@JsonProperty("departmentName")
+	public String getDepartmentName() {
+	    return department != null ? department.getName() : null;
+	}
 	
 
 }
