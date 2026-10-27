@@ -42,6 +42,8 @@ public class TaskEditDTO {
 	
 	private Integer buddyId;
 	private String buddyName;
+	private Double rating;      // NEW: use the same wrapper type as TaskEntity.rating
+	private LocalDateTime closeDateTime;   // NEW
 	
 
 //	private String dueDatetime;
@@ -51,7 +53,8 @@ public class TaskEditDTO {
 			LocalDateTime date, String description, String fileName1, String fileName2, String fileName3,
 			String fileName4, Short priority, Short status, Integer taskCategoryId, String title, String clientName,
 			String taskCategoryName, String assignedUserName, String addedByName, Short taskStatus,
-			LocalDateTime dueDatetime,Integer userType,Integer buddyId, String buddyName) {
+			LocalDateTime dueDatetime,Integer userType,Integer buddyId, String buddyName,Double rating,
+			LocalDateTime closeDateTime) {
 
 		super();
 
@@ -79,6 +82,8 @@ public class TaskEditDTO {
 		this.userType = userType;
 		this.buddyId = buddyId;
 		this.buddyName = buddyName;
+		this.rating = rating;
+		this.closeDateTime = closeDateTime;
 	}
 
 	public TaskEditDTO(Integer taskId, Integer addedBy, Integer assignedTo, Integer clientId, String closeRemarks,

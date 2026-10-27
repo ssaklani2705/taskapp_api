@@ -22,6 +22,7 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.GenericRecurringDTO;
+import com.webelement.taskapp.dto.TaskCategoryDropdownProjection;
 import com.webelement.taskapp.entity.GenericRecurringEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.GenericRecurringRepository;
@@ -38,6 +39,10 @@ public class GenericRecurringService {
 
 	@Autowired
 	private UserLoginRepository userLoginRepository;
+	
+	public List<TaskCategoryDropdownProjection> getTaskCategoriesUsedInGenericRecurring() {
+        return genericRecurringRepository.findTaskCategoriesUsedInGenericRecurring();
+    }
 
 	   // For AddOrUpdate
     public ApiResponse<GenericRecurringEntity> addOrUpdateGenericRecurring(GenericRecurringDTO dto, Integer userId,
