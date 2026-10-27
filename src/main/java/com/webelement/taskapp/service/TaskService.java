@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
+import com.webelement.taskapp.dto.DepartmentFilterProjection;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
@@ -54,7 +55,8 @@ public interface TaskService {
 	
 	public TaskEditDTO getTaskById(Integer taskId);
 
-	Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
-			int page, int size);
+	 Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
+	            List<Integer> departmentIds, int page, int size);
+	    List<DepartmentFilterProjection> getRatingReportDepartments(String username);
 	
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
+import com.webelement.taskapp.dto.DepartmentFilterProjection;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
@@ -54,9 +55,16 @@ public class TaskController {
     public Page<TaskRatingSummaryProjection> getTaskRatingSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-            @RequestParam(required = false) String username, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) List<Integer> departmentIds, @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return taskService.getTaskRatingSummary(fromDate, toDate, username, page, size);
+        return taskService.getTaskRatingSummary(fromDate, toDate, username, departmentIds, page, size);
+    }
+	
+	@GetMapping("/rating-summary/departments")
+    public List<DepartmentFilterProjection> getRatingReportDepartments(
+            @RequestParam(required = false) String username) {
+        return taskService.getRatingReportDepartments(username);
     }
 
 	@PutMapping("/updateAssignedUser")

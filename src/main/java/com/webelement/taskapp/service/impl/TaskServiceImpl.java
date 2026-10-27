@@ -46,6 +46,7 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.controller.TaskMailService;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.ClientAssignmentCheckDTO;
+import com.webelement.taskapp.dto.DepartmentFilterProjection;
 import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
@@ -87,12 +88,25 @@ public class TaskServiceImpl implements TaskService {
 	
 	
 	public Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
-            int page, int size) {
+            List<Integer> departmentIds, int page, int size) {
         LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
         LocalDateTime toDateTime = toDate != null ? toDate.plusDays(1).atStartOfDay() : null;
         String usernameFilter = (username == null || username.trim().isEmpty()) ? null : username.trim();
+        String departmentIdsFilter = null;
+        if (departmentIds != null && !departmentIds.isEmpty()) {
+            departmentIdsFilter = departmentIds.stream().filter(id -> id != null && id > 0).distinct()
+                    .map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+            if (departmentIdsFilter.isEmpty()) {
+                departmentIdsFilter = null;
+            }
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-        return taskRepository.findTaskRatingSummary(fromDateTime, toDateTime, usernameFilter, pageable);
+        return taskRepository.findTaskRatingSummary(fromDateTime, toDateTime, usernameFilter, departmentIdsFilter,
+                pageable);
+    }
+    public List<DepartmentFilterProjection> getRatingReportDepartments(String username) {
+            
+        return taskRepository.findRatingReportDepartments(username);
     }
 
 
