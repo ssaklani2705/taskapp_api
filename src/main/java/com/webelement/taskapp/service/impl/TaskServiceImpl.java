@@ -253,17 +253,7 @@ public class TaskServiceImpl implements TaskService {
 			}
 			action = "Task Added and Assigned to " + assignedUserName;
 		}
-<<<<<<< HEAD
-		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
-		  mailExecutor.execute(() -> {
-			try {
-				taskMailService.sendTaskAssignedMail(savedTask);
-			} catch (Exception e) {
-				
-			}
-		});
-=======
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
 		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		taskMailService.sendTaskAssignedMail(savedTask);
@@ -280,7 +270,7 @@ public class TaskServiceImpl implements TaskService {
 //				}
 //			});
 //		}
->>>>>>> b530328c7c24f826af602670a9c0d701af296745
+//>>>>>>> b530328c7c24f826af602670a9c0d701af296745
 		return savedTask;
 	}
 
