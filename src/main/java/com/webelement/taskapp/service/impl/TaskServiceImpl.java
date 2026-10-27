@@ -253,34 +253,12 @@ public class TaskServiceImpl implements TaskService {
 			}
 			action = "Task Added and Assigned to " + assignedUserName;
 		}
-<<<<<<< HEAD
-		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
-		  mailExecutor.execute(() -> {
-			try {
-				taskMailService.sendTaskAssignedMail(savedTask);
-			} catch (Exception e) {
-				
-			}
-		});
-=======
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
 		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		taskMailService.sendTaskAssignedMail(savedTask);
 
-//		if (!isUpdate) {
-//			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-//				@Override
-//				public void afterCommit() {
-//					try {
-//						taskMailService.sendTaskAssignedMail(savedTask);
-//					} catch (Exception e) {
-//						logger.error("Task assigned mail failed for task {}", savedTask.getTaskId(), e);
-//					}
-//				}
-//			});
-//		}
->>>>>>> b530328c7c24f826af602670a9c0d701af296745
+
 		return savedTask;
 	}
 
