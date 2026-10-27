@@ -258,6 +258,7 @@ public class TaskServiceImpl implements TaskService {
 		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		taskMailService.sendTaskAssignedMail(savedTask);
 
+<<<<<<< HEAD
 //		if (!isUpdate) {
 //			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 //				@Override
@@ -271,6 +272,9 @@ public class TaskServiceImpl implements TaskService {
 //			});
 //		}
 //>>>>>>> b530328c7c24f826af602670a9c0d701af296745
+=======
+
+>>>>>>> 189b8161f78e2d9b7d6b84b11e792ff21452b36c
 		return savedTask;
 	}
 
