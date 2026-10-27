@@ -118,10 +118,14 @@ public class TaskMailServiceImpl implements TaskMailService {
 	@Override
 	public void sendTaskReassignMail(TaskEntity task, Integer oldAssigneeId) throws Exception {
 		String filePath = commonFunction.createFolder(file_maillog);
-		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+//		ClientEntity client = clientRepository.findById(task.getClientId()).orElse(null);
+		ClientEntity client = task.getClientId() != null
+		        ? clientRepository.findById(task.getClientId()).orElse(null)
+		        : null;
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
+		Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);      // ADD
 		Optional.ofNullable(oldAssigneeId).ifPresent(userIds::add);
 		if (client != null) {
 			Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
@@ -130,12 +134,16 @@ public class TaskMailServiceImpl implements TaskMailService {
 				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity newAssignee = userMap.get(task.getAssignedTo());
 		UserLoginEntity assignor = userMap.get(task.getAddedBy());
+		UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;   // ADD
 		UserLoginEntity oldAssignee = userMap.get(oldAssigneeId);
 		UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
 		Set<String> toSet = new LinkedHashSet<>();
 		Set<String> ccSet = new LinkedHashSet<>();
 		commonFunction.addEmail(toSet, newAssignee);
 		commonFunction.addEmail(ccSet, assignor);
+		if (buddyUser != null) {                                  // ADD
+		    commonFunction.addEmail(ccSet, buddyUser);
+		}
 		commonFunction.addEmail(ccSet, societyManager);
 		commonFunction.addEmail(ccSet, oldAssignee);
 		ccSet.removeAll(toSet);
@@ -171,7 +179,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		Set<Integer> userIds = new HashSet<>();
 		Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
 		Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
-//		Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);     // ADD
+		Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);     // ADD
 		if (client != null) {
 			Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
 		}
@@ -179,7 +187,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 				.collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
 		UserLoginEntity assignedUser = userMap.get(task.getAssignedTo());
 		UserLoginEntity addedByUser = userMap.get(task.getAddedBy());
-//		UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;   // ADD
+		UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;   // ADD
 		UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
 		if (assignedUser == null || assignedUser.getEmail() == null || assignedUser.getEmail().trim().isEmpty()) {
 			logger.warn("Assigned user email not found for task {}", task.getTaskId());
@@ -190,6 +198,9 @@ public class TaskMailServiceImpl implements TaskMailService {
 		commonFunction.addEmail(toSet, assignedUser);
 		commonFunction.addEmail(ccSet, addedByUser);
 //		commonFunction.addEmail(ccSet, buddyUser);          // ADD
+		if (buddyUser != null) {                                  // uncommented, with the null guard
+		    commonFunction.addEmail(ccSet, buddyUser);
+		}
 		commonFunction.addEmail(ccSet, societyManager);
 		ccSet.removeAll(toSet);
 		String recipientName = commonFunction.getFirstName(assignedUser);
@@ -201,6 +212,8 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String[] cc = ccSet.toArray(new String[0]);
 		String subject = "Task App :: New Task Assigned";
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
+		logger.info("Assigned mail. taskId={}, buddyId={}, buddyUser={}, to={}, cc={}",
+		        task.getTaskId(), task.getBuddyId(), buddyUser != null ? buddyUser.getEmail() : null, toSet, ccSet);
 		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
 		logger.info("Task assignment mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
