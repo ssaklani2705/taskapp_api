@@ -10,7 +10,7 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.CompanyDTO;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.CompanyEntity;
-
+import com.webelement.taskapp.entity.CompanyShiftEntity;
 
 public interface CompanyService {
 	public ApiResponse<CompanyDTO> addOrUpdate(CompanyDTO request);
@@ -21,8 +21,8 @@ public interface CompanyService {
 
 	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search,Integer stateId);
 	
-	
-	
     public ResponseEntity<List<CompanyEntity>> findActiveCompany();
+    
+    public ResponseEntity<List<CompanyShiftEntity>> findActiveCompanyShift(Integer companyd);
         
 }

@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.webelement.taskapp.dto.PlanDTO;
 import com.webelement.taskapp.entity.CompanyEntity;
+import com.webelement.taskapp.entity.CompanyShiftEntity;
 import com.webelement.taskapp.entity.PlanEntity;
 import com.webelement.taskapp.dto.CompanyDTO;
 
@@ -59,4 +60,11 @@ public interface CompanyRepo extends JpaRepository<CompanyEntity, Integer> {
 	@Override
 	@EntityGraph(attributePaths = "state")
 	Optional<CompanyEntity> findById(Integer id);
+	
+	
+	@Query("SELECT cs FROM CompanyShiftEntity cs WHERE cs.status= 1 AND cs.companyId =:companyId  ORDER BY cs.shiftName")
+	List<CompanyShiftEntity> activeCompanyShiftList(@Param("companyId") Integer companyId);
+	
+	
+	
 }

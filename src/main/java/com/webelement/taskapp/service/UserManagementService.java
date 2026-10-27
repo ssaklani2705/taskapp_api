@@ -2,14 +2,17 @@ package com.webelement.taskapp.service;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ModulePermissionDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.dto.UserInfo;
+import com.webelement.taskapp.entity.CompanyShiftEntity;
 import com.webelement.taskapp.entity.DepartmentEntity;
 import com.webelement.taskapp.entity.DesignationEntity;
 import com.webelement.taskapp.entity.PermissionEntity;
@@ -37,6 +41,8 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
+import com.webelement.taskapp.repo.CompanyRepo;
+import com.webelement.taskapp.repo.CompanyShiftRepo;
 import com.webelement.taskapp.repo.DepartmentRepository;
 import com.webelement.taskapp.repo.DesignationRepository;
 import com.webelement.taskapp.repo.PermissionRepo;
@@ -56,12 +62,15 @@ public class UserManagementService {
 	private final DesignationRepository designationRepository;
 	private final TaskCategoryRepository taskCategoryRepository;
 	private final Executor taskExecutor;
+	
+	private final CompanyRepo companyRepository;
 	@Value("${paths:}")
 	private String paths;
 	@Value("${file_maillog:}")
 	private String file_maillog;
-	@Autowired
-	private ClientRepository clientRepository;
+	
+	private final ClientRepository clientRepository;
+	private final CompanyShiftRepo companyShiftRepository;
 
 	private static String toCsv(List<Integer> ids) {
 		if (ids == null || ids.isEmpty()) {
@@ -83,9 +92,9 @@ public class UserManagementService {
 	}
 
 	public Page<UserInfo> findBasicUserInfo(int page, int size, int statusIndex, String search, int departmentId,
-			int designationId, int selectedCategoryId, int weeklyOff) {
+			int designationId, int selectedCategoryId, int weeklyOff, Integer companyId, Integer shiftId) {
 		Page<UserInfo> pageData = loginRepository.findBasicUserInfo(PageRequest.of(page, size), statusIndex, search,
-				departmentId, designationId, selectedCategoryId, weeklyOff);
+				departmentId, designationId, selectedCategoryId, weeklyOff, companyId, shiftId);
 		Map<Integer, String> departmentNames = new HashMap<>();
 		for (DepartmentEntity d : departmentRepository.findAll()) {
 			departmentNames.put(d.getDepartmentId(), d.getName());
@@ -110,6 +119,8 @@ public class UserManagementService {
 				user.setDepartmentName("");
 			}
 		});
+
+		
 
 		return pageData;
 	}
@@ -333,6 +344,8 @@ public class UserManagementService {
 	public UserLoginEntity getUserById(int userId) {
 
 		UserLoginEntity user = loginRepository.getUserById(userId);
+		
+		
 
 		if (user == null) {
 			UserLoginEntity emptyUser = new UserLoginEntity();
@@ -371,6 +384,29 @@ public class UserManagementService {
 		if (designationFuture.join() != null)
 			user.setDesignationName(designationFuture.join());
 		user.setTaskCategories(categoriesFuture.join());
+		
+		if (user.getCompany() != null) {
+		    user.setCompanyName(user.getCompany().getCompanyName());
+
+		    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
+
+		    List<CompanyShiftEntity> shifts = user.getCompany().getShifts().stream()
+		            .filter(s -> s.getStatus() != null && s.getStatus() == 1)
+		            .sorted(Comparator.comparing(CompanyShiftEntity::getFromTime,
+		                    Comparator.nullsLast(Comparator.naturalOrder())))
+		            .collect(Collectors.toList());
+
+		    user.setShiftName(shifts.stream()
+		            .map(CompanyShiftEntity::getShiftName)
+		            .filter(Objects::nonNull)
+		            .collect(Collectors.joining(", ")));
+
+		    user.setShiftTime(shifts.stream()
+		            .filter(s -> s.getFromTime() != null && s.getToTime() != null)
+		            .map(s -> s.getFromTime().format(fmt) + " - " + s.getToTime().format(fmt))
+		            .collect(Collectors.joining(", ")));
+		}
+
 
 		return user;
 	}

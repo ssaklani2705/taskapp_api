@@ -17,6 +17,7 @@ import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.CompanyDTO;
 import com.webelement.taskapp.entity.CompanyEntity;
+import com.webelement.taskapp.entity.CompanyShiftEntity;
 import com.webelement.taskapp.entity.PlanEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.CompanyRepo;
@@ -134,8 +135,9 @@ public class CompanyServiceImpl implements CompanyService {
 	}
 
 	@Override
-	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search,Integer stateId) {
-		return companyRepo.findCompanyDetails(PageRequest.of(page, size), statusIndex, search,stateId).map(this::toDto);
+	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search, Integer stateId) {
+		return companyRepo.findCompanyDetails(PageRequest.of(page, size), statusIndex, search, stateId)
+				.map(this::toDto);
 	}
 
 	private CompanyDTO toDto(CompanyEntity e) {
@@ -158,6 +160,11 @@ public class CompanyServiceImpl implements CompanyService {
 
 	@Override
 	public ResponseEntity<List<CompanyEntity>> findActiveCompany() {
-		  return ResponseEntity.ok(companyRepo.activeCompany());
+		return ResponseEntity.ok(companyRepo.activeCompany());
+	}
+
+	@Override
+	public ResponseEntity<List<CompanyShiftEntity>> findActiveCompanyShift(Integer companyId) {
+		return ResponseEntity.ok(companyRepo.activeCompanyShiftList(companyId));
 	}
 }

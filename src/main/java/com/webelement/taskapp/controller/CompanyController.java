@@ -17,6 +17,7 @@ import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.CompanyDTO;
 import com.webelement.taskapp.entity.ClientEntity;
 import com.webelement.taskapp.entity.CompanyEntity;
+import com.webelement.taskapp.entity.CompanyShiftEntity;
 import com.webelement.taskapp.service.CompanyService;
 import com.webelement.taskapp.service.DepartmentService;
 
@@ -63,5 +64,10 @@ public class CompanyController {
 		@GetMapping("/active_company")
 		public ResponseEntity<List<CompanyEntity>> findActiveCompany() {
 			return companyService.findActiveCompany();
+		}
+		
+		@GetMapping("/company_shift/{companyId}")
+		public ResponseEntity<List<CompanyShiftEntity>> findActiveCompanyShift(@PathVariable Integer companyId) {
+			return companyService.findActiveCompanyShift(companyId);
 		}
 }

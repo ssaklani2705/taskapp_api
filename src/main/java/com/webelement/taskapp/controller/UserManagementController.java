@@ -38,10 +38,11 @@ public class UserManagementController {
 	public Map<String, Object> findBasicUserInfo(@RequestParam() int page, @RequestParam() int size,
 			@RequestParam() int statusIndex, @RequestParam() String search, @RequestParam() int departmentId,
 			@RequestParam() int designationId, @RequestParam() int selectedCategoryId,
-			@RequestParam(defaultValue = "0") int weeklyOff) {
+			@RequestParam(defaultValue = "0") int weeklyOff,@RequestParam(defaultValue = "0") Integer companyId,
+			@RequestParam(defaultValue = "0") Integer shiftId) {
 
 		Page<UserInfo> userPage = userService.findBasicUserInfo(page, size, statusIndex, search, departmentId,
-				designationId, selectedCategoryId, weeklyOff);
+				designationId, selectedCategoryId, weeklyOff,companyId,shiftId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("data", userPage.getContent());

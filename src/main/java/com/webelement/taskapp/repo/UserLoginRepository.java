@@ -73,15 +73,18 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
-	@EntityGraph(attributePaths = { "company" })
+	@EntityGraph(attributePaths = { "company", "company.shifts" })
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo(" + "u.userId, " + "u.firstName, " + "u.email, "
 			+ "u.mobileNo, " + "u.status, " + "u.permission, " + "u.departmentIdsCsv, "
-			+ "de.name,u.isHod,u.weeklyOff,c.companyName) " + "FROM UserLoginEntity u "
+			+ "de.name,u.isHod,u.weeklyOff,c.companyName,c.companyId,cs.shiftName,cs.fromTime,cs.toTime) " + "FROM UserLoginEntity u "
 			+ "LEFT JOIN CompanyEntity c ON c.companyId = u.companyId " 
+			+ "LEFT JOIN CompanyShiftEntity cs ON cs.companyId = c.companyId "
 			+ "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " + "WHERE u.userId > 0 "
+			+ "AND (:companyId = 0 OR u.companyId = :companyId) "
+			+ "AND (:shiftId = 0 OR cs.shiftId = :shiftId) "
 			+ "AND (:statusIndex = 0 OR u.status = :statusIndex) " + "AND (:departmentId = 0 OR "
 			+ "     FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) "
 			+ "AND (:designationId = 0 OR u.designationId = :designationId) " + "AND (:selectedCategoryId = 0 OR "
@@ -97,7 +100,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	Page<UserInfo> findBasicUserInfo(Pageable pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search, @Param("departmentId") int departmentId,
 			@Param("designationId") int designationId, @Param("selectedCategoryId") int selectedCategoryId,
-			@Param("weeklyOff") int weeklyOff);
+			@Param("weeklyOff") int weeklyOff,@Param("companyId") Integer companyId,@Param("shiftId") Integer shiftId);
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId

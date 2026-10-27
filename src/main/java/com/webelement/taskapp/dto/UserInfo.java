@@ -1,5 +1,9 @@
 package com.webelement.taskapp.dto;
 
+import java.time.LocalTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +31,13 @@ public class UserInfo {
 	private String isHod;
 	private String weeklyOffNames;
 	private String companyName;
+	private Integer companyId;
+	private String shiftName; 
+	// "Morning, Evening"
+	@JsonFormat(pattern = "HH:mm")
+	private LocalTime fromTime; 
+	@JsonFormat(pattern = "HH:mm")
+	private LocalTime toTime;
 
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
 			String designationName, String isHod) {
@@ -43,7 +54,8 @@ public class UserInfo {
 
 	// Used by findBasicUserInfo query (last argument is u.weeklyOff, a Short)
 	public UserInfo(int userId, String firstName, String email, String mobile, int status, String permission,
-			String departmentName, String designationName, String isHod, Short weeklyOff,String companyName) {
+			String departmentName, String designationName, String isHod, Short weeklyOff, String companyName,
+			Integer companyId, String shiftName, LocalTime fromTime, LocalTime toTime) {
 		super();
 		this.userId = userId;
 		this.firstName = firstName;
@@ -56,5 +68,9 @@ public class UserInfo {
 		this.isHod = isHod;
 		this.weeklyOffNames = (weeklyOff != null && weeklyOff >= 1 && weeklyOff <= 7) ? WEEK_DAYS[weeklyOff - 1] : "";
 		this.companyName = companyName;
+		this.companyId = companyId;
+		this.shiftName = shiftName;
+		this.fromTime = fromTime;
+		this.toTime = toTime;
 	}
 }

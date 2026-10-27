@@ -1,5 +1,6 @@
 package com.webelement.taskapp.repo;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +23,6 @@ public interface CompanyShiftRepo extends JpaRepository<CompanyShiftEntity, Inte
     boolean existsDuplicateName(@Param("companyId") Integer companyId,
                                 @Param("name") String name,
                                 @Param("excludeId") Integer excludeId);
+    
+    List<CompanyShiftEntity> findByCompanyIdInAndStatus(Collection<Integer> companyIds, Short status);
 }

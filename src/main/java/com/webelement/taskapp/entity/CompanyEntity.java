@@ -3,6 +3,8 @@ package com.webelement.taskapp.entity;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.NotFound;
@@ -20,9 +23,11 @@ import org.hibernate.annotations.NotFoundAction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "t_company")
@@ -82,5 +87,12 @@ public class CompanyEntity {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_stateid", insertable = false, updatable = false)
 	private StateEntity state;
+	
+	
+	@OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+	@JsonIgnore
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	private List<CompanyShiftEntity> shifts = new ArrayList<>();
 
 }

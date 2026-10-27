@@ -159,5 +159,9 @@ public class UserLoginEntity {
 		this.pcbName = pcbName;
 		this.createdBy = createdBy;
 	}
+	
+	@Transient private String companyName;
+	@Transient private String shiftName;
+	@Transient private String shiftTime;
 
 }
