@@ -333,6 +333,7 @@ public class TaskServiceImpl implements TaskService {
 		// ... after task.setCloseRemarks(...), task.setModificationDate(...)
 		if (isAssignorClosure) {
 			task.setRating(dto.getRating());
+			task.setCloseDateTime(LocalDateTime.now());
 		}
 		
 		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");

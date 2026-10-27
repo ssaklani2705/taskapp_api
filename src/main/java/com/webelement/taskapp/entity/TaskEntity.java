@@ -122,5 +122,8 @@ public class TaskEntity {
 	
 	@Column(name = "i_buddyid")
 	private Integer buddyId;
+	
+	@Column(name = "d_closedatetime")
+	private LocalDateTime closeDateTime;
 
 }

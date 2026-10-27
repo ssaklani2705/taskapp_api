@@ -1,6 +1,7 @@
 package com.webelement.taskapp.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webelement.taskapp.common.ResponseApi;
 import com.webelement.taskapp.dto.ApiResponse;
 import com.webelement.taskapp.dto.GenericRecurringDTO;
+import com.webelement.taskapp.dto.TaskCategoryDropdownProjection;
 import com.webelement.taskapp.entity.GenericRecurringEntity;
 import com.webelement.taskapp.service.GenericRecurringService;
 
@@ -34,6 +36,11 @@ import lombok.RequiredArgsConstructor;
 public class GenericRecurringController {
 
 	private final GenericRecurringService genericRecurringService;
+	
+	@GetMapping("/generic-recurring/task-categories")
+    public ResponseEntity<List<TaskCategoryDropdownProjection>> getTaskCategoriesUsedInGenericRecurring() {
+        return ResponseEntity.ok(genericRecurringService.getTaskCategoriesUsedInGenericRecurring());
+    }
 
 	// For AddOrUpdate
 	@PostMapping("/addOrUpdateGenericRecurring")

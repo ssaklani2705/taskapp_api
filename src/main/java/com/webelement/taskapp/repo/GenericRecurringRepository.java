@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.webelement.taskapp.dto.GenericRecurringDTO;
+import com.webelement.taskapp.dto.TaskCategoryDropdownProjection;
 import com.webelement.taskapp.entity.GenericRecurringEntity;
 
 @Repository
@@ -55,4 +56,10 @@ public interface GenericRecurringRepository extends JpaRepository<GenericRecurri
             Integer genericRecurringId);
     boolean existsByTitleIgnoreCaseAndStatusIn(String title, List<Short> statuses);
 	
+    @Query("SELECT DISTINCT " + "tc.taskcategoryId AS taskcategoryId, " + "tc.name AS name, "
+            + "tc.departmentId AS departmentId, " + "d.name AS departmentName " + "FROM GenericRecurringEntity r "
+            + "JOIN TaskCategoryEntity tc ON r.taskCatId = tc.taskcategoryId "
+            + "LEFT JOIN DepartmentEntity d ON tc.departmentId = d.departmentId " + "WHERE r.status IN (1, 2, 3) "
+            + "AND r.taskCatId IS NOT NULL " + "ORDER BY tc.name ASC")
+    List<TaskCategoryDropdownProjection> findTaskCategoriesUsedInGenericRecurring();
 }
