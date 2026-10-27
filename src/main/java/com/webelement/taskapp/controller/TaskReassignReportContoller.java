@@ -3,6 +3,9 @@ package com.webelement.taskapp.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -33,13 +36,18 @@ public class TaskReassignReportContoller {
 			@RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String fromDate,
 			@RequestParam(required = false) String toDate, @RequestParam(defaultValue = "0") int taskCategoryId,
 			@RequestParam(defaultValue = "0") int clientId, @RequestParam(defaultValue = "0") int userId,
-			@RequestParam(defaultValue = "") String search) {
+			@RequestParam(defaultValue = "") String search, @RequestParam(defaultValue = "") String departmentIds) {
 
 		LocalDateTime from = parseDate(fromDate);
 		LocalDateTime to = parseDate(toDate);
+		 List<Integer> deptIds = Arrays.stream(departmentIds.split(","))
+		            .map(String::trim)
+		            .filter(s -> !s.isEmpty())
+		            .map(Integer::valueOf)
+		            .collect(Collectors.toList());
 
 		return ResponseEntity.ok(taskReassignService.getTaskReassignReport(page, size, from, to, taskCategoryId,
-				clientId, userId, search));
+				clientId, userId, search,deptIds));
 	}
 
 	private LocalDateTime parseDate(String date) {

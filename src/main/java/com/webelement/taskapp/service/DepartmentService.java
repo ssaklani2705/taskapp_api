@@ -2,6 +2,7 @@ package com.webelement.taskapp.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -139,5 +140,17 @@ public class DepartmentService {
 		List<DepartmentEntity> departments = departmentRepository.findByStatus(1);
 		return departments.stream().map(d -> new DepartmentDTO(d.getDepartmentId(), d.getName()))
 				.collect(Collectors.toList());
+	}
+	
+	public List<DepartmentDTO> getActiveDepartmentsList(String username) {
+	    List<Object[]> rows = departmentRepository.findRatingReportDepartments(username);
+	    List<DepartmentDTO> result = new ArrayList<>();
+	    for (Object[] row : rows) {
+	        Integer departmentId = row[0] != null ? ((Number) row[0]).intValue() : null;
+	        String name = row[1] != null ? row[1].toString() : null;
+	        result.add(new DepartmentDTO(departmentId, name));
+	    }
+
+	    return result;
 	}
 }

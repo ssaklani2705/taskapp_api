@@ -48,4 +48,13 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, In
 	DepartmentEntity findBySequence(Integer sequence);
 
 	boolean existsByNameIgnoreCaseAndDepartmentIdNotAndStatusNot(String name, Integer departmentId, Integer status);
+
+	@Query(value = "SELECT DISTINCT d.i_departmentid AS departmentId, d.s_name AS name FROM t_department d "
+	        + "INNER JOIN t_userlogin u ON FIND_IN_SET(CAST(d.i_departmentid AS CHAR), u.s_departmentids) > 0 "
+	        + "INNER JOIN t_task t ON t.i_assignedto = u.i_userid "
+	        + "INNER JOIN t_reassign r ON r.i_taskid = t.i_taskid "
+	        + "WHERE t.i_status = 1 AND "
+	        + "(:username IS NULL OR TRIM(:username) = '' OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+	        + "ORDER BY d.s_name ASC", nativeQuery = true)
+	List<Object[]> findRatingReportDepartments(@Param("username") String username);
 }
