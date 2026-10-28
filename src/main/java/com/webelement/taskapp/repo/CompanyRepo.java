@@ -19,24 +19,66 @@ import com.webelement.taskapp.dto.CompanyDTO;
 
 public interface CompanyRepo extends JpaRepository<CompanyEntity, Integer> {
 	
-	@EntityGraph(attributePaths = "state")
-	@Query(value = "SELECT c FROM CompanyEntity c " +
-			"WHERE c.companyId > 0 " +
-			"AND (:statusIndex = 0 OR c.status = :statusIndex) " +
-			 "AND (:stateId = 0 OR c.stateId = :stateId) " +
-			"AND (" +
-			"    LOWER(COALESCE(c.companyName, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			"    OR LOWER(COALESCE(c.city, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			"    OR LOWER(COALESCE(c.location, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			"    OR LOWER(COALESCE(c.pan, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			"    OR LOWER(COALESCE(c.gstNo, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			"    OR LOWER(COALESCE(c.stateId, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-			") " +
-			"ORDER BY c.status ASC, c.registrationDate DESC, c.companyName ASC")
-	Page<CompanyEntity> findCompanyDetails(
-			Pageable pageable,
-			@Param("statusIndex") int statusIndex,
-			@Param("search") String search,@Param("stateId") Integer stateId);
+//	@EntityGraph(attributePaths = "state")
+//	@Query(value = "SELECT c FROM CompanyEntity c " +
+//			"WHERE c.companyId > 0 " +
+//			"AND (:statusIndex = 0 OR c.status = :statusIndex) " +
+//			 "AND (:stateId = 0 OR c.stateId = :stateId) " +
+//			"AND (" +
+//			"    LOWER(COALESCE(c.companyName, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			"    OR LOWER(COALESCE(c.city, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			"    OR LOWER(COALESCE(c.location, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			"    OR LOWER(COALESCE(c.pan, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			"    OR LOWER(COALESCE(c.gstNo, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			"    OR LOWER(COALESCE(c.stateId, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+//			") " +
+//			"ORDER BY c.status ASC, c.registrationDate DESC, c.companyName ASC")
+//	Page<CompanyEntity> findCompanyDetails(
+//			Pageable pageable,
+//			@Param("statusIndex") int statusIndex,
+//			@Param("search") String search,@Param("stateId") Integer stateId);
+
+@EntityGraph(attributePaths = "state")
+@Query(
+    "SELECT c FROM CompanyEntity c " +
+    "WHERE c.companyId > 0 " +
+    "AND (:statusIndex = 0 OR c.status = :statusIndex) " +
+    "AND (:stateId = 0 OR c.stateId = :stateId) " +
+    "AND (:companySiteOffice = 0 OR c.companySiteOffice = :companySiteOffice) " +
+
+    "AND (" +
+    " :workingDays = '' " +
+    " OR (" +
+    "   (FUNCTION('FIND_IN_SET', '1', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '1', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '2', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '2', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '3', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '3', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '4', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '4', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '5', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '5', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '6', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '6', c.workingDays) > 0) " +
+    "   OR (FUNCTION('FIND_IN_SET', '7', :workingDays) > 0 AND FUNCTION('FIND_IN_SET', '7', c.workingDays) > 0) " +
+    " )" +
+    ") " +
+
+    "AND (" +
+    " LOWER(COALESCE(c.companyName, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    " OR LOWER(COALESCE(c.city, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    " OR LOWER(COALESCE(c.location, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    " OR LOWER(COALESCE(c.pan, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    " OR LOWER(COALESCE(c.gstNo, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    " OR LOWER(STR(c.stateId)) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
+    ") " +
+
+    "ORDER BY c.status ASC, c.registrationDate DESC, c.companyName ASC"
+)
+Page<CompanyEntity> findCompanyDetails(
+        Pageable pageable,
+        @Param("statusIndex") int statusIndex,
+        @Param("search") String search,
+        @Param("stateId") Integer stateId,
+        @Param("companySiteOffice") Integer companySiteOffice,
+        @Param("workingDays") String workingDays
+);
+
 
 	boolean existsByCompanyNameIgnoreCaseAndStatusNot(String name, short s);
 

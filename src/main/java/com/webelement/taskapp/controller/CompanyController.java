@@ -53,9 +53,12 @@ public class CompanyController {
 	    }
 
 		@GetMapping("/company_list")
-		public ResponseEntity<Page<CompanyDTO>> findCompanyList(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "1") int statusIndex,@RequestParam(defaultValue = "") String search, @RequestParam(defaultValue = "0") Integer stateId) {
+		public ResponseEntity<Page<CompanyDTO>> findCompanyList(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "1") int statusIndex,@RequestParam(defaultValue = "") String search, @RequestParam(defaultValue = "0") Integer stateId,
+				@RequestParam(defaultValue = "0") Integer companySiteOffice,
+		        @RequestParam(defaultValue = "") String workingDays) {
 
-			Page<CompanyDTO> response = companyService.findCompanyList(page, size, statusIndex, search,stateId);
+			Page<CompanyDTO> response = companyService.findCompanyList(page, size, statusIndex, search,stateId,companySiteOffice,
+		            workingDays);
 
 			return ResponseEntity.ok(response);
 		}

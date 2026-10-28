@@ -40,6 +40,27 @@ public class CompanyServiceImpl implements CompanyService {
 		LocalDateTime now = LocalDateTime.now();
 		String name = request.getCompanyName() != null ? request.getCompanyName().trim() : "";
 		boolean isNew = request.getCompanyId() == null || request.getCompanyId() == 0;
+		
+		if (request.getCompanySiteOffice() == null
+	            || (request.getCompanySiteOffice() != 1
+	                && request.getCompanySiteOffice() != 2)) {
+	        throw ApiException.badRequest("Please select Main or Site");
+	    }
+		
+		if (request.getWorkingDays() == null
+	            || request.getWorkingDays().trim().isEmpty()) {
+	        throw ApiException.badRequest(
+	                "Please select at least one working day");
+	    }
+		
+		String workingDays = request.getWorkingDays().trim();
+
+	    for (String day : workingDays.split(",")) {
+	        if (!day.trim().matches("[1-7]")) {
+	            throw ApiException.badRequest(
+	                    "Invalid working day selected");
+	        }
+	    }
 
 		if (isNew) {
 			if (companyRepo.existsByCompanyNameIgnoreCaseAndStatusNot(name, (short) 3)) {
@@ -68,6 +89,9 @@ public class CompanyServiceImpl implements CompanyService {
 		}
 
 		entity.setCompanyName(name);
+		// NEW FIELD
+	    entity.setWorkingDays(workingDays);
+	    
 		entity.setCompanySiteOffice(request.getCompanySiteOffice());
 		entity.setAddressLine1(request.getAddressLine1());
 		entity.setAddressLine2(request.getAddressLine2());
@@ -135,8 +159,10 @@ public class CompanyServiceImpl implements CompanyService {
 	}
 
 	@Override
-	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search, Integer stateId) {
-		return companyRepo.findCompanyDetails(PageRequest.of(page, size), statusIndex, search, stateId)
+	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search, Integer stateId,Integer companySiteOffice,
+	        String workingDays) {
+		return companyRepo.findCompanyDetails(PageRequest.of(page, size), statusIndex, search, stateId,companySiteOffice,
+	            workingDays)
 				.map(this::toDto);
 	}
 
@@ -145,6 +171,8 @@ public class CompanyServiceImpl implements CompanyService {
 		dto.setCompanyId(e.getCompanyId());
 		dto.setCompanyName(e.getCompanyName());
 		dto.setCompanySiteOffice(e.getCompanySiteOffice());
+		// NEW FIELD
+	    dto.setWorkingDays(e.getWorkingDays());
 		dto.setAddressLine1(e.getAddressLine1());
 		dto.setAddressLine2(e.getAddressLine2());
 		dto.setCity(e.getCity());
