@@ -18,8 +18,10 @@ public class TaskReassignReportDto {
 	private String clientName;
 	private String oldUser;
 	private String newUser;
+	private String assignedBy;
+
 	public TaskReassignReportDto(LocalDateTime taskDate, String taskName, String taskCategory, String clientName,
-			String oldUser, String newUser) {
+			String oldUser, String newUser, String assignedBy) {
 		super();
 		this.taskDate = taskDate;
 		this.taskName = taskName;
@@ -27,6 +29,7 @@ public class TaskReassignReportDto {
 		this.clientName = clientName;
 		this.oldUser = oldUser;
 		this.newUser = newUser;
+		this.assignedBy = assignedBy;
 	}
 	
 	

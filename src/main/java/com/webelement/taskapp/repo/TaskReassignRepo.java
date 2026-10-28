@@ -18,7 +18,7 @@ import com.webelement.taskapp.dto.TaskReassigneDTO;
 
 @Repository
 public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer> {
-	@EntityGraph(attributePaths = { "taskEntity", "taskEntity.taskCategory", "taskEntity.client", "currentUser", "newUser" })
+	@EntityGraph(attributePaths = { "taskEntity", "taskEntity.taskCategory", "taskEntity.client", "currentUser", "newUser","assignedBy" })
 	@Query("SELECT tr FROM ReassignEntity tr " +
 	       "WHERE tr.reassignId > 0 " +
 	       "AND (:fromDate IS NULL OR tr.registrationDate >= :fromDate) " +

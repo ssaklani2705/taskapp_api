@@ -155,7 +155,7 @@ public class TaskServiceImpl implements TaskService {
 		task.setCloseRemarks(remark);
 		TaskEntity savedTask = taskRepository.save(task);
 		
-		saveTaskReassignment(taskId,oldAssigneeId,assignedTo);
+		saveTaskReassignment(taskId,oldAssigneeId,assignedTo,userId);
 		
 		String assignedUserName = "Unknown";
 		if (savedTask.getAssignedTo() != null) {
@@ -535,10 +535,11 @@ public class TaskServiceImpl implements TaskService {
 		return ReassignEntity.builder().taskId(dto.getTaskId())
 				.currentUserId(dto.getPreviousAssigneeId()).newUserId(dto.getNewAssigneeId())
 				.status(dto.getStatus()).registrationDate(LocalDateTime.now()).modificationDate(LocalDateTime.now())
+				.assignedById(dto.getAssignedById())
 				.build();
 	}
 	
-	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo) {
+	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo,Integer assignedById) {
 		
 		System.err.println("{  }" + taskId +" " + oldAssigneeId + " " + assignedTo);
 		
@@ -547,6 +548,7 @@ public class TaskServiceImpl implements TaskService {
 		dto.setPreviousAssigneeId(oldAssigneeId);
 		dto.setTaskId(taskId);
 		dto.setStatus((short) 1);
+		dto.setAssignedById(assignedById);
 
 		ReassignEntity entity = objectMapper(dto);
 		taskReassigned.save(entity);
