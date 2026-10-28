@@ -137,20 +137,6 @@ public class PlanServiceImpl implements PlanService {
 		return new ApiResponse<>(false, "Plan delete failed", null);
 	}
 
-//	@Override
-//	public ApiResponse<PlanDTO> getById(Integer planId) {
-//		PlanEntity entity = planRepo.findById(planId).orElse(null);
-//		if (entity == null) {
-//			return new ApiResponse<>(false, "Plan record not found", null);
-//		}
-//		PlanDTO dto = PlanDTO.builder().planId(entity.getPlanId()).name(entity.getName()).rate(entity.getRate())
-//				.description(entity.getDescription()).status(entity.getStatus()).build();
-//		List<TransactionEntity> history = commonFunction.getTransactionLogs(9, planId);
-//		if (history != null && !history.isEmpty()) {
-//			dto.setTransactionHistory(history);
-//		}
-//		return new ApiResponse<>(true, "Plan fetched successfully", dto);
-//	}
 	@Override
 	public ApiResponse<PlanDTO> getById(Integer planId) {
 

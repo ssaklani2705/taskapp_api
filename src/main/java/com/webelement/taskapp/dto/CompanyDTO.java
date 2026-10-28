@@ -22,7 +22,6 @@ public class CompanyDTO {
 
 	private Integer companyId;
 	private String companyName;
-//	private String companySiteOffice;
 	private String addressLine1;
 	private String addressLine2;
 	private String city;

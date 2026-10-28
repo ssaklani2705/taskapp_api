@@ -52,19 +52,12 @@ public PasswordEncoder passwordEncoder() {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
 		return authConfig.getAuthenticationManager();
 	}
-	// -----------------------
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		http.csrf(csrf -> csrf.disable()).cors(cors -> {
 		}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//				.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()
-//						.requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
-//						.requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
-//						.requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll()
-//						.requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll().anyRequest()
-//						.authenticated());
 		.authorizeHttpRequests(auth -> auth
 			    .requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll()
 			    .requestMatchers(new AntPathRequestMatcher("/auth/login")).permitAll()
@@ -73,7 +66,7 @@ public PasswordEncoder passwordEncoder() {
 			    .requestMatchers(new AntPathRequestMatcher("/auth/forgotpassword")).permitAll()
 			    .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()      // revisit in step 7
 			    .requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll() // revisit in step 7
-			    .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
+			    // .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
 			    .anyRequest().authenticated());
 
 		http.exceptionHandling(ex -> ex

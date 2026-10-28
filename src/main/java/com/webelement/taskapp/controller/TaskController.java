@@ -202,32 +202,6 @@ public class TaskController {
 	            .collect(Collectors.toList());
 	}
 
-//	@GetMapping("/getTaskFilterDataOnChange")
-//	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
-//			@RequestParam String loginType, @RequestParam(required = false) Integer clientId, @RequestParam String isHod,
-//			@RequestParam(value = "userType", required = false) Integer userType) {
-//		Map<String, Object> response = new HashMap<>();
-////		response.put("clients", clientRepository.findAllActiveClients(isAdmin, userId,loginType));
-//		response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-//		boolean managerLogin = "manager".equalsIgnoreCase(loginType);
-//	    boolean managerType = userType != null && userType == 2;      // 1 = Employee, 2 = Manager
-//
-////		if ("manager".equalsIgnoreCase(loginType)) {
-//	    if (managerLogin || managerType) {
-//			// managers do not see categories of departments 2, 3, 4, 5
-//			response.put("taskCategories",
-//					taskCategoryRepository.findAllActiveTaskCategoriesExcludingDepartments(List.of(2, 3, 4, 5)));
-//		} else {
-//			response.put("taskCategories", taskCategoryRepository.findAllActiveTaskCategories());
-//		}
-//		
-//		// Assigned users depend on the client, so load them only when one is selected
-//		if (clientId != null && clientId > 0) {
-//			response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
-//		}
-//		return response;
-//	}
-
 	@GetMapping("/changesCategoryIdgetUserFilterData")
 	public Map<String, Object> changesCategoryIdgetUserFilterData(@RequestParam String isAdmin,
 			@RequestParam Integer userId, @RequestParam String loginType, @RequestParam(required = false) Integer clientId,

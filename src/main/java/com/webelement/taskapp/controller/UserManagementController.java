@@ -63,7 +63,6 @@ public class UserManagementController {
 	@PostMapping("/saveUserDetail")
 	public ResponseEntity<?> saveUserDetail(@RequestBody UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-//		System.out.println("desigmationId: "+userRequest.getDesignationId());
 		return userService.saveUserDetail(userRequest, httpRequest);
 	}
 

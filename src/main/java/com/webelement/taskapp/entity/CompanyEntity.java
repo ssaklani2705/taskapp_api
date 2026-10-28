@@ -46,9 +46,6 @@ public class CompanyEntity {
 	@Column(name = "s_companyname", length = 100)
 	private String companyName;
 
-//	@Column(name = "s_companysiteoffice", columnDefinition = "LONGTEXT")
-//	private String companySiteOffice;
-
 	@Column(name = "s_addressline1",columnDefinition = "LONGTEXT")
 	private String addressLine1;
 

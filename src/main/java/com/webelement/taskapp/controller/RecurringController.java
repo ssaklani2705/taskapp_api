@@ -44,9 +44,9 @@ public class RecurringController {
 			@RequestParam("isAdmin") String isAdmin, @RequestParam("loginType") String loginType,
 			@RequestParam("isHod") String isHod) {
 		try {
-			System.out.println("getRecurringClients userId = " + userId);
+			
 			List<ClientDTO> clients = clientService.getClientsForRecurring(userId, isAdmin, loginType, isHod);
-			System.out.println("clients found = " + clients.size());
+			
 
 			return ResponseEntity.ok(clients);
 		} catch (Exception e) {

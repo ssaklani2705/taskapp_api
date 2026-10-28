@@ -81,7 +81,7 @@ public class CommonFunction {
 
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = userLoginRepository.getTransactionLogs(moduleId, recordId);
-		System.out.println("results : " + results);
+		
 		return results.stream().map(obj -> {
 			TransactionEntity dto = new TransactionEntity();
 			dto.setEntryDate((String) obj[0]);

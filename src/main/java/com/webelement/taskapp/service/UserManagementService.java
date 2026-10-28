@@ -190,7 +190,6 @@ public class UserManagementService {
 
 	public ResponseEntity<?> saveUserDetail(UserLoginEntity userRequest, HttpServletRequest httpRequest)
 			throws Exception {
-		System.out.println("userRequest.getUserId(): " + userRequest.toString());
 		boolean isEdit = userRequest.getUserId() > 0;
 		boolean hod = "Y".equalsIgnoreCase(userRequest.getIsHod());
 		if (!hod && userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().size() > 1) {

@@ -19,25 +19,6 @@ import com.webelement.taskapp.dto.CompanyDTO;
 
 public interface CompanyRepo extends JpaRepository<CompanyEntity, Integer> {
 	
-//	@EntityGraph(attributePaths = "state")
-//	@Query(value = "SELECT c FROM CompanyEntity c " +
-//			"WHERE c.companyId > 0 " +
-//			"AND (:statusIndex = 0 OR c.status = :statusIndex) " +
-//			 "AND (:stateId = 0 OR c.stateId = :stateId) " +
-//			"AND (" +
-//			"    LOWER(COALESCE(c.companyName, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			"    OR LOWER(COALESCE(c.city, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			"    OR LOWER(COALESCE(c.location, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			"    OR LOWER(COALESCE(c.pan, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			"    OR LOWER(COALESCE(c.gstNo, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			"    OR LOWER(COALESCE(c.stateId, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%')) " +
-//			") " +
-//			"ORDER BY c.status ASC, c.registrationDate DESC, c.companyName ASC")
-//	Page<CompanyEntity> findCompanyDetails(
-//			Pageable pageable,
-//			@Param("statusIndex") int statusIndex,
-//			@Param("search") String search,@Param("stateId") Integer stateId);
-
 @EntityGraph(attributePaths = "state")
 @Query(
     "SELECT c FROM CompanyEntity c " +
