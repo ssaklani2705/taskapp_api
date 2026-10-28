@@ -46,8 +46,8 @@ public class CompanyEntity {
 	@Column(name = "s_companyname", length = 100)
 	private String companyName;
 
-	@Column(name = "s_companysiteoffice", columnDefinition = "LONGTEXT")
-	private String companySiteOffice;
+//	@Column(name = "s_companysiteoffice", columnDefinition = "LONGTEXT")
+//	private String companySiteOffice;
 
 	@Column(name = "s_addressline1",columnDefinition = "LONGTEXT")
 	private String addressLine1;
@@ -94,5 +94,11 @@ public class CompanyEntity {
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
 	private List<CompanyShiftEntity> shifts = new ArrayList<>();
+	
+	@Column(name = "s_workingdays", length = 50)
+	private String workingDays;
+	
+	@Column(name = "i_companysiteoffice")
+	private Integer companySiteOffice;
 
 }

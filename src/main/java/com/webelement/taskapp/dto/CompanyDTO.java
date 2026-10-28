@@ -22,7 +22,7 @@ public class CompanyDTO {
 
 	private Integer companyId;
 	private String companyName;
-	private String companySiteOffice;
+//	private String companySiteOffice;
 	private String addressLine1;
 	private String addressLine2;
 	private String city;
@@ -34,6 +34,9 @@ public class CompanyDTO {
 	private String pan;
 	private Short status;
 	private Integer userId;
+	
+	private Integer companySiteOffice;
+	private String workingDays;
 
 	public CompanyDTO(Integer companyId, String companyName, String city, String pincode, String location,
 			Integer stateId, String gstNo, String pan, Short status) {
@@ -48,7 +51,7 @@ public class CompanyDTO {
 		this.status = status;
 	}
 	
-	public CompanyDTO(Integer companyId, String companyName, String companySiteOffice, String addressLine1,
+	public CompanyDTO(Integer companyId, String companyName, Integer companySiteOffice, String addressLine1,
 			String addressLine2, String city, String pincode, String location, Integer stateId,
 			String gstNo, String pan, Short status) {
 		this.companyId = companyId;

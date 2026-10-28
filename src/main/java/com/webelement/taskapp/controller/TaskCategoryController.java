@@ -24,23 +24,17 @@ public class TaskCategoryController {
 	private final TaskCategoryService taskCategoryService;
 
 	@PreAuthorize("@perm.has(5)")
-	@GetMapping("/getTaskCategoryDetails")
-	public Map<String, Object> findTaskCategoryDetails(@RequestParam int page, @RequestParam int size,
-			@RequestParam int statusIndex,
-
-			@RequestParam(required = false) String search, @RequestParam int departmentId) {
-
-		Page<TaskCategoryDTO> pageData = taskCategoryService.findTaskCategoryDetails(page, size, statusIndex, search,
-				departmentId);
-
-		Map<String, Object> response = new HashMap<>();
-
-		response.put("data", pageData.getContent());
-
-		response.put("totalElements", pageData.getTotalElements());
-
-		return response;
-	}
+    @GetMapping("/getTaskCategoryDetails")
+    public Map<String, Object> findTaskCategoryDetails(@RequestParam int page, @RequestParam int size,
+            @RequestParam int statusIndex, @RequestParam(required = false) String search,
+            @RequestParam int departmentId, @RequestParam int serviceId) {
+        Page<TaskCategoryDTO> pageData = taskCategoryService.findTaskCategoryDetails(page, size, statusIndex, search,
+                departmentId, serviceId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", pageData.getContent());
+        response.put("totalElements", pageData.getTotalElements());
+        return response;
+    }
 
 	@GetMapping("task/category/employee-available")
 	public boolean isEmployeeAvailableForTaskCategoryForTask(@RequestParam("taskCategoryId") Integer taskCategoryId) {

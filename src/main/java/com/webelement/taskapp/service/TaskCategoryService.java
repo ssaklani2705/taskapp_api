@@ -180,11 +180,10 @@ public class TaskCategoryService {
 	}
 
 	public Page<TaskCategoryDTO> findTaskCategoryDetails(int page, int size, int statusIndex, String search,
-			int departmentId) {
-
-		return taskCategoryRepository.findTaskCategoryDetails(PageRequest.of(page, size), statusIndex, search,
-				departmentId);
-	}
+            int departmentId, int serviceId) {
+        return taskCategoryRepository.findTaskCategoryDetails(PageRequest.of(page, size), statusIndex, search,
+                departmentId, serviceId);
+    }
 
 	public ResponseEntity<ApiResponse<String>> deleteTaskCategory(Integer taskcategoryId, Integer userId,
 			HttpServletRequest httpRequest) {

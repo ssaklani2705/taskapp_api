@@ -19,7 +19,8 @@ public interface CompanyService {
 
 	public ApiResponse<CompanyDTO> getById(Integer companyId);
 
-	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search,Integer stateId);
+	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search,Integer stateId, Integer companySiteOffice,
+	        String workingDays);
 	
     public ResponseEntity<List<CompanyEntity>> findActiveCompany();
     
