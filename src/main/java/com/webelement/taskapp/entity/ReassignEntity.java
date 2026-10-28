@@ -40,6 +40,10 @@ public class ReassignEntity {
 
 	@Column(name = "i_newuserid", nullable = false)
 	private Integer newUserId;
+
+	@Column(name = "i_assignedbyid", nullable = false)
+	private Integer assignedById;
+
 	@Column(name = "i_status")
 	private Short status;
 
@@ -53,16 +57,20 @@ public class ReassignEntity {
 	@JsonIgnore
 	@JoinColumn(name = "i_taskid", referencedColumnName = "i_taskid", insertable = false, updatable = false)
 	private TaskEntity taskEntity;
-	
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	@JoinColumn(name = "i_newuserid", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity newUser;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
 	@JoinColumn(name = "i_currentuserid", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity currentUser;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@JoinColumn(name = "i_assignedbyid", referencedColumnName = "i_userid", insertable = false, updatable = false)
+	private UserLoginEntity assignedBy;
 
 }

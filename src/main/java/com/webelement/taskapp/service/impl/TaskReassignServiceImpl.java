@@ -30,7 +30,7 @@ public class TaskReassignServiceImpl implements TaskReassignService  {
 	                task.getTaskCategory() != null ? task.getTaskCategory().getName() : null,
 	                task.getClient() != null ? task.getClient().getName() : null,
 	                tr.getCurrentUser() != null ? tr.getCurrentUser().getFirstName() : null,
-	                tr.getNewUser() != null ? tr.getNewUser().getFirstName() : null);
+	                tr.getNewUser() != null ? tr.getNewUser().getFirstName() : null,tr.getAssignedBy() != null ? tr.getAssignedBy().getFirstName() : null);
 	    }
 
 	 @Override
