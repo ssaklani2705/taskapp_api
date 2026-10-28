@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.webelement.taskapp.dto.PlanDTO;
 import com.webelement.taskapp.entity.ReassignEntity;
+import com.webelement.taskapp.entity.TaskCategoryEntity;
 import com.webelement.taskapp.dto.TaskReassigneDTO;
 
 @Repository
@@ -38,5 +39,6 @@ public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer>
 	        @Param("search") String search,
 	        @Param("departmentFilter") int departmentFilter,
 	        @Param("departmentIds") List<Integer> departmentIds);
-
+	
+	
 }
