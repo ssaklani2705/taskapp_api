@@ -225,7 +225,7 @@ public class TaskCategoryService {
 
 	public List<TaskCategoryDTO> getActiveTaskCategories() {
 
-		List<TaskCategoryEntity> list = taskCategoryRepository.findByStatus(1);
+		List<TaskCategoryEntity> list = taskCategoryRepository.findByTaskCategory();
 
 		return list.stream().map(t -> new TaskCategoryDTO(t.getTaskcategoryId(), t.getName(), t.getDepartmentId(),
 				t.getDepartment() != null ? t.getDepartment().getName() : null)).collect(Collectors.toList());

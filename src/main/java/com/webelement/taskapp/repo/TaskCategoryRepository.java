@@ -55,26 +55,23 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 "
 			+ "ORDER BY d.name ASC, tc.name ASC")
 	List<TaskCategoryDTO> findAllActiveTaskCategories();
-	
-	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
-		     + "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) "
-		     + "FROM TaskCategoryEntity tc "
-		     + "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
-		     + "WHERE tc.status = 1 "
-		     + "AND (:excludeDeptFlag = false OR tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
-		     + "AND (:filterServiceFlag = false OR tc.serviceId IN (:serviceIds)) "
-		     + "ORDER BY d.name ASC, tc.name ASC")
-		List<TaskCategoryDTO> findActiveTaskCategoriesFiltered(
-		        @Param("excludeDeptFlag") boolean excludeDeptFlag,
-		        @Param("departmentIds") List<Integer> departmentIds,
-		        @Param("filterServiceFlag") boolean filterServiceFlag,
-		        @Param("serviceIds") List<Integer> serviceIds);
-	
+
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
 			+ "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
-			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 AND (tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
+			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = 1 "
+			+ "AND (:excludeDeptFlag = false OR tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
+			+ "AND (:filterServiceFlag = false OR tc.serviceId IN (:serviceIds)) " + "ORDER BY d.name ASC, tc.name ASC")
+	List<TaskCategoryDTO> findActiveTaskCategoriesFiltered(@Param("excludeDeptFlag") boolean excludeDeptFlag,
+			@Param("departmentIds") List<Integer> departmentIds, @Param("filterServiceFlag") boolean filterServiceFlag,
+			@Param("serviceIds") List<Integer> serviceIds);
+
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+			+ "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
+			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId "
+			+ "WHERE tc.status = 1 AND (tc.departmentId IS NULL OR tc.departmentId NOT IN (:departmentIds)) "
 			+ "ORDER BY d.name ASC, tc.name ASC")
-	List<TaskCategoryDTO> findAllActiveTaskCategoriesExcludingDepartments(@Param("departmentIds") List<Integer> departmentIds);
+	List<TaskCategoryDTO> findAllActiveTaskCategoriesExcludingDepartments(
+			@Param("departmentIds") List<Integer> departmentIds);
 
 	@Query("SELECT tc FROM TaskCategoryEntity tc " + "WHERE tc.status = 1 " + "AND EXISTS ("
 			+ "    SELECT 1 FROM UserLoginEntity ul " + "    WHERE ul.userId = ("
@@ -98,35 +95,28 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 //			+ "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))) " + "ORDER BY t.status, t.regdate DESC,t.name")
 //	Page<TaskCategoryDTO> findTaskCategoryDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
 //			@Param("search") String search, @Param("departmentId") int departmentId);
-	
-	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
-	        + "t.taskcategoryId, "
-	        + "t.departmentId, "
-	        + "d.name, "
-	        + "t.name, "
-	        + "t.status, "
-	        + "t.userId, "
-	        + "t.regdate, "
-	        + "t.moddate, "
-	        + "t.serviceId) "
-	        + "FROM TaskCategoryEntity t "
-	        + "LEFT JOIN DepartmentEntity d ON d.departmentId = t.departmentId "
-	        + "WHERE t.taskcategoryId > 0 "
-	        + "AND (:statusIndex IS NULL OR :statusIndex = 0 OR t.status = :statusIndex) "
-	        + "AND (:departmentId = 0 OR t.departmentId = :departmentId) "
-	        + "AND (:search IS NULL OR :search = '' "
-	        + "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))) "
-	        + "ORDER BY t.status, t.regdate DESC, t.name")
-	Page<TaskCategoryDTO> findTaskCategoryDetails(
-	        Pageable pageable,
-	        @Param("statusIndex") int statusIndex,
-	        @Param("search") String search,
-	        @Param("departmentId") int departmentId);
+
+	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO(" + "t.taskcategoryId, " + "t.departmentId, "
+			+ "d.name, " + "t.name, " + "t.status, " + "t.userId, " + "t.regdate, " + "t.moddate, " + "t.serviceId) "
+			+ "FROM TaskCategoryEntity t " + "LEFT JOIN DepartmentEntity d ON d.departmentId = t.departmentId "
+			+ "WHERE t.taskcategoryId > 0 "
+			+ "AND (:statusIndex IS NULL OR :statusIndex = 0 OR t.status = :statusIndex) "
+			+ "AND (:departmentId = 0 OR t.departmentId = :departmentId) " + "AND (:search IS NULL OR :search = '' "
+			+ "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))) " + "ORDER BY t.status, t.regdate DESC, t.name")
+	Page<TaskCategoryDTO> findTaskCategoryDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search, @Param("departmentId") int departmentId);
 
 	@EntityGraph(attributePaths = { "department" })
 	@Query("SELECT tc FROM TaskCategoryEntity tc " + "WHERE tc.status = :status "
 			+ "AND LOWER(TRIM(tc.name)) <> 'admin task'")
 	List<TaskCategoryEntity> findByStatus(@Param("status") Integer status);
+
+	@EntityGraph(attributePaths = { "department" })
+	@Query("SELECT tc FROM TaskCategoryEntity tc " + "WHERE tc.status = 1 "
+			+ "AND LOWER(TRIM(tc.name)) <> 'admin task' " + "AND EXISTS (" + "   SELECT t.taskId FROM TaskEntity t "
+			+ "   WHERE t.taskCategoryId = tc.taskcategoryId " + "   AND EXISTS ("
+			+ "       SELECT r.reassignId FROM ReassignEntity r " + "       WHERE r.taskId = t.taskId" + "   )" + ")")
+	List<TaskCategoryEntity> findByTaskCategory();
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
 			+ "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "

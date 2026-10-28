@@ -150,7 +150,6 @@ public class DepartmentService {
 	        String name = row[1] != null ? row[1].toString() : null;
 	        result.add(new DepartmentDTO(departmentId, name));
 	    }
-
 	    return result;
 	}
 }

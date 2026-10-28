@@ -73,7 +73,7 @@ public PasswordEncoder passwordEncoder() {
 			    .requestMatchers(new AntPathRequestMatcher("/auth/forgotpassword")).permitAll()
 			    .requestMatchers(new AntPathRequestMatcher("/ws/**")).permitAll()      // revisit in step 7
 			    .requestMatchers(new AntPathRequestMatcher("/uploads/**")).permitAll() // revisit in step 7
-//			    .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
+			    .requestMatchers(new AntPathRequestMatcher("/admin/**")).permitAll()
 			    .anyRequest().authenticated());
 
 		http.exceptionHandling(ex -> ex
