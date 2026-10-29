@@ -59,5 +59,8 @@ public interface TaskService {
 	 Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
 	            List<Integer> departmentIds, int page, int size);
 	    List<DepartmentFilterProjection> getRatingReportDepartments(String username);
+
+	    ResponseEntity<ApiResponse<?>> updateTaskBuddy(Integer taskId, Integer buddyId, Integer userId,
+	            String remark, LocalDateTime date, LocalDateTime endDate);
 	
 }

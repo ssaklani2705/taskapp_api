@@ -8,4 +8,6 @@ public interface TaskMailService {
 	public void sendTaskReassignMail(TaskEntity task, Integer oldAssigneeId) throws Exception;
 
 	public void sendTaskAssignedMail(TaskEntity task) throws Exception;
+
+	public void sendTaskBuddyAssignedMail(TaskEntity savedTask, String remark);
 }

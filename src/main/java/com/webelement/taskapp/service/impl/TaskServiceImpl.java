@@ -87,6 +87,73 @@ public class TaskServiceImpl implements TaskService {
 	@Value("${task.upload-dir}")
 	private String uploadDir;
 	
+	@Override
+	public ResponseEntity<ApiResponse<?>> updateTaskBuddy(Integer taskId, Integer buddyId, Integer userId,
+	        String remark, LocalDateTime date, LocalDateTime endDate) {
+
+	    Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
+	    if (optionalTask.isEmpty()) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
+	    }
+	    if (buddyId == null || buddyId == 0) {
+	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Buddy is required", null));
+	    }
+	    if (date == null) {
+	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Start Date & Time is required", null));
+	    }
+	    if (endDate == null) {
+	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "End Date & Time is required", null));
+	    }
+	    if (endDate.isBefore(date)) {
+	        return ResponseEntity.badRequest()
+	                .body(new ApiResponse<>(false, "End Date & Time cannot be before Start Date & Time", null));
+	    }
+
+	    TaskEntity task = optionalTask.get();
+
+	    if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
+	        return ResponseEntity.badRequest()
+	                .body(new ApiResponse<>(false, "Assign a user to the task before adding a buddy", null));
+	    }
+	    if (buddyId.equals(task.getAssignedTo())) {
+	        return ResponseEntity.badRequest()
+	                .body(new ApiResponse<>(false, "Buddy cannot be the same as the assigned user", null));
+	    }
+
+	    Integer oldBuddyId = task.getBuddyId();
+	    boolean isChange = oldBuddyId != null && oldBuddyId != 0;
+
+	    if (isChange && buddyId.equals(oldBuddyId)) {
+	        return ResponseEntity.badRequest()
+	                .body(new ApiResponse<>(false, "Selected user is already the buddy of this task", null));
+	    }
+	    if (isChange && (remark == null || remark.trim().isEmpty())) {
+	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Remarks are required", null));
+	    }
+
+	    task.setBuddyId(buddyId);
+//	    task.setDate(date);
+//	    task.setEndDate(endDate);
+	    task.setModificationDate(LocalDateTime.now());
+	    TaskEntity savedTask = taskRepository.save(task);
+
+	    String buddyName = userLoginRepository.findById(buddyId)
+	            .map(UserLoginEntity::getFirstName).orElse("Unknown");
+	    String action = (isChange ? "Task buddy changed to " : "Task buddy added: ") + buddyName
+	            + (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+	    commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+	            commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+
+	    try {
+	        taskMailService.sendTaskBuddyAssignedMail(savedTask, remark);
+	    } catch (Exception e) {
+	        logger.error("Buddy mail failed for task {}: {}", taskId, e.getMessage(), e);
+	    }
+
+	    return ResponseEntity.ok(new ApiResponse<>(true,
+	            isChange ? "Buddy changed successfully" : "Buddy added successfully", null));
+	}
+	
 	
 	public Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
             List<Integer> departmentIds, int page, int size) {

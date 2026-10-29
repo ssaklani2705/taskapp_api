@@ -650,4 +650,48 @@ public class CommonFunction {
 		return newFileName;
 	}
 
+//	public String getTaskBuddyAssignedMailTemplate(String recipientName, String title, String assignedBy,
+//        String buddyName, String clientName, String priority, String startDate, String endDate, String remarks) {
+//    StringBuilder sb = new StringBuilder();
+//    sb.append("<p>Dear ").append(recipientName).append(",</p>");
+//    sb.append("<p>A buddy has been assigned to the following task.</p>");
+//    sb.append("<table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse'>");
+//    sb.append("<tr><td><b>Title</b></td><td>").append(title).append("</td></tr>");
+//    sb.append("<tr><td><b>Client</b></td><td>").append(clientName).append("</td></tr>");
+//    sb.append("<tr><td><b>Assigned By</b></td><td>").append(assignedBy).append("</td></tr>");
+//    sb.append("<tr><td><b>Buddy</b></td><td>").append(buddyName).append("</td></tr>");
+//    sb.append("<tr><td><b>Priority</b></td><td>").append(priority).append("</td></tr>");
+//    sb.append("<tr><td><b>Start Date</b></td><td>").append(startDate).append("</td></tr>");
+//    sb.append("<tr><td><b>End Date</b></td><td>").append(endDate).append("</td></tr>");
+//    if (remarks != null && !remarks.trim().isEmpty()) {
+//        sb.append("<tr><td><b>Remarks</b></td><td>").append(remarks.trim()).append("</td></tr>");
+//    }
+//    sb.append("</table>");
+//    return sb.toString();
+//}
+	
+	public String getTaskBuddyAssignedMailTemplate(String recipientName, String taskTitle, String assignedBy,
+	        String buddyName, String clientName, String priority, String startDate, String endDate, String remarks) {
+	    try {
+	        Resource resource = resourceLoader.getResource("classpath:templates/task_buddy_assigned_mail.html");
+
+	        String content = new String(Files.readAllBytes(resource.getFile().toPath()), StandardCharsets.UTF_8);
+
+	        content = content.replace("__RECIPIENT_NAME__", recipientName != null ? recipientName : "");
+	        content = content.replace("__TASK_TITLE__", taskTitle != null ? taskTitle : "");
+	        content = content.replace("__ASSIGNED_BY__", assignedBy != null ? assignedBy : "");
+	        content = content.replace("__BUDDY_NAME__", buddyName != null ? buddyName : "");
+	        content = content.replace("__CLIENT_NAME__", clientName != null ? clientName : "");
+	        content = content.replace("__PRIORITY__", priority != null ? priority : "");
+	        content = content.replace("__START_DATE__", startDate != null ? startDate : "");
+	        content = content.replace("__END_DATE__", endDate != null ? endDate : "");
+	        content = content.replace("__REMARKS__", remarks != null ? remarks.trim() : "");
+
+	        return content;
+	    } catch (IOException e) {
+	        logger.error("Error loading task buddy assigned email template", e);
+	        return "";
+	    }
+	}
+
 }

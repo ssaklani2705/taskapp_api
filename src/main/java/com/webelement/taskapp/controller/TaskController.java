@@ -24,6 +24,7 @@ import com.webelement.taskapp.dto.TaskDetailsDTO;
 import com.webelement.taskapp.dto.TaskEditDTO;
 import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.dto.UpdateTaskAssignedUserDTO;
+import com.webelement.taskapp.dto.UpdateTaskBuddyDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.dto.UserActiveDTO;
 import com.webelement.taskapp.entity.ClientEntity;
@@ -73,6 +74,12 @@ public class TaskController {
 				request.getRemarks(), request.getDate(), request.getEndDate(),request.getBuddyId());
 	}
 
+	@PutMapping("/updateTaskBuddy")
+	public ResponseEntity<ApiResponse<?>> updateTaskBuddy(@RequestBody UpdateTaskBuddyDTO request) {
+	    return taskService.updateTaskBuddy(request.getTaskId(), request.getBuddyId(), request.getUserId(),
+	            request.getRemarks(), request.getStartDate(), request.getEndDate());
+	}
+	
 	@PostMapping("/deleteTask")
 	public ResponseEntity<ResponseApi<String>> deleteTask(@RequestParam int taskId, @RequestParam int createdBy) throws Exception {
 

@@ -168,6 +168,66 @@ public class TaskMailServiceImpl implements TaskMailService {
 		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
 				"Task App :: Task Reassigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
+	
+	@Override
+	public void sendTaskBuddyAssignedMail(TaskEntity task, String remarks) {
+	    String filePath = commonFunction.createFolder(file_maillog);
+	    ClientEntity client = task.getClientId() != null
+	            ? clientRepository.findById(task.getClientId()).orElse(null)
+	            : null;
+
+	    Set<Integer> userIds = new HashSet<>();
+	    Optional.ofNullable(task.getAssignedTo()).ifPresent(userIds::add);
+	    Optional.ofNullable(task.getAddedBy()).ifPresent(userIds::add);
+	    Optional.ofNullable(task.getBuddyId()).ifPresent(userIds::add);
+	    if (client != null) {
+	        Optional.ofNullable(client.getManagerId()).ifPresent(userIds::add);
+	    }
+
+	    Map<Integer, UserLoginEntity> userMap = userLoginRepository.findAllById(userIds).stream()
+	            .collect(Collectors.toMap(UserLoginEntity::getUserId, Function.identity()));
+
+	    UserLoginEntity assignee = userMap.get(task.getAssignedTo());
+	    UserLoginEntity assignor = userMap.get(task.getAddedBy());
+	    UserLoginEntity buddyUser = task.getBuddyId() != null ? userMap.get(task.getBuddyId()) : null;
+	    UserLoginEntity societyManager = client != null ? userMap.get(client.getManagerId()) : null;
+
+	    // Same To / CC as reassign (there is no old assignee in this flow)
+	    Set<String> toSet = new LinkedHashSet<>();
+	    Set<String> ccSet = new LinkedHashSet<>();
+	    commonFunction.addEmail(toSet, assignee);
+	    commonFunction.addEmail(ccSet, assignor);
+	    if (buddyUser != null) {
+	        commonFunction.addEmail(ccSet, buddyUser);
+	    }
+	    commonFunction.addEmail(ccSet, societyManager);
+	    ccSet.removeAll(toSet);
+
+	    if (toSet.isEmpty()) {
+	        logger.warn("No recipient found for task {}", task.getTaskId());
+	        return;
+	    }
+
+	    String recipientName = commonFunction.getFirstName(assignee);
+	    String mailBody = commonFunction.getTaskBuddyAssignedMailTemplate(recipientName, task.getTitle(),
+	            commonFunction.getFirstName(assignor), commonFunction.getFirstName(buddyUser),
+	            client != null ? client.getName() : "", commonFunction.getPriorityName(task.getPriority()),
+	            commonFunction.formatDate(task.getDate()), commonFunction.formatDate(task.getEndDate()), remarks);
+
+	    String[] to = toSet.toArray(new String[0]);
+	    String[] cc = ccSet.toArray(new String[0]);
+	    SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
+
+	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,
+	            "Buddy has been assigned", "", "", -1, "", smtp);
+	    logger.info("Buddy mail response = {}", result);
+
+	    String ip = commonFunction.resolveClientIp(request);
+	    String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
+	            "np-" + System.currentTimeMillis());
+	    commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
+	            "Buddy has been assigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
+	}
 
 	@Override
 	public void sendTaskAssignedMail(TaskEntity task) throws Exception {
