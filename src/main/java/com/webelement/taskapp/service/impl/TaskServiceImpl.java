@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -450,9 +451,10 @@ public class TaskServiceImpl implements TaskService {
 
 		return addedByMatch || assignedToMatch;
 	}
-
+	
 	@Override
-	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime) {
+	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime,
+			Integer excludeUserId) {
 		if (categoryId == null || categoryId <= 0) {
 			throw new InvalidRequestException("Invalid category id");
 		}
@@ -460,7 +462,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime end = parseStartDateTime(endDateTime);
 		String startDate = start.toLocalDate().toString();
 		String endDate = end.toLocalDate().toString();
-		
+
 		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
 		Integer pickedUserId = null;
 		Double pickedHours = null;
@@ -476,6 +478,12 @@ public class TaskServiceImpl implements TaskService {
 				List<Integer> candidates = new ArrayList<Integer>();
 				for (Object[] row : rows) {
 					int userId = ((Number) row[0]).intValue();
+
+					// never recommend the task's current assignee
+					if (excludeUserId != null && excludeUserId.intValue() == userId) {
+						continue;
+					}
+
 					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
 					if (hours < min) {
 						min = hours;
@@ -485,10 +493,18 @@ public class TaskServiceImpl implements TaskService {
 						candidates.add(userId);
 					}
 				}
-				pickedUserId = candidates.get(random.nextInt(candidates.size()));
-				pickedHours = min;
-			} else {
-				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
+				if (!candidates.isEmpty()) {
+					// deterministic tie-break: lowest userId, so the same request always gives the same answer
+					pickedUserId = Collections.min(candidates);
+					pickedHours = min;
+				}
+			}
+
+			if (pickedUserId == null) {
+				Integer fallback = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
+				if (fallback != null && (excludeUserId == null || !excludeUserId.equals(fallback))) {
+					pickedUserId = fallback;
+				}
 			}
 		} catch (Exception e) {
 			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
@@ -504,6 +520,60 @@ public class TaskServiceImpl implements TaskService {
 		result.add(item);
 		return result;
 	}
+
+//	@Override
+//	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime) {
+//		if (categoryId == null || categoryId <= 0) {
+//			throw new InvalidRequestException("Invalid category id");
+//		}
+//		LocalDateTime start = parseStartDateTime(startDateTime);
+//		LocalDateTime end = parseStartDateTime(endDateTime);
+//		String startDate = start.toLocalDate().toString();
+//		String endDate = end.toLocalDate().toString();
+//		
+//		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
+//		Integer pickedUserId = null;
+//		Double pickedHours = null;
+//		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(), end.toLocalDate());
+//		if (holidayCount > 0) {
+//			throw new InvalidRequestException("Selected date range falls on a holiday.");
+//		}
+//		try {
+//			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
+//
+//			if (rows != null && !rows.isEmpty()) {
+//				double min = Double.MAX_VALUE;
+//				List<Integer> candidates = new ArrayList<Integer>();
+//				for (Object[] row : rows) {
+//					int userId = ((Number) row[0]).intValue();
+//					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
+//					if (hours < min) {
+//						min = hours;
+//						candidates.clear();
+//						candidates.add(userId);
+//					} else if (hours == min) {
+//						candidates.add(userId);
+//					}
+//				}
+//				pickedUserId = candidates.get(random.nextInt(candidates.size()));
+//				pickedHours = min;
+//			} else {
+//				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
+//			}
+//		} catch (Exception e) {
+//			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
+//		}
+//
+//		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+//		if (pickedUserId == null || pickedUserId == 0) {
+//			return result;
+//		}
+//		Map<String, Object> item = new LinkedHashMap<String, Object>();
+//		item.put("assignedTo", pickedUserId);
+//		item.put("hours", pickedHours);
+//		result.add(item);
+//		return result;
+//	}
 
 	private LocalDateTime parseStartDateTime(String value) {
 		if (value == null || value.trim().isEmpty()) {

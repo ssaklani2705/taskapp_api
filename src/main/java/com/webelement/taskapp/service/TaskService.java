@@ -45,7 +45,8 @@ public interface TaskService {
 
 	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId);
 
-	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime);
+	List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime, Integer excludeUserId);
+//	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime);
 	public ResponseEntity<ResponseApi<String>> deleteTask(int taskId, int createdBy);
 
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
