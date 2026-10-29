@@ -31,6 +31,4 @@ public class TaskReassignReportDto {
 		this.newUser = newUser;
 		this.assignedBy = assignedBy;
 	}
-	
-	
 }
