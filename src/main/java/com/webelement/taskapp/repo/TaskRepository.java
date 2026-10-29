@@ -107,7 +107,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 
 			// ---- ADMIN / OTHERS ----
 			+ "     OR ( " + "          :loginType <> 'manager' " + "          AND ( "
-			+ "               :isAdmin = 'Y' " + "               OR t.assignedTo = :userId "
+			+ "               :isAdmin = 'Y' " + "               OR t.assignedTo = :userId  OR t.buddyId = :userId " 
 			+ "               OR t.addedBy = :userId " + "               OR ( " + "                    :isAdmin <> 'Y' "
 			+ "                    AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
 			+ "                    AND EXISTS ( " + "                         SELECT 1 "
