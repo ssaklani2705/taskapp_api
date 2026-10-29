@@ -91,7 +91,9 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 				actionUserName, "");
 		String[] to = toEmails.toArray(new String[0]);
 		String[] cc = ccEmails.toArray(new String[0]);
+//		String subject = "Task App :: Task Notes";
 		String subject = "Task App :: Task Notes";
+		String emailSubject = "Task Id: " + request.getTaskId() + " - " + subject;
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
 		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
 		logger.info("Task Notes Mail Sent. TaskId={}, Result={}, To={}, Cc={}", task.getTaskId(), result,

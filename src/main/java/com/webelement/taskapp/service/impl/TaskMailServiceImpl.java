@@ -218,8 +218,13 @@ public class TaskMailServiceImpl implements TaskMailService {
 	    String[] cc = ccSet.toArray(new String[0]);
 	    SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
 
-	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,
-	            "Buddy has been assigned", "", "", -1, "", smtp);
+//	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,
+//	            "Buddy has been assigned", "", "", -1, "", smtp);
+	    Integer result = mailService.postMailAttach(
+	    	    to, cc, new String[0], mailBody,
+	    	    "Task Id: " + task.getTaskId() + " - " + "Buddy has been assigned",
+	    	    "", "", -1, "", smtp
+	    	);
 	    logger.info("Buddy mail response = {}", result);
 
 	    String ip = commonFunction.resolveClientIp(request);
@@ -270,17 +275,19 @@ public class TaskMailServiceImpl implements TaskMailService {
 				commonFunction.formatDate(task.getEndDate()), task.getDescription());
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
-		String subject = "Task App :: New Task Assigned";
+//		String subject = "Task App :: New Task Assigned";
+		String subject = "New Task Assigned";
+		String emailSubject = "Task Id: " + task.getTaskId() + " - " + subject;
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
 		logger.info("Assigned mail. taskId={}, buddyId={}, buddyUser={}, to={}, cc={}",
 		        task.getTaskId(), task.getBuddyId(), buddyUser != null ? buddyUser.getEmail() : null, toSet, ccSet);
-		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, emailSubject, "", "", -1, "", smtp);
 		logger.info("Task assignment mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
 		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
 				"np-" + System.currentTimeMillis());
 		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
-				subject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
+				emailSubject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 
 }
