@@ -159,7 +159,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
      + "FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
 List<UserActiveDTO> findAllUsers();
 
-	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName,u.isHod) "
 			+ "FROM UserLoginEntity u "
 			+ "WHERE u.status = 1 "
 			+ "AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') "
