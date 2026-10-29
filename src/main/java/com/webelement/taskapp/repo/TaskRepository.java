@@ -296,10 +296,16 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
     Page<TaskRatingSummaryProjection> findTaskRatingSummary(@Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate, @Param("username") String username,
             @Param("departmentIds") String departmentIds, Pageable pageable);
-    @Query(value = "SELECT DISTINCT d.i_departmentid AS departmentId, d.s_name AS name FROM t_department d "
-            + "INNER JOIN t_userlogin u ON FIND_IN_SET(CAST(d.i_departmentid AS CHAR), u.s_departmentids) > 0 "
-            + "INNER JOIN t_task t ON t.i_assignedto = u.i_userid WHERE t.i_status = 1 AND "
-            + "(:username IS NULL OR TRIM(:username) = '' OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+//    @Query(value = "SELECT DISTINCT d.i_departmentid AS departmentId, d.s_name AS name FROM t_department d "
+//            + "INNER JOIN t_userlogin u ON FIND_IN_SET(CAST(d.i_departmentid AS CHAR), u.s_departmentids) > 0 "
+//            + "INNER JOIN t_task t ON t.i_assignedto = u.i_userid WHERE t.i_status = 1 AND "
+//            + "(:username IS NULL OR TRIM(:username) = '' OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+//            + "ORDER BY d.s_name ASC", nativeQuery = true)
+//    List<DepartmentFilterProjection> findRatingReportDepartments(@Param("username") String username);
+    
+    
+    
+    @Query(value = "SELECT  d.i_departmentid AS departmentId, d.s_name AS name FROM t_department d "
             + "ORDER BY d.s_name ASC", nativeQuery = true)
     List<DepartmentFilterProjection> findRatingReportDepartments(@Param("username") String username);
 }

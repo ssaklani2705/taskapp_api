@@ -142,8 +142,8 @@ public class DepartmentService {
 				.collect(Collectors.toList());
 	}
 	
-	public List<DepartmentDTO> getActiveDepartmentsList(String username) {
-	    List<Object[]> rows = departmentRepository.findRatingReportDepartments(username);
+	public List<DepartmentDTO> getActiveDepartmentsList() {
+	    List<Object[]> rows = departmentRepository.findRatingReportDepartments();
 	    List<DepartmentDTO> result = new ArrayList<>();
 	    for (Object[] row : rows) {
 	        Integer departmentId = row[0] != null ? ((Number) row[0]).intValue() : null;
