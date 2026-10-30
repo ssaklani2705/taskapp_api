@@ -274,6 +274,71 @@ public class TaskCategoryService {
 		return list.stream().filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
 				.collect(Collectors.toList());
 	}
+	
+	
+	
+	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringFInal(Integer userId, String isAdmin, String loginType,
+			String isHod,Integer clientId) {
+		
+		System.out.println("clientId clientId :"+clientId);
+
+		// All active categories, with department already joined
+		List<TaskCategoryDTO> list = taskCategoryRepository.findByStatusWithDepartment(1);
+
+		// ADMIN / MANAGER: all active categories
+//		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
+//			return list;
+//		}
+
+		// ADMIN: all active categories
+//		if ("Y".equalsIgnoreCase(isAdmin)) {
+//			return list;
+//		}
+
+		// MANAGER: all active categories except departments 2, 3, 4, 5
+		if ("manager".equalsIgnoreCase(loginType)) {
+			Set<Integer> excludedDepartments = Set.of(2, 3, 4, 5);
+
+			return list.stream()
+					.filter(t -> t.getDepartmentId() == null || !excludedDepartments.contains(t.getDepartmentId()))
+					.collect(Collectors.toList());
+		}
+
+		// EMPLOYEE: only the categories assigned in t_userlogin
+//		String taskcategoryIds = userLoginRepository.findTaskcategoryIdsByUserId(userId);
+		
+		String taskcategoryIds;
+
+		if (clientId != null && clientId > 0) {
+			
+		    // Client selected: filter categories by client's plan services
+		    taskcategoryIds = userLoginRepository
+		            .findTaskcategoryIdsByClientId(clientId);
+		    System.out.println("In"+taskcategoryIds);
+		} else {
+		    // No client selected (clientId = 0 or null): get all assigned categories
+		    taskcategoryIds = userLoginRepository
+		            .findTaskcategoryIdsByUserId(userId);
+		    System.out.println("Out"+taskcategoryIds);
+		}
+
+
+		if (taskcategoryIds == null || taskcategoryIds.trim().isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(",")).map(String::trim)
+				.filter(value -> !value.isEmpty()).map(value -> {
+					try {
+						return Integer.valueOf(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}).filter(Objects::nonNull).collect(Collectors.toSet());
+
+		return list.stream().filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
+				.collect(Collectors.toList());
+	}
 
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringForIndex(Integer userId, String isAdmin,
 			String loginType) {

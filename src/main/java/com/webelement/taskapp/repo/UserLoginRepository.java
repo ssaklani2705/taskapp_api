@@ -27,6 +27,31 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
 	String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
+	
+	@Query(value = "SELECT GROUP_CONCAT(DISTINCT tc.i_taskcategoryid) "
+	        + "FROM t_client c "
+	        + "JOIN t_plan p ON p.i_planid = c.i_planid "
+	        + "JOIN t_taskcategory tc "
+	        + "ON FIND_IN_SET(tc.i_serviceid, p.s_serviceids) > 0 "
+	        + "WHERE c.i_clientid = :clientId "
+	        + "AND tc.i_status = 1",
+	        nativeQuery = true)
+	String findTaskcategoryIdsByClientId(
+	        @Param("clientId") Integer clientId);
+	
+//	@Query(value = "SELECT GROUP_CONCAT(DISTINCT tc.i_taskcategoryid) "
+//	        + "FROM t_userlogin u "
+//	        + "JOIN t_client c ON c.i_clientid = :clientId "
+//	        + "JOIN t_plan p ON p.i_planid = c.i_planid "
+//	        + "JOIN t_taskcategory tc "
+//	        + "ON FIND_IN_SET(tc.i_serviceid, p.s_serviceids) > 0 "
+//	        + "WHERE u.i_userid = :userId "
+//	        + "AND FIND_IN_SET(tc.i_taskcategoryid, u.s_taskcategoryids) > 0 "
+//	        + "AND tc.i_status = 1",
+//	        nativeQuery = true)
+//	String findTaskcategoryIdsByUserId(
+//	        @Param("userId") Integer userId,
+//	        @Param("clientId") Integer clientId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
 			+ "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
