@@ -12,6 +12,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
@@ -55,21 +58,25 @@ public class ReassignEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_taskid", referencedColumnName = "i_taskid", insertable = false, updatable = false)
 	private TaskEntity taskEntity;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_newuserid", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity newUser;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_currentuserid", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity currentUser;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_assignedbyid", referencedColumnName = "i_userid", insertable = false, updatable = false)
 	private UserLoginEntity assignedBy;
 

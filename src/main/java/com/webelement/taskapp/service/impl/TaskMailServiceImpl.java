@@ -105,7 +105,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
-		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, "Task App :: Task Status Updated",
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, "Task Id: " + task.getTaskId() + " - " + "Task Status Updated",
 				"", "", -1, "", smtp);
 		logger.info("Mail service response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
@@ -159,7 +159,7 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
-		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, "Task App :: Task Reassigned", "",
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,"Task Id: " + task.getTaskId() + " - " + "Task Reassigned", "",
 				"", -1, "", smtp);
 		logger.info("Reassign mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);

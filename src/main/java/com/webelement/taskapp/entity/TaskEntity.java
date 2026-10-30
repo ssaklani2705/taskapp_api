@@ -85,11 +85,13 @@ public class TaskEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_clientid", referencedColumnName = "i_clientid", insertable = false, updatable = false)
 	private ClientEntity client;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "i_taskcategoryid", referencedColumnName = "i_taskcategoryid", insertable = false, updatable = false)
 	private TaskCategoryEntity taskCategory;
 
