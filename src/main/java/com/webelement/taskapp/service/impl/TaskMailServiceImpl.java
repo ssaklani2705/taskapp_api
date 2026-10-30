@@ -105,14 +105,15 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
-		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, "Task Id: " + task.getTaskId() + " - " + "Task Status Updated",
+		String emailSubject = "Task Id: " + task.getTaskId() + " - " + "Task Status Updated";
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, emailSubject,
 				"", "", -1, "", smtp);
 		logger.info("Mail service response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
 		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
 				"np-" + System.currentTimeMillis());
 		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
-				"Task App :: Task Status Updated", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
+				emailSubject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 
 	@Override
@@ -159,14 +160,15 @@ public class TaskMailServiceImpl implements TaskMailService {
 		String[] to = toSet.toArray(new String[0]);
 		String[] cc = ccSet.toArray(new String[0]);
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
-		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,"Task Id: " + task.getTaskId() + " - " + "Task Reassigned", "",
+		String emailSubject = "Task Id: " + task.getTaskId() + " - " + "Task Reassigned";
+		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,emailSubject, "",
 				"", -1, "", smtp);
 		logger.info("Reassign mail response = {}", result);
 		String ip = commonFunction.resolveClientIp(request);
 		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
 				"np-" + System.currentTimeMillis());
 		commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
-				"Task App :: Task Reassigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
+				emailSubject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 	
 	@Override
@@ -220,18 +222,15 @@ public class TaskMailServiceImpl implements TaskMailService {
 
 //	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,
 //	            "Buddy has been assigned", "", "", -1, "", smtp);
-	    Integer result = mailService.postMailAttach(
-	    	    to, cc, new String[0], mailBody,
-	    	    "Task Id: " + task.getTaskId() + " - " + "Buddy has been assigned",
-	    	    "", "", -1, "", smtp
-	    	);
+	    String emailSubject = "Task Id: " + task.getTaskId() + " - " + "Buddy has been assigned";
+	    Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody,emailSubject,"", "", -1, "", smtp);
 	    logger.info("Buddy mail response = {}", result);
 
 	    String ip = commonFunction.resolveClientIp(request);
 	    String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
 	            "np-" + System.currentTimeMillis());
 	    commonFunction.createMailLog(1, recipientName, String.join(",", toSet), String.join(",", ccSet), "", "",
-	            "Buddy has been assigned", filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
+	    		emailSubject, filePath + "/" + fname, ip, commonFunction.getLocalIp(), 1);
 	}
 
 	@Override

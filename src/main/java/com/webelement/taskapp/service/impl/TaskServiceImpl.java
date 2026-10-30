@@ -38,6 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.webelement.taskapp.Exceptions.ApiException;
 import com.webelement.taskapp.Exceptions.DuplicateTaskTitleException;
 import com.webelement.taskapp.Exceptions.FileValidationException;
 import com.webelement.taskapp.Exceptions.InvalidRequestException;
@@ -93,42 +95,38 @@ public class TaskServiceImpl implements TaskService {
 
 	    Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 	    if (optionalTask.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
+	        throw ApiException.notFound( "Task not found");
 	    }
 	    if (buddyId == null || buddyId == 0) {
-	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Buddy is required", null));
+	    	throw ApiException.badRequest("Buddy is required");
 	    }
 	    if (date == null) {
-	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Start Date & Time is required", null));
+	    	throw ApiException.badRequest("Start Date & Time is required");
 	    }
 	    if (endDate == null) {
-	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "End Date & Time is required", null));
+	    	throw ApiException.badRequest("End Date & Time is required");
 	    }
 	    if (endDate.isBefore(date)) {
-	        return ResponseEntity.badRequest()
-	                .body(new ApiResponse<>(false, "End Date & Time cannot be before Start Date & Time", null));
+	    	throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
 	    }
 
 	    TaskEntity task = optionalTask.get();
 
 	    if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
-	        return ResponseEntity.badRequest()
-	                .body(new ApiResponse<>(false, "Assign a user to the task before adding a buddy", null));
+	    	throw ApiException.badRequest("Assign a user to the task before adding a buddy");
 	    }
 	    if (buddyId.equals(task.getAssignedTo())) {
-	        return ResponseEntity.badRequest()
-	                .body(new ApiResponse<>(false, "Buddy cannot be the same as the assigned user", null));
+	    	throw ApiException.badRequest("Buddy cannot be the same as the assigned user");
 	    }
 
 	    Integer oldBuddyId = task.getBuddyId();
 	    boolean isChange = oldBuddyId != null && oldBuddyId != 0;
 
 	    if (isChange && buddyId.equals(oldBuddyId)) {
-	        return ResponseEntity.badRequest()
-	                .body(new ApiResponse<>(false, "Selected user is already the buddy of this task", null));
+	    	throw ApiException.badRequest("Selected user is already the buddy of this task");
 	    }
 	    if (isChange && (remark == null || remark.trim().isEmpty())) {
-	        return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Remarks are required", null));
+	    	throw ApiException.badRequest("Remarks are required");
 	    }
 
 	    task.setBuddyId(buddyId);
@@ -192,22 +190,23 @@ public class TaskServiceImpl implements TaskService {
 			String remark, LocalDateTime date, LocalDateTime endDate,Integer buddyId) {
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 		if (optionalTask.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, "Task not found", null));
+			throw ApiException.notFound("Task not found");
 		}
 		if (date == null) {
-			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Start Date & Time is required", null));
+			throw ApiException.badRequest("Start Date & Time is required");
+		
 		}
 		if (endDate == null) {
-			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "End Date & Time is required", null));
+			throw ApiException.badRequest("End Date & Time is required");
+			
 		}
 		if (endDate.isBefore(date)) {
-			return ResponseEntity.badRequest()
-					.body(new ApiResponse<>(false, "End Date & Time cannot be before Start Date & Time", null));
+			throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
+			
 		}
 		// ADD
 		if (buddyId != null && buddyId.equals(assignedTo)) {
-			return ResponseEntity.badRequest()
-					.body(new ApiResponse<>(false, "Buddy cannot be the same as the assigned user", null));
+			throw ApiException.badRequest("Buddy cannot be the same as the assigned user");
 		}
 		TaskEntity task = optionalTask.get();
 		Integer oldAssigneeId = task.getAssignedTo();
@@ -588,59 +587,7 @@ public class TaskServiceImpl implements TaskService {
 		return result;
 	}
 
-//	@Override
-//	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime) {
-//		if (categoryId == null || categoryId <= 0) {
-//			throw new InvalidRequestException("Invalid category id");
-//		}
-//		LocalDateTime start = parseStartDateTime(startDateTime);
-//		LocalDateTime end = parseStartDateTime(endDateTime);
-//		String startDate = start.toLocalDate().toString();
-//		String endDate = end.toLocalDate().toString();
-//		
-//		int dayOfWeek = toWeeklyOffDay(start.toLocalDate());
-//		Integer pickedUserId = null;
-//		Double pickedHours = null;
-//		long holidayCount = holidayRepository.countHolidayOverlap(start.toLocalDate(), end.toLocalDate());
-//		if (holidayCount > 0) {
-//			throw new InvalidRequestException("Selected date range falls on a holiday.");
-//		}
-//		try {
-//			List<Object[]> rows = taskRepository.findWorkloadByCategory(categoryId, dayOfWeek, start, startDate);
-//
-//			if (rows != null && !rows.isEmpty()) {
-//				double min = Double.MAX_VALUE;
-//				List<Integer> candidates = new ArrayList<Integer>();
-//				for (Object[] row : rows) {
-//					int userId = ((Number) row[0]).intValue();
-//					double hours = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
-//					if (hours < min) {
-//						min = hours;
-//						candidates.clear();
-//						candidates.add(userId);
-//					} else if (hours == min) {
-//						candidates.add(userId);
-//					}
-//				}
-//				pickedUserId = candidates.get(random.nextInt(candidates.size()));
-//				pickedHours = min;
-//			} else {
-//				pickedUserId = taskRepository.findRandomEligibleUser(categoryId, dayOfWeek).orElse(null);
-//			}
-//		} catch (Exception e) {
-//			throw new WorkloadFetchException("Unable to fetch assignee workload", e);
-//		}
-//
-//		List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-//		if (pickedUserId == null || pickedUserId == 0) {
-//			return result;
-//		}
-//		Map<String, Object> item = new LinkedHashMap<String, Object>();
-//		item.put("assignedTo", pickedUserId);
-//		item.put("hours", pickedHours);
-//		result.add(item);
-//		return result;
-//	}
+
 
 	private LocalDateTime parseStartDateTime(String value) {
 		if (value == null || value.trim().isEmpty()) {

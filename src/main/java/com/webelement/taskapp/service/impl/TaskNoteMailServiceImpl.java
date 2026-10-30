@@ -96,8 +96,8 @@ public class TaskNoteMailServiceImpl implements TaskNotesMailService {
 		String emailSubject = "Task Id: " + request.getTaskId() + " - " + subject;
 		SmtpEntity smtp = smtpRepo.findLatestSmtpDetails();
 		Integer result = mailService.postMailAttach(to, cc, new String[0], mailBody, subject, "", "", -1, "", smtp);
-		logger.info("Task Notes Mail Sent. TaskId={}, Result={}, To={}, Cc={}", task.getTaskId(), result,
-				String.join(",", toEmails), String.join(",", ccEmails));
+//		logger.info("Task Notes Mail Sent. TaskId={}, Result={}, To={}, Cc={}", task.getTaskId(), result,
+//				String.join(",", toEmails), String.join(",", ccEmails));
 		String ip = commonFunction.resolveClientIp(httpReq);
 		String iplocal = commonFunction.getLocalIp();
 		String fname = commonFunction.writeHTMLFile(mailBody, file_maillog + "/" + filePath,
