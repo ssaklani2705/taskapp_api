@@ -23,7 +23,8 @@ public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer>
 	       "AND (:toDate IS NULL OR tr.registrationDate < :toDate) " +
 	       "AND (:taskCategoryId = 0 OR tr.taskEntity.taskCategoryId = :taskCategoryId) " +
 	       "AND (:clientId = 0 OR tr.taskEntity.clientId = :clientId) " +
-	       "AND (:userId = 0 OR tr.currentUserId = :userId OR tr.newUserId = :userId) " +
+	       "AND (:userId = 0 OR tr.currentUserId = :userId) " +
+//	       "AND (:userId = 0 OR tr.currentUserId = :userId OR tr.newUserId = :userId) " +
 	       "AND (:departmentFilter = 0 OR tr.taskEntity.taskCategory.departmentId IN :departmentIds) " +
 	       "AND (LOWER(COALESCE(tr.taskEntity.title, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))) " +
 	       "ORDER BY tr.registrationDate DESC")
