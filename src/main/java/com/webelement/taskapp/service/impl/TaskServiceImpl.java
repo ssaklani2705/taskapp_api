@@ -274,16 +274,16 @@ public class TaskServiceImpl implements TaskService {
 			throw new IllegalArgumentException("Buddy cannot be the same as the assigned user.");
 		}
 
-		if (title != null && clientId != null) {
-			String trimmedTitle = title.trim();
-			boolean isDuplicate = isUpdate
-					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
-					: taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
-			if (isDuplicate) {
-				throw new DuplicateTaskTitleException(
-						"A task with the title '" + trimmedTitle + "' already exists for this client");
-			}
-		}
+//		if (title != null && clientId != null) {
+//			String trimmedTitle = title.trim();
+//			boolean isDuplicate = isUpdate
+//					? taskRepository.existsByTitleIgnoreCaseAndClientIdAndTaskIdNot(trimmedTitle, clientId, taskId)
+//					: taskRepository.existsByTitleIgnoreCaseAndClientId(trimmedTitle, clientId);
+//			if (isDuplicate) {
+//				throw new DuplicateTaskTitleException(
+//						"A task with the title '" + trimmedTitle + "' already exists for this client");
+//			}
+//		}
 
 		TaskEntity task;
 		if (isUpdate) {

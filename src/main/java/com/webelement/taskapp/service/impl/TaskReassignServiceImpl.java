@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.webelement.taskapp.dto.CompanyDTO;
+import com.webelement.taskapp.dto.DepartmentFilterProjection;
+import com.webelement.taskapp.dto.OldUserTaskCountDto;
 import com.webelement.taskapp.dto.TaskReassignReportDto;
 import com.webelement.taskapp.entity.ReassignEntity;
 import com.webelement.taskapp.entity.TaskEntity;
@@ -20,6 +22,32 @@ import lombok.RequiredArgsConstructor;
 public class TaskReassignServiceImpl implements TaskReassignService  {
 
 	private final TaskReassignRepo reassignRepo;
+	
+	@Override
+    public Page<OldUserTaskCountDto> getOldUserTaskCount(int page, int size, LocalDateTime fromDate,
+            LocalDateTime toDate, String search, String departmentIds) {
+
+
+        LocalDateTime toExclusive = (toDate == null) ? null : toDate.toLocalDate().plusDays(1).atStartOfDay();
+
+
+        String userName = (search == null || search.trim().isEmpty()) ? null : search.trim();
+
+
+        String departments = (departmentIds == null || departmentIds.trim().isEmpty()) ? null : departmentIds.trim();
+
+
+        return reassignRepo.getOldUserTaskCount(fromDate, toExclusive, userName, departments,
+                PageRequest.of(page, size));
+    }
+
+
+
+
+    @Override
+    public List<DepartmentFilterProjection> getReassignSummaryReportDepartments() {
+        return reassignRepo.findReassignSummaryReportDepartments();
+    }
 	
 	
 	 private TaskReassignReportDto toDto(ReassignEntity tr) {
