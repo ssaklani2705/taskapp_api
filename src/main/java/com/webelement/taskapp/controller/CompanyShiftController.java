@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webelement.taskapp.dto.CompanyShiftDto;
+import com.webelement.taskapp.service.CompanyService;
 import com.webelement.taskapp.service.CompanyShiftService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/admin/companyShift")
 public class CompanyShiftController {
 
-    @Autowired
-    private CompanyShiftService service;
+    
+    private final CompanyShiftService service;
 
     @PostMapping("/add")
     public Map<String, Object> add(@RequestBody CompanyShiftDto dto) { return service.add(dto); }
@@ -28,8 +32,8 @@ public class CompanyShiftController {
     @PutMapping("/update")
     public Map<String, Object> update(@RequestBody CompanyShiftDto dto) { return service.update(dto); }
 
-    @DeleteMapping("/delete/{shiftId}")
-    public Map<String, Object> delete(@PathVariable Integer shiftId) { return service.delete(shiftId); }
+    @DeleteMapping("/delete/{shiftId}/{userId}")
+    public Map<String, Object> delete(@PathVariable Integer shiftId,@PathVariable Integer userId) { return service.delete(shiftId,userId); }
 
     @GetMapping("/viewById/{shiftId}")
     public Map<String, Object> viewById(@PathVariable Integer shiftId) { return service.viewById(shiftId); }

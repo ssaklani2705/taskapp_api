@@ -87,4 +87,7 @@ Page<CompanyEntity> findCompanyDetails(
 	@Query("SELECT cs FROM CompanyShiftEntity cs WHERE cs.status= 1 AND cs.companyId =:companyId  ORDER BY cs.shiftName")
 	List<CompanyShiftEntity> activeCompanyShiftList(@Param("companyId") Integer companyId);
 	
+	Optional<CompanyEntity> findByCompanySiteOfficeAndStatus(
+		    Integer companySiteOffice, Short status);
+	
 }

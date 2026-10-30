@@ -156,7 +156,7 @@ public class CompanyServiceImpl implements CompanyService {
 
 		return new ApiResponse<>(true, "Company found", dto);
 
-	}
+	} 
 
 	@Override
 	public Page<CompanyDTO> findCompanyList(int page, int size, int statusIndex, String search, Integer stateId,Integer companySiteOffice,

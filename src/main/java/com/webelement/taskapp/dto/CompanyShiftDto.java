@@ -23,5 +23,6 @@ public class CompanyShiftDto {
     private String toTime;     // "HH:mm"
     private Short status;
     private Integer companyId;
+    private Integer userId;
     // getters & setters
 }
