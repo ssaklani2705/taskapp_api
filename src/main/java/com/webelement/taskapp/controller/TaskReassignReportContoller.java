@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.webelement.taskapp.dto.DepartmentFilterProjection;
+import com.webelement.taskapp.dto.OldUserTaskCountDto;
 import com.webelement.taskapp.dto.TaskReassignReportDto;
 import com.webelement.taskapp.service.TaskNoteService;
 import com.webelement.taskapp.service.impl.TaskReassignService;
@@ -30,6 +33,23 @@ import lombok.RequiredArgsConstructor;
 public class TaskReassignReportContoller {
 	
 	private final TaskReassignService taskReassignService;
+	
+	@GetMapping("/old-user-task-count")
+    public Page<OldUserTaskCountDto> getOldUserTaskCount(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String search, @RequestParam(required = false) String departmentIds) {
+
+
+        return taskReassignService.getOldUserTaskCount(page, size, fromDate != null ? fromDate.atStartOfDay() : null,
+                toDate != null ? toDate.atStartOfDay() : null, search, departmentIds);
+    }
+	
+	  @GetMapping("/reassign-summary/departments")
+	    public List<DepartmentFilterProjection> getRatingReportDepartments() {
+	        return taskReassignService.getReassignSummaryReportDepartments();
+	    }
 	
 	@GetMapping("/report")
 	public ResponseEntity<Page<TaskReassignReportDto>> getTaskReassignReport(@RequestParam(defaultValue = "0") int page,

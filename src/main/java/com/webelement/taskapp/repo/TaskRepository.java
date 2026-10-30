@@ -276,27 +276,63 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 	        @Param("catIds") List<Integer> catIds,
 	        @Param("allDepts") int allDepts,
 	        @Param("deptIds") List<Integer> deptIds);
+	
+	@Query(value = "SELECT "
+	        + "u.s_firstname AS name, "
+	        + "COUNT(t.i_taskid) AS totalTasks, "
+	        + "COUNT(NULLIF(t.d_rating, 0)) AS ratedTasks, "
+	        + "ROUND(AVG(NULLIF(t.d_rating, 0)), 2) AS avgRating "
+	        + "FROM t_userlogin u "
+	        + "LEFT JOIN t_task t ON u.i_userid = t.i_assignedto "
+	        + "AND t.i_status = 1 "
+	        + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) "
+	        + "AND (:toDate IS NULL OR t.d_date < :toDate) "
+	        + "WHERE u.i_status = 1 "
+	        + "AND (:username IS NULL OR TRIM(:username) = '' "
+	        + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+	        + "AND (:departmentIds IS NULL OR "
+	        + "u.s_departmentids REGEXP CONCAT('(^|,)(', "
+	        + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) "
+	        + "GROUP BY u.i_userid, u.s_firstname "
+	        + "ORDER BY u.s_firstname ASC",
 
-	@Query(value = "SELECT " + "u.s_firstname AS name, " + "COUNT(*) AS totalTasks, "
-            + "COUNT(NULLIF(t.d_rating, 0)) AS ratedTasks, " + "ROUND(AVG(NULLIF(t.d_rating, 0)), 2) AS avgRating "
-            + "FROM t_task t " + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
-            + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) " + "AND (:toDate IS NULL OR t.d_date < :toDate) "
-            + "AND (:username IS NULL OR TRIM(:username) = '' "
-            + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) " + "AND (:departmentIds IS NULL OR "
-            + "u.s_departmentids REGEXP CONCAT('(^|,)(', " + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) "
-            + "GROUP BY t.i_assignedto, u.s_firstname "
-            + "ORDER BY u.s_firstname ASC", countQuery = "SELECT COUNT(*) FROM ("
-                    + "SELECT t.i_assignedto, u.s_firstname " + "FROM t_task t "
-                    + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
-                    + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) "
-                    + "AND (:toDate IS NULL OR t.d_date < :toDate) " + "AND (:username IS NULL OR TRIM(:username) = '' "
-                    + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
-                    + "AND (:departmentIds IS NULL OR " + "u.s_departmentids REGEXP CONCAT('(^|,)(', "
-                    + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) " + "GROUP BY t.i_assignedto, u.s_firstname "
-                    + ") AS grouped_users", nativeQuery = true)
-    Page<TaskRatingSummaryProjection> findTaskRatingSummary(@Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate, @Param("username") String username,
-            @Param("departmentIds") String departmentIds, Pageable pageable);
+	        countQuery = "SELECT COUNT(*) FROM t_userlogin u "
+	                + "WHERE u.i_status = 1 "
+	                + "AND (:username IS NULL OR TRIM(:username) = '' "
+	                + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+	                + "AND (:departmentIds IS NULL OR "
+	                + "u.s_departmentids REGEXP CONCAT('(^|,)(', "
+	                + "REPLACE(:departmentIds, ',', '|'), ')(,|$)'))",
+
+	        nativeQuery = true)
+	Page<TaskRatingSummaryProjection> findTaskRatingSummary(
+	        @Param("fromDate") LocalDateTime fromDate,
+	        @Param("toDate") LocalDateTime toDate,
+	        @Param("username") String username,
+	        @Param("departmentIds") String departmentIds,
+	        Pageable pageable);
+
+//	@Query(value = "SELECT " + "u.s_firstname AS name, " + "COUNT(*) AS totalTasks, "
+//            + "COUNT(NULLIF(t.d_rating, 0)) AS ratedTasks, " + "ROUND(AVG(NULLIF(t.d_rating, 0)), 2) AS avgRating "
+//            + "FROM t_task t " + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
+//            + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) " + "AND (:toDate IS NULL OR t.d_date < :toDate) "
+//            + "AND (:username IS NULL OR TRIM(:username) = '' "
+//            + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) " + "AND (:departmentIds IS NULL OR "
+//            + "u.s_departmentids REGEXP CONCAT('(^|,)(', " + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) "
+//            + "GROUP BY t.i_assignedto, u.s_firstname "
+//            + "ORDER BY u.s_firstname ASC", countQuery = "SELECT COUNT(*) FROM ("
+//                    + "SELECT t.i_assignedto, u.s_firstname " + "FROM t_task t "
+//                    + "INNER JOIN t_userlogin u ON u.i_userid = t.i_assignedto " + "WHERE t.i_status = 1 "
+//                    + "AND (:fromDate IS NULL OR t.d_date >= :fromDate) "
+//                    + "AND (:toDate IS NULL OR t.d_date < :toDate) " + "AND (:username IS NULL OR TRIM(:username) = '' "
+//                    + "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :username, '%'))) "
+//                    + "AND (:departmentIds IS NULL OR " + "u.s_departmentids REGEXP CONCAT('(^|,)(', "
+//                    + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) " + "GROUP BY t.i_assignedto, u.s_firstname "
+//                    + ") AS grouped_users", nativeQuery = true)
+//    Page<TaskRatingSummaryProjection> findTaskRatingSummary(@Param("fromDate") LocalDateTime fromDate,
+//            @Param("toDate") LocalDateTime toDate, @Param("username") String username,
+//            @Param("departmentIds") String departmentIds, Pageable pageable);
+	
 //    @Query(value = "SELECT DISTINCT d.i_departmentid AS departmentId, d.s_name AS name FROM t_department d "
 //            + "INNER JOIN t_userlogin u ON FIND_IN_SET(CAST(d.i_departmentid AS CHAR), u.s_departmentids) > 0 "
 //            + "INNER JOIN t_task t ON t.i_assignedto = u.i_userid WHERE t.i_status = 1 AND "
