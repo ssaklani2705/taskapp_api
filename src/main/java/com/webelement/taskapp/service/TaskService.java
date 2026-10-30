@@ -52,7 +52,7 @@ public interface TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter);
+			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter,Integer taskId);
 	
 	public TaskEditDTO getTaskById(Integer taskId);
 

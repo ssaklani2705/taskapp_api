@@ -68,6 +68,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "LEFT JOIN UserLoginEntity u1 ON u1.userId = t.addedBy " 
 			+ "LEFT JOIN UserLoginEntity u2 ON u2.userId = t.buddyId "                  // ADD
 			+ "WHERE t.taskId > 0 "
+			+ "AND (:taskId = 0 OR t.taskId = :taskId) " 
 			+ "AND (:statusIndex = 0 OR t.status = :statusIndex) " + "AND (" + "     :search IS NULL "
 			+ "     OR :search = '' " + "     OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "     OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) "
@@ -126,7 +127,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			@Param("dashboardFilter") String dashboardFilter, @Param("startOfToday") LocalDateTime startOfToday,
 			@Param("startOfTomorrow") LocalDateTime startOfTomorrow, @Param("startOfWeek") LocalDateTime startOfWeek,
 			@Param("endOfWeek") LocalDateTime endOfWeek, @Param("currentTime") LocalDateTime currentTime,
-			@Param("isHod") String isHod);
+			@Param("isHod") String isHod,@Param("taskId") Integer taskId);
 
 	@Modifying
 	@Transactional

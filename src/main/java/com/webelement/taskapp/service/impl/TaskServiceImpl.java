@@ -247,7 +247,7 @@ public class TaskServiceImpl implements TaskService {
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter) {
+			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter,Integer taskId) {
 		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 		LocalDate today = LocalDate.now();
@@ -258,7 +258,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
-				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod);
+				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod,taskId);
 
 	}
 
