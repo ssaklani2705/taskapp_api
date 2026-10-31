@@ -65,7 +65,7 @@ Page<CompanyEntity> findCompanyDetails(
 
 	List<CompanyEntity> findByCompanyNameIgnoreCase(String name);
 	
-	@Query(value = "SELECT COUNT(*) FROM t_company WHERE i_companyid = :companyId AND i_status <> 3", nativeQuery = true)
+	@Query(value = "SELECT EXISTS (SELECT 1 FROM t_userlogin WHERE i_companyid = :companyId AND i_status <> 3)", nativeQuery = true)
 	Integer existsByCompanyId(@Param("companyId") Integer companyId);
 	
 	@Query("SELECT c FROM CompanyEntity c WHERE c.status= 1 ORDER BY c.companyName")
