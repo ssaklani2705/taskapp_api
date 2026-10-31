@@ -138,6 +138,13 @@ public class UserLoginEntity {
 	@JoinColumn(name = "i_companyid", insertable = false, updatable = false)
 	private CompanyEntity company;
 	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JoinColumn(name = "i_shiftid", insertable = false, updatable = false)
+	private CompanyShiftEntity companyShift;
+	
 	@Column(name = "i_shiftid")
 	private Integer shiftId;          // NEW
 

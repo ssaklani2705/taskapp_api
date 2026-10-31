@@ -85,7 +85,7 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
-	@EntityGraph(attributePaths = { "company", "company.shifts" })
+	@EntityGraph(attributePaths = { "company", "companyShift" })
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 

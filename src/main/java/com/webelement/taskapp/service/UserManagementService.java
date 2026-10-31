@@ -345,8 +345,6 @@ public class UserManagementService {
 	public UserLoginEntity getUserById(int userId) {
 
 		UserLoginEntity user = loginRepository.getUserById(userId);
-		
-		
 
 		if (user == null) {
 			UserLoginEntity emptyUser = new UserLoginEntity();
@@ -377,7 +375,6 @@ public class UserManagementService {
 		user.setModule(moduleFuture.join());
 		user.setTransactionhistory(historyFuture.join());
 
-		
 		user.setDepartmentIds(toIdList(user.getDepartmentIdsCsv()));
 
 		if (departmentFuture.join() != null)
@@ -385,29 +382,21 @@ public class UserManagementService {
 		if (designationFuture.join() != null)
 			user.setDesignationName(designationFuture.join());
 		user.setTaskCategories(categoriesFuture.join());
-		
+
 		if (user.getCompany() != null) {
-		    user.setCompanyName(user.getCompany().getCompanyName());
-
-		    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
-
-		    List<CompanyShiftEntity> shifts = user.getCompany().getShifts().stream()
-		            .filter(s -> s.getStatus() != null && s.getStatus() == 1)
-		            .sorted(Comparator.comparing(CompanyShiftEntity::getFromTime,
-		                    Comparator.nullsLast(Comparator.naturalOrder())))
-		            .collect(Collectors.toList());
-
-		    user.setShiftName(shifts.stream()
-		            .map(CompanyShiftEntity::getShiftName)
-		            .filter(Objects::nonNull)
-		            .collect(Collectors.joining(", ")));
-
-		    user.setShiftTime(shifts.stream()
-		            .filter(s -> s.getFromTime() != null && s.getToTime() != null)
-		            .map(s -> s.getFromTime().format(fmt) + " - " + s.getToTime().format(fmt))
-		            .collect(Collectors.joining(", ")));
+			user.setCompanyName(user.getCompany().getCompanyName());
 		}
 
+		CompanyShiftEntity shift = user.getCompanyShift();
+		if (shift != null) {
+			DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
+
+			user.setShiftName(shift.getShiftName());
+
+			if (shift.getFromTime() != null && shift.getToTime() != null) {
+				user.setShiftTime(shift.getFromTime().format(fmt) + " - " + shift.getToTime().format(fmt));
+			}
+		}
 
 		return user;
 	}
