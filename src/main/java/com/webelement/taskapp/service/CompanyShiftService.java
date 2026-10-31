@@ -86,7 +86,7 @@ public class CompanyShiftService {
 		repo.save(e);
 		
 	
-		String action = "A new shift " + e.getShiftName() + " has been added.";
+		String action = "A new shift \"" + e.getShiftName() + "\" has been added.";
 
 		helpers.createHistoryAccess(request.getUserId(), helpers.resolveClientIp(httpRequest), helpers.getLocalIp(),
 				action, 16, request.getCompanyId(), -1);
@@ -113,7 +113,7 @@ public class CompanyShiftService {
 		e.setToTime(LocalTime.parse(d.getToTime()));
 		e.setModificationDate(LocalDateTime.now());
 		repo.save(e);
-		String action = "A new shift " + e.getShiftName() + " has been updated.";
+		String action = "A new shift \"" + e.getShiftName() + "\" has been updated.";
 		
 		helpers.createHistoryAccess(d.getUserId(), helpers.resolveClientIp(httpRequest), helpers.getLocalIp(), action,
 				16, d.getCompanyId(), -1);
@@ -130,7 +130,7 @@ public class CompanyShiftService {
 		e.setStatus(DELETED); // soft delete
 		e.setModificationDate(LocalDateTime.now());
 		repo.save(e);
-		String action = "A new shift " + e.getShiftName() + " has been deleted.";
+		String action = "A new shift \"" + e.getShiftName() + "\" has been deleted.";
 		
 		helpers.createHistoryAccess(userId, helpers.resolveClientIp(httpRequest), helpers.getLocalIp(), action, 16,
 				opt.get().getCompanyId(), -1);

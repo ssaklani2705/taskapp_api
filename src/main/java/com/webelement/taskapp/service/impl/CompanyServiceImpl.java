@@ -116,10 +116,10 @@ public class CompanyServiceImpl implements CompanyService {
 	public ApiResponse<CompanyDTO> delete(CompanyDTO request) {
 		Integer companyId = request.getCompanyId();
 
-//		Integer companyExistsInClient = companyRepo.existsByCompanyId(companyId);
-//		if (companyExistsInClient != null && companyExistsInClient > 0) {
-//			throw ApiException.badRequest("Company is assigned to one or more clients and cannot be deleted");
-//		}
+		Integer companyExistsInClient = companyRepo.existsByCompanyId(companyId);
+		if (companyExistsInClient != null && companyExistsInClient > 0) {
+			throw ApiException.badRequest("Company is assigned to one or more users and cannot be deleted");
+		}
 
 		Optional<CompanyEntity> existing = companyRepo.findById(companyId);
 		if (!existing.isPresent()) {

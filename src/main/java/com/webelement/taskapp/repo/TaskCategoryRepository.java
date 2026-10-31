@@ -37,7 +37,7 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 			// ---- ADMIN / OTHERS ----
 			+ "          OR ( " + "               :loginType <> 'manager' " + "               AND ( "
 			+ "                    :isAdmin = 'Y' " + "                    OR t.assignedTo = :userId "
-			+ "                    OR t.addedBy = :userId " + "                    OR ( "
+			+ "                    OR t.addedBy = :userId OR t.buddyId = :userId " + "                    OR ( "
 			+ "                         :isAdmin <> 'Y' "
 			+ "                         AND (t.assignedTo = 0 OR t.assignedTo IS NULL) "
 			+ "                         AND EXISTS ( "

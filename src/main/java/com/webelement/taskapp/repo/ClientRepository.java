@@ -143,7 +143,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 			+ "     OR ( " + "          :loginType <> 'manager' " + "          AND ( "
 			+ "               :isAdmin = 'Y' " + "               OR EXISTS ( "
 			+ "                    SELECT 1 FROM TaskEntity t " + "                    WHERE t.clientId = c.clientId "
-			+ "                    AND (t.assignedTo = :userId OR t.addedBy = :userId) " + "               ) "
+			+ "                    AND (t.assignedTo = :userId OR t.addedBy = :userId OR t.buddyId = :userId ) " + "               ) "
 			+ "               OR ( " + "                    :isAdmin <> 'Y' " + "                    AND EXISTS ( "
 			+ "                         SELECT 1 FROM TaskEntity t2 "
 			+ "                         WHERE t2.clientId = c.clientId "
