@@ -69,9 +69,12 @@ public class CompanyShiftService {
 		LocalTime fromTime = LocalTime.parse(request.getFromTime());
 		LocalTime toTime = LocalTime.parse(request.getToTime());
 		
-		System.err.println(   fromTime + " time  ================================ " + toTime);
-		if (!fromTime.isBefore(toTime)) {
-		    throw ApiException.badRequest("From time must be earlier than To time.");
+		//System.err.println(fromTime + " time  ================================ " + toTime);
+		if (fromTime.equals(toTime)) {
+		    throw ApiException.badRequest("From time and To time cannot be the same.");
+		}
+		if (fromTime.isAfter(toTime)) {
+		    throw ApiException.badRequest("To time must be later than From time.");
 		}
 		if (repo.existsDuplicateName(request.getCompanyId(), request.getShiftName().trim(), 0))
 			return resp(false, "Shift name already exists.", null);
@@ -85,11 +88,8 @@ public class CompanyShiftService {
 		e.setRegistrationDate(LocalDateTime.now());
 		repo.save(e);
 		
-	
-		String action = "A new shift \"" + e.getShiftName() + "\" has been added.";
-
-		helpers.createHistoryAccess(request.getUserId(), helpers.resolveClientIp(httpRequest), helpers.getLocalIp(),
-				action, 16, request.getCompanyId(), -1);
+		String action = "Shift \"" + e.getShiftName() + "\" has been added.";
+		helpers.createHistoryAccess(request.getUserId(), helpers.resolveClientIp(httpRequest), helpers.getLocalIp(),action, 16, request.getCompanyId(), -1);
 		return resp(true, "Shift added successfully.", null);
 	}
 
@@ -113,7 +113,7 @@ public class CompanyShiftService {
 		e.setToTime(LocalTime.parse(d.getToTime()));
 		e.setModificationDate(LocalDateTime.now());
 		repo.save(e);
-		String action = "A new shift \"" + e.getShiftName() + "\" has been updated.";
+		String action = "Shift \"" + e.getShiftName() + "\" has been updated.";
 		
 		helpers.createHistoryAccess(d.getUserId(), helpers.resolveClientIp(httpRequest), helpers.getLocalIp(), action,
 				16, d.getCompanyId(), -1);
@@ -130,7 +130,7 @@ public class CompanyShiftService {
 		e.setStatus(DELETED); // soft delete
 		e.setModificationDate(LocalDateTime.now());
 		repo.save(e);
-		String action = "A new shift \"" + e.getShiftName() + "\" has been deleted.";
+		String action = "Shift \"" + e.getShiftName() + "\" has been deleted.";
 		
 		helpers.createHistoryAccess(userId, helpers.resolveClientIp(httpRequest), helpers.getLocalIp(), action, 16,
 				opt.get().getCompanyId(), -1);

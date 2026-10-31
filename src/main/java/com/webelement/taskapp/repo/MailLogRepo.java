@@ -17,9 +17,7 @@ public interface MailLogRepo extends JpaRepository<MailLogEntity, Integer> {
 			+ "FROM MailLogEntity m " + "WHERE (" + "  :search IS NULL OR :search = '' OR "
 			+ "  LOWER(m.name) LIKE LOWER(CONCAT('%', :search, '%')) OR "
 			+ "  LOWER(m.subject) LIKE LOWER(CONCAT('%', :search, '%')) OR "
-			+ "  LOWER(m.to) LIKE LOWER(CONCAT('%', :search, '%')) OR "
-			+ "  LOWER(m.from) LIKE LOWER(CONCAT('%', :search, '%')) OR "
-			+ "  LOWER(m.cc) LIKE LOWER(CONCAT('%', :search, '%'))" + ") " + "ORDER BY m.regDate DESC")
+			+ "  LOWER(m.to) LIKE LOWER(CONCAT('%', :search, '%')))" + "ORDER BY m.regDate DESC")
 	Page<MailLogDTO> findMailLogDetails(Pageable pageable, @Param("search") String search);
 
 }
