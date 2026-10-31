@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.webelement.taskapp.Exceptions.ApiException;
 import com.webelement.taskapp.common.CommonFunction;
 import com.webelement.taskapp.dto.CompanyShiftDto;
 import com.webelement.taskapp.entity.CompanyEntity;
@@ -64,6 +65,14 @@ public class CompanyShiftService {
 		String err = validate(request);
 		if (err != null)
 			return resp(false, err, null);
+		
+		LocalTime fromTime = LocalTime.parse(request.getFromTime());
+		LocalTime toTime = LocalTime.parse(request.getToTime());
+		
+		System.err.println(   fromTime + " time  ================================ " + toTime);
+		if (!fromTime.isBefore(toTime)) {
+		    throw ApiException.badRequest("From time must be earlier than To time.");
+		}
 		if (repo.existsDuplicateName(request.getCompanyId(), request.getShiftName().trim(), 0))
 			return resp(false, "Shift name already exists.", null);
 
