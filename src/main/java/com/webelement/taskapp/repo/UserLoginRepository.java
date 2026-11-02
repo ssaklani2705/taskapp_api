@@ -212,6 +212,45 @@ List<UserActiveDTO> findAllUsers();
 //			@Param("userType") Integer userType);
 
 
+//@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName, u.isHod) "
+//        + "FROM UserLoginEntity u "
+//        + "WHERE u.status = 1 "
+//        + "AND ( "
+//        + "    ( "
+//        + "        :userType = 2 "
+//        + "        AND u.userId = ( "
+//        + "            SELECT c.managerId "
+//        + "            FROM ClientEntity c "
+//        + "            WHERE c.clientId = :clientId "
+//        + "        ) "
+//        + "    ) "
+//        + "    OR "
+//        + "    ( "
+//        + "        (:userType = 1 OR :userType IS NULL) "
+//        + "        AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') "
+//        + "        AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) "
+//        + "        AND ( "
+//        + "            u.userId = ( "
+//        + "                SELECT c.managerId "
+//        + "                FROM ClientEntity c "
+//        + "                WHERE c.clientId = :clientId "
+//        + "            ) "
+//        + "            OR ( "
+//        + "                FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
+//        + "                AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 "
+//        + "            ) "
+//        + "        ) "
+//        + "        AND ( "
+//        + "            :userType IS NULL "
+//        + "            OR ( "
+//        + "                :userType = 1 "
+//        + "                AND (u.designationId IS NULL OR u.designationId <> 1) "
+//        + "            ) "
+//        + "        ) "
+//        + "    ) "
+//        + ") "
+//        + "ORDER BY u.firstName ASC")
+
 @Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName, u.isHod) "
         + "FROM UserLoginEntity u "
         + "WHERE u.status = 1 "
@@ -230,14 +269,20 @@ List<UserActiveDTO> findAllUsers();
         + "        AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') "
         + "        AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) "
         + "        AND ( "
+        // route 1: this client's own manager
         + "            u.userId = ( "
         + "                SELECT c.managerId "
         + "                FROM ClientEntity c "
         + "                WHERE c.clientId = :clientId "
         + "            ) "
+        // route 2: category match, but NOT a manager of any client
         + "            OR ( "
         + "                FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
         + "                AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 "
+        + "                AND NOT EXISTS ( "
+        + "                    SELECT 1 FROM ClientEntity c2 "
+        + "                    WHERE c2.managerId = u.userId "
+        + "                ) "
         + "            ) "
         + "        ) "
         + "        AND ( "
@@ -318,6 +363,12 @@ List<UserActiveDTO> findActiveUsers(
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.email) = LOWER(:email)")
 	Optional<Integer> findIdByEmail(@Param("email") String email);
+	
+	@Query("SELECT u.userId FROM UserLoginEntity u "
+		     + "WHERE LOWER(u.email) = LOWER(:email) "
+		     + "AND u.designationId = 1 "
+		     + "AND u.status = 1")
+		Optional<Integer> findSocietyManagerIdByEmail(@Param("email") String email);
 
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin " + "WHERE i_status = 1 "
 			+ "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')", nativeQuery = true)

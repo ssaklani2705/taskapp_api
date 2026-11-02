@@ -234,7 +234,9 @@ public class ClientService {
 				managerEmail = managerEmail != null ? managerEmail.trim().toLowerCase() : "";
 				client.setManagerNameForExcel(managerEmail);
 				if (!managerEmail.isEmpty()) {
-					Optional<Integer> managerId = userLoginRepository.findIdByEmail(managerEmail);
+//					Optional<Integer> managerId = userLoginRepository.findIdByEmail(managerEmail);
+					Optional<Integer> managerId =
+					        userLoginRepository.findSocietyManagerIdByEmail(managerEmail);
 					if (managerId.isPresent()) {
 						client.setManagerId(managerId.get());
 					} else {
@@ -347,13 +349,32 @@ public class ClientService {
 						reasons.add("Duplicate Client Code in uploaded file");
 					}
 				}
+//				String pan = client.getPan() != null ? client.getPan().trim().toUpperCase() : "";
+//				if (pan.isEmpty()) {
+//					reasons.add("PAN is required");
+//				} else if (!pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]$")) {
+//					reasons.add("Invalid PAN format");
+//				} else {
+//					client.setPan(pan);
+//				}
 				String pan = client.getPan() != null ? client.getPan().trim().toUpperCase() : "";
+
 				if (pan.isEmpty()) {
-					reasons.add("PAN is required");
+				    reasons.add("PAN is required");
 				} else if (!pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]$")) {
-					reasons.add("Invalid PAN format");
+				    reasons.add("Invalid PAN format");
 				} else {
-					client.setPan(pan);
+				    client.setPan(pan);
+
+				    ClientEntity existingClient = existingClientsByCode.get(code.toLowerCase());
+
+				    boolean sameExistingPan = existingClient != null
+				            && existingClient.getPan() != null
+				            && existingClient.getPan().trim().equalsIgnoreCase(pan);
+
+				    if (!sameExistingPan && clientRepository.existsByPan(pan)) {
+				        reasons.add("PAN already exists: " + pan);
+				    }
 				}
 				Short gstFlag = client.getGstFlag();
 				if (gstFlag == null) {
@@ -475,8 +496,11 @@ public class ClientService {
 					reasons.add("Society Manager Email is required");
 				} else if (!isValidEmail(managerEmail)) {
 					reasons.add("Invalid Society Manager Email: " + managerEmail);
+//				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
+//					reasons.add("Invalid Society Manager Email: " + managerEmail);
+//				}
 				} else if (client.getManagerId() == null || client.getManagerId() == 0) {
-					reasons.add("Invalid Society Manager Email: " + managerEmail);
+				    reasons.add("Email does not belong to a Society Manager: " + managerEmail);
 				}
 				String location = client.getLocation() != null ? client.getLocation().trim() : "";
 				if (location.isEmpty()) {

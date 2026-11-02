@@ -418,7 +418,10 @@ public class TaskCategoryService {
 		List<TaskCategoryDTO> list = taskCategoryRepository.findByStatusForIndex(1);
 
 		// ADMIN / MANAGER: all of them
-		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
+//		if ("Y".equalsIgnoreCase(isAdmin) || "manager".equalsIgnoreCase(loginType)) {
+//			return list;
+//		}
+		if ("Y".equalsIgnoreCase(isAdmin)) {
 			return list;
 		}
 
