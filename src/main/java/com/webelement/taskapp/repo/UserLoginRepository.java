@@ -361,5 +361,20 @@ List<UserActiveDTO> findActiveUsers(
 	@Transactional
 	@Query(value = "UPDATE t_userlogin SET s_password = :hash WHERE i_userid = :userId", nativeQuery = true)
 	int updatePasswordHash(@Param("userId") int userId, @Param("hash") String hash);
+	
+	
+	@Query(value = "SELECT u.i_userid, u.s_firstname, u.s_email, u.s_mobileno, "
+	        + "FROM t_userlogin u LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid "
+	        + "WHERE u.i_status = 1 AND u.s_email = :email AND ( "
+	        + "(:logintype = 'manager' AND u.i_designationid = 1) OR "
+	        + "(:logintype <> 'manager' AND u.i_designationid <> 1) )", nativeQuery = true)
+	List<Map<String, Object>> findActiveEmail(@Param("email") String email);
+	
+	
+	
+	
+	
+	
+	
 
 }
