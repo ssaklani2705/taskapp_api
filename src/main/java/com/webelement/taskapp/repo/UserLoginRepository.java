@@ -400,7 +400,7 @@ List<UserActiveDTO> findActiveUsers(
 	@Query(value = "SELECT u.i_userid, u.s_firstname, u.s_email, u.s_mobileno, "
 	        + "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, "
 	        + "u.s_permission, u.s_taskcategoryIds AS taskcategoryIds, "
-	        + "d.s_name AS designationName, u.s_ishod AS isHod, u.s_password AS storedPassword "
+	        + "d.s_name AS  , u.s_ishod AS isHod, u.s_password AS storedPassword "
 	        + "FROM t_userlogin u LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid "
 	        + "WHERE u.i_status = 1 AND u.s_email = :email AND ( "
 	        + "(:logintype = 'manager' AND u.i_designationid = 1) OR "
@@ -420,11 +420,6 @@ List<UserActiveDTO> findActiveUsers(
 	        + "(:logintype = 'manager' AND u.i_designationid = 1) OR "
 	        + "(:logintype <> 'manager' AND u.i_designationid <> 1) )", nativeQuery = true)
 	List<Map<String, Object>> findActiveEmail(@Param("email") String email);
-	
-	
-	
-	
-	
 	
 	
 
