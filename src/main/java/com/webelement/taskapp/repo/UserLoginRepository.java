@@ -27,18 +27,13 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 
 	@Query("SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId")
 	String findTaskcategoryIdsByUserId(@Param("userId") Integer userId);
-	
-	@Query(value = "SELECT GROUP_CONCAT(DISTINCT tc.i_taskcategoryid) "
-	        + "FROM t_client c "
-	        + "JOIN t_plan p ON p.i_planid = c.i_planid "
-	        + "JOIN t_taskcategory tc "
-	        + "ON FIND_IN_SET(tc.i_serviceid, p.s_serviceids) > 0 "
-	        + "WHERE c.i_clientid = :clientId "
-	        + "AND tc.i_status = 1",
-	        nativeQuery = true)
-	String findTaskcategoryIdsByClientId(
-	        @Param("clientId") Integer clientId);
-	
+
+	@Query(value = "SELECT GROUP_CONCAT(DISTINCT tc.i_taskcategoryid) " + "FROM t_client c "
+			+ "JOIN t_plan p ON p.i_planid = c.i_planid " + "JOIN t_taskcategory tc "
+			+ "ON FIND_IN_SET(tc.i_serviceid, p.s_serviceids) > 0 " + "WHERE c.i_clientid = :clientId "
+			+ "AND tc.i_status = 1", nativeQuery = true)
+	String findTaskcategoryIdsByClientId(@Param("clientId") Integer clientId);
+
 //	@Query(value = "SELECT GROUP_CONCAT(DISTINCT tc.i_taskcategoryid) "
 //	        + "FROM t_userlogin u "
 //	        + "JOIN t_client c ON c.i_clientid = :clientId "
@@ -75,13 +70,11 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "d.s_name AS designationName,u.s_ishod as isHod " + "FROM t_userlogin u "
 			+ "LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid " + "WHERE u.i_status = 1 "
 			+ "AND u.s_email = :email " + "AND u.s_password = :password " + "AND ( "
-			+ "    (:logintype = 'manager' AND u.i_designationid = 1) "
-			+ "    OR "
-			+ "    (:logintype <> 'manager' AND u.i_designationid <> 1) "
-			+ ")", nativeQuery = true)
+			+ "    (:logintype = 'manager' AND u.i_designationid = 1) " + "    OR "
+			+ "    (:logintype <> 'manager' AND u.i_designationid <> 1) " + ")", nativeQuery = true)
 	List<Map<String, Object>> findActiveLogin(@Param("email") String email, @Param("password") String password,
 			@Param("logintype") String logintype);
-	
+
 	@Query(value = "SELECT s_email, s_password FROM t_userlogin WHERE i_status = 1 AND s_email = :email", nativeQuery = true)
 	List<Map<String, Object>> findLoginByEmail(@Param("email") String email);
 
@@ -89,41 +82,31 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 	@Query("SELECT u FROM UserLoginEntity u WHERE u.userId = :userId")
 	UserLoginEntity getUserById(@Param("userId") int userId);
 
-	
 	@Query("SELECT new com.webelement.taskapp.dto.UserInfo("
-	        + "u.userId, u.firstName, u.email, u.mobileNo, u.status, u.permission, u.departmentIdsCsv, "
-	        + "de.name, u.isHod, u.weeklyOff, c.companyName, c.companyId, cs.shiftName, cs.fromTime, cs.toTime) "
-	        + "FROM UserLoginEntity u "
-	        + "LEFT JOIN CompanyEntity c ON c.companyId = u.companyId "
-	        + "LEFT JOIN CompanyShiftEntity cs ON cs.shiftId = u.shiftId "          // CHANGED
-	        + "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId "
-	        + "WHERE u.userId > 0 "
-	        + "AND (:companyId = 0 OR u.companyId = :companyId) "
-	        + "AND (:shiftId = 0 OR u.shiftId = :shiftId) "                         // CHANGED
-	        + "AND (:statusIndex = 0 OR u.status = :statusIndex) "
-	        + "AND (:departmentId = 0 OR FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) "
-	        + "AND (:designationId = 0 OR u.designationId = :designationId) "
-	        + "AND (:selectedCategoryId = 0 OR FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) "
-	        + "AND (:weeklyOff = 0 OR u.weeklyOff = :weeklyOff) "
-	        + "AND (:search IS NULL OR :search = '' "
-	        + "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) "
-	        + "OR EXISTS (SELECT 1 FROM DepartmentEntity dx "
-	        + "           WHERE FIND_IN_SET(CAST(dx.departmentId AS string), u.departmentIdsCsv) > 0 "
-	        + "           AND LOWER(dx.name) LIKE LOWER(CONCAT('%', :search, '%')))) "
-	        + "ORDER BY u.status, u.regDate DESC, u.firstName")
-	Page<UserInfo> findBasicUserInfo(Pageable pageable,
-	        @Param("statusIndex") int statusIndex,
-	        @Param("search") String search,
-	        @Param("departmentId") int departmentId,
-	        @Param("designationId") int designationId,
-	        @Param("selectedCategoryId") int selectedCategoryId,
-	        @Param("weeklyOff") int weeklyOff,
-	        @Param("companyId") Integer companyId,
-	        @Param("shiftId") Integer shiftId);
-	
-	
+			+ "u.userId, u.firstName, u.email, u.mobileNo, u.status, u.permission, u.departmentIdsCsv, "
+			+ "de.name, u.isHod, u.weeklyOff, c.companyName, c.companyId, cs.shiftName, cs.fromTime, cs.toTime) "
+			+ "FROM UserLoginEntity u " + "LEFT JOIN CompanyEntity c ON c.companyId = u.companyId "
+			+ "LEFT JOIN CompanyShiftEntity cs ON cs.shiftId = u.shiftId " // CHANGED
+			+ "LEFT JOIN DesignationEntity de ON de.designationId = u.designationId " + "WHERE u.userId > 0 "
+			+ "AND (:companyId = 0 OR u.companyId = :companyId) " + "AND (:shiftId = 0 OR u.shiftId = :shiftId) " // CHANGED
+			+ "AND (:statusIndex = 0 OR u.status = :statusIndex) "
+			+ "AND (:departmentId = 0 OR FIND_IN_SET(CAST(:departmentId AS string), u.departmentIdsCsv) > 0) "
+			+ "AND (:designationId = 0 OR u.designationId = :designationId) "
+			+ "AND (:selectedCategoryId = 0 OR FIND_IN_SET(CAST(:selectedCategoryId AS string), u.taskcategoryIds) > 0) "
+			+ "AND (:weeklyOff = 0 OR u.weeklyOff = :weeklyOff) " + "AND (:search IS NULL OR :search = '' "
+			+ "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(u.mobileNo) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) "
+			+ "OR EXISTS (SELECT 1 FROM DepartmentEntity dx "
+			+ "           WHERE FIND_IN_SET(CAST(dx.departmentId AS string), u.departmentIdsCsv) > 0 "
+			+ "           AND LOWER(dx.name) LIKE LOWER(CONCAT('%', :search, '%')))) "
+			+ "ORDER BY u.status, u.regDate DESC, u.firstName")
+	Page<UserInfo> findBasicUserInfo(Pageable pageable, @Param("statusIndex") int statusIndex,
+			@Param("search") String search, @Param("departmentId") int departmentId,
+			@Param("designationId") int designationId, @Param("selectedCategoryId") int selectedCategoryId,
+			@Param("weeklyOff") int weeklyOff, @Param("companyId") Integer companyId,
+			@Param("shiftId") Integer shiftId);
+
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email")
 	Optional<Integer> findUserIdByEmail(@Param("email") String email); // fetch only userId
 
@@ -179,71 +162,40 @@ public interface UserLoginRepository extends JpaRepository<UserLoginEntity, Inte
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers(int clientId);
 
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
+			+ "FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
+	List<UserActiveDTO> findAllUsers();
 
-@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
-     + "FROM UserLoginEntity u WHERE u.status = 1 ORDER BY u.firstName ASC")
-List<UserActiveDTO> findAllUsers();
-
-
-@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName, u.isHod) "
-        + "FROM UserLoginEntity u "
-        + "WHERE u.status = 1 "
-        + "AND ( "
-        + "    ( "
-        + "        :userType = 2 "
-        + "        AND u.userId = ( "
-        + "            SELECT c.managerId "
-        + "            FROM ClientEntity c "
-        + "            WHERE c.clientId = :clientId "
-        + "        ) "
-        + "    ) "
-        + "    OR "
-        + "    ( "
-        + "        (:userType = 1 OR :userType IS NULL) "
-        + "        AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') "
-        + "        AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) "
-        + "        AND ( "
-        // route 1: this client's own manager
+	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName, u.isHod) "
+			+ "FROM UserLoginEntity u " + "WHERE u.status = 1 " + "AND ( " + "    ( " + "        :userType = 2 "
+			+ "        AND u.userId = ( " + "            SELECT c.managerId " + "            FROM ClientEntity c "
+			+ "            WHERE c.clientId = :clientId " + "        ) " + "    ) " + "    OR " + "    ( "
+			+ "        (:userType = 1 OR :userType IS NULL) "
+			+ "        AND (:systemFlag <> 1 OR u.isHod IS NULL OR u.isHod <> 'Y') "
+			+ "        AND (u.weeklyOff IS NULL OR u.weeklyOff NOT IN (:weeklyOffDays)) " + "        AND ( "
+			// route 1: this client's own manager
 //        + "            u.userId = ( "
 //        + "                SELECT c.managerId "
 //        + "                FROM ClientEntity c "
 //        + "                WHERE c.clientId = :clientId "
 //        + "            ) "
-     // route 1: this client's own manager (not for system-generated tasks)
-        + "            ( :systemFlag <> 1 "
-        + "              AND u.userId = ( "
-        + "                SELECT c.managerId "
-        + "                FROM ClientEntity c "
-        + "                WHERE c.clientId = :clientId "
-        + "              ) "
-        + "            ) "
-        // route 2: category match, but NOT a manager of any client
-        + "            OR ( "
-        + "                FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
-        + "                AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 "
-        + "                AND NOT EXISTS ( "
-        + "                    SELECT 1 FROM ClientEntity c2 "
-        + "                    WHERE c2.managerId = u.userId "
-        + "                ) "
-        + "            ) "
-        + "        ) "
-        + "        AND ( "
-        + "            :userType IS NULL "
-        + "            OR ( "
-        + "                :userType = 1 "
-        + "                AND (u.designationId IS NULL OR u.designationId <> 1) "
-        + "            ) "
-        + "        ) "
-        + "    ) "
-        + ") "
-        + "ORDER BY u.firstName ASC")
-List<UserActiveDTO> findActiveUsers(
-        @Param("clientId") int clientId,
-        @Param("categoryId") int categoryId,
-        @Param("weeklyOffDays") Set<Short> weeklyOffDays,
-        @Param("systemFlag") int systemFlag,
-        @Param("userType") Integer userType);
-	
+			// route 1: this client's own manager (not for system-generated tasks)
+			+ "            ( :systemFlag <> 1 " + "              AND u.userId = ( "
+			+ "                SELECT c.managerId " + "                FROM ClientEntity c "
+			+ "                WHERE c.clientId = :clientId " + "              ) " + "            ) "
+			// route 2: category match, but NOT a manager of any client
+			+ "            OR ( " + "                FUNCTION('FIND_IN_SET', :categoryId, u.taskcategoryIds) > 0 "
+			+ "                AND FUNCTION('FIND_IN_SET', '1', u.departmentIdsCsv) = 0 "
+			+ "                AND NOT EXISTS ( " + "                    SELECT 1 FROM ClientEntity c2 "
+			+ "                    WHERE c2.managerId = u.userId " + "                ) " + "            ) "
+			+ "        ) " + "        AND ( " + "            :userType IS NULL " + "            OR ( "
+			+ "                :userType = 1 "
+			+ "                AND (u.designationId IS NULL OR u.designationId <> 1) " + "            ) " + "        ) "
+			+ "    ) " + ") " + "ORDER BY u.firstName ASC")
+	List<UserActiveDTO> findActiveUsers(@Param("clientId") int clientId, @Param("categoryId") int categoryId,
+			@Param("weeklyOffDays") Set<Short> weeklyOffDays, @Param("systemFlag") int systemFlag,
+			@Param("userType") Integer userType);
+
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
 			+ "FROM UserLoginEntity u WHERE u.status = 1 order by u.firstName asc")
 	List<UserActiveDTO> findActiveUsers();
@@ -292,10 +244,9 @@ List<UserActiveDTO> findActiveUsers(
 			+ ")")
 	long countUnassignedTasksForIndex(@Param("userId") Integer userId, @Param("loginType") String loginType,
 			@Param("isAdmin") String isAdmin);
-	
+
 	@Query("SELECT new com.webelement.taskapp.dto.UserActiveDTO(u.userId, u.firstName) "
-			+ "FROM UserLoginEntity u WHERE u.status = 1 "
-			+ "AND u.designationId = 1 " + "order by u.firstName asc")
+			+ "FROM UserLoginEntity u WHERE u.status = 1 " + "AND u.designationId = 1 " + "order by u.firstName asc")
 	List<UserActiveDTO> findActiveManager();
 
 	Optional<UserLoginEntity> findByEmailAndStatus(String email, int status);
@@ -305,12 +256,10 @@ List<UserActiveDTO> findActiveUsers(
 
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE LOWER(u.email) = LOWER(:email)")
 	Optional<Integer> findIdByEmail(@Param("email") String email);
-	
-	@Query("SELECT u.userId FROM UserLoginEntity u "
-		     + "WHERE LOWER(u.email) = LOWER(:email) "
-		     + "AND u.designationId = 1 "
-		     + "AND u.status = 1")
-		Optional<Integer> findSocietyManagerIdByEmail(@Param("email") String email);
+
+	@Query("SELECT u.userId FROM UserLoginEntity u " + "WHERE LOWER(u.email) = LOWER(:email) "
+			+ "AND u.designationId = 1 " + "AND u.status = 1")
+	Optional<Integer> findSocietyManagerIdByEmail(@Param("email") String email);
 
 	@Query(value = "SELECT COUNT(*) FROM t_userlogin " + "WHERE i_status = 1 "
 			+ "AND CONCAT(',', s_taskcategoryIds, ',') LIKE CONCAT('%,', :taskcategoryId, ',%')", nativeQuery = true)
@@ -336,33 +285,27 @@ List<UserActiveDTO> findActiveUsers(
 	@Query("SELECT u.userId FROM UserLoginEntity u WHERE u.email = :email AND u.userId = :userId AND u.status = 1")
 	Optional<Integer> findUserIdByEmailAndStatusAndUserId(@Param("email") String email,
 			@Param("userId") Integer userId);
-	
-	
-	
+
 	@Query(value = "SELECT u.i_userid, u.s_firstname, u.s_email, u.s_mobileno, "
-	        + "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, "
-	        + "u.s_permission, u.s_taskcategoryIds AS taskcategoryIds, "
-	        + "d.s_name AS  , u.s_ishod AS isHod, u.s_password AS storedPassword "
-	        + "FROM t_userlogin u LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid "
-	        + "WHERE u.i_status = 1 AND u.s_email = :email AND ( "
-	        + "(:logintype = 'manager' AND u.i_designationid = 1) OR "
-	        + "(:logintype <> 'manager' AND u.i_designationid <> 1) )", nativeQuery = true)
+			+ "CURRENT_DATE() <= u.d_expirydate AS d_expirydate, " + "u.s_permission, "
+			+ "u.s_taskcategoryIds AS taskcategoryIds, " + "d.s_name AS designationName, " + "u.s_ishod AS isHod, "
+			+ "u.s_password AS storedPassword " + "FROM t_userlogin u " + "LEFT JOIN t_designation d "
+			+ "ON d.i_designationid = u.i_designationid " + "WHERE u.i_status = 1 " + "AND u.s_email = :email "
+			+ "AND ( " + "(:logintype = 'manager' AND u.i_designationid = 1) " + "OR "
+			+ "(:logintype <> 'manager' AND u.i_designationid <> 1) " + ")", nativeQuery = true)
 	List<Map<String, Object>> findActiveLoginByEmail(@Param("email") String email,
-	        @Param("logintype") String logintype);
+			@Param("logintype") String logintype);
 
 	@Modifying
 	@Transactional
 	@Query(value = "UPDATE t_userlogin SET s_password = :hash WHERE i_userid = :userId", nativeQuery = true)
 	int updatePasswordHash(@Param("userId") int userId, @Param("hash") String hash);
-	
-	
+
 	@Query(value = "SELECT u.i_userid, u.s_firstname, u.s_email, u.s_mobileno, "
-	        + "FROM t_userlogin u LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid "
-	        + "WHERE u.i_status = 1 AND u.s_email = :email AND ( "
-	        + "(:logintype = 'manager' AND u.i_designationid = 1) OR "
-	        + "(:logintype <> 'manager' AND u.i_designationid <> 1) )", nativeQuery = true)
+			+ "FROM t_userlogin u LEFT JOIN t_designation d ON d.i_designationid = u.i_designationid "
+			+ "WHERE u.i_status = 1 AND u.s_email = :email AND ( "
+			+ "(:logintype = 'manager' AND u.i_designationid = 1) OR "
+			+ "(:logintype <> 'manager' AND u.i_designationid <> 1) )", nativeQuery = true)
 	List<Map<String, Object>> findActiveEmail(@Param("email") String email);
-	
-	
 
 }
