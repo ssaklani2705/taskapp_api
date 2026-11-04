@@ -26,7 +26,7 @@ public interface RecurringRepository extends JpaRepository<RecurringEntity, Inte
 			+ "AND (:priority = 0 OR :priority IS NULL OR r.priority = :priority) " + "AND (" + ":isAdmin = 'Y' "
 			+ "OR (" + ":loginType = 'manager' " + "AND c.managerId = :managerId" + ") " + "OR ("
 			+ ":loginType <> 'manager' " + "AND FUNCTION('FIND_IN_SET', " + "CAST(r.taskCatId AS string), "
-			+ "(SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId)" + ") > 0" + ")" + ") "
+			+ "(SELECT u.taskcategoryIds FROM UserLoginEntity u WHERE u.userId = :userId)" + ") > 0 OR CAST(r.userId AS integer) = :userId " + ")" + ") "
 			+ "AND (:clientId IS NULL OR r.clientId = :clientId) " + "AND (:type IS NULL OR r.type = :type) "
 			+ "AND (:taskCatId IS NULL OR r.taskCatId = :taskCatId) " + "AND (" + ":search IS NULL "
 			+ "OR :search = '' " + "OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) "

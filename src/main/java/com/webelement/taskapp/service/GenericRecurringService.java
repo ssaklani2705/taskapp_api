@@ -43,6 +43,11 @@ public class GenericRecurringService {
 	public List<TaskCategoryDropdownProjection> getTaskCategoriesUsedInGenericRecurring() {
         return genericRecurringRepository.findTaskCategoriesUsedInGenericRecurring();
     }
+	
+	public List<TaskCategoryDropdownProjection> getTaskCategoriesUsedInGenericRecurring(Integer userId,
+            String loginType, String isAdmin, String isHod) {
+        return genericRecurringRepository.findTaskCategoriesUsedInGenericRecurring(userId, loginType, isAdmin, isHod);
+    }
 
 	   // For AddOrUpdate
     public ApiResponse<GenericRecurringEntity> addOrUpdateGenericRecurring(GenericRecurringDTO dto, Integer userId,

@@ -37,9 +37,17 @@ public class GenericRecurringController {
 
 	private final GenericRecurringService genericRecurringService;
 	
+//	@GetMapping("/generic-recurring/task-categories")
+//    public ResponseEntity<List<TaskCategoryDropdownProjection>> getTaskCategoriesUsedInGenericRecurring() {
+//        return ResponseEntity.ok(genericRecurringService.getTaskCategoriesUsedInGenericRecurring());
+//    }
+	
 	@GetMapping("/generic-recurring/task-categories")
-    public ResponseEntity<List<TaskCategoryDropdownProjection>> getTaskCategoriesUsedInGenericRecurring() {
-        return ResponseEntity.ok(genericRecurringService.getTaskCategoriesUsedInGenericRecurring());
+    public ResponseEntity<List<TaskCategoryDropdownProjection>> getTaskCategoriesUsedInGenericRecurring(
+            @RequestParam Integer userId, @RequestParam String loginType, @RequestParam String isAdmin,
+            @RequestParam String isHod) {
+        return ResponseEntity
+                .ok(genericRecurringService.getTaskCategoriesUsedInGenericRecurring(userId, loginType, isAdmin, isHod));
     }
 
 	// For AddOrUpdate

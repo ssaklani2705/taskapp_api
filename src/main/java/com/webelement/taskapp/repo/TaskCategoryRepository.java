@@ -18,6 +18,8 @@ import com.webelement.taskapp.entity.TaskCategoryEntity;
 
 @Repository
 public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity, Integer> {
+	
+	boolean existsByDepartmentId(Integer departmentId);
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
 			+ "tc.taskcategoryId, tc.departmentId, tc.name, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "

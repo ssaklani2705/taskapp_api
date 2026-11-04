@@ -19,6 +19,7 @@ import com.webelement.taskapp.dto.DepartmentDTO;
 import com.webelement.taskapp.entity.DepartmentEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.repo.DepartmentRepository;
+import com.webelement.taskapp.repo.TaskCategoryRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
 
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class DepartmentService {
 	private  final DepartmentRepository departmentRepository;
 	private  final CommonFunction commonFunction;
 	private  final UserLoginRepository userLoginRepository;
+	private  final TaskCategoryRepository taskCategoryRepository;
 
 	public ApiResponse<DepartmentDTO> addOrUpdate(DepartmentDTO dto, HttpServletRequest httpRequest) {
 		Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
@@ -118,10 +120,38 @@ public class DepartmentService {
 					.body(new ApiResponse<>(false, "Department not found", null));
 		}
 
-		boolean isDepartmentInUse = userLoginRepository.existsByDepartmentId(departmentId);
-		if (isDepartmentInUse) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
-					"Department is assigned to one or more users and cannot be deleted", null));
+//		boolean isDepartmentInUse = userLoginRepository.existsByDepartmentId(departmentId);
+//		if (isDepartmentInUse) {
+//			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false,
+//					"Department is assigned to one or more users and cannot be deleted", null));
+//		}
+		// Check whether department is assigned to users
+		boolean isDepartmentInUse =
+		        userLoginRepository.existsByDepartmentId(departmentId);
+
+		boolean isDepartmentUsedInCategory =
+		        taskCategoryRepository.existsByDepartmentId(departmentId);
+
+		if (isDepartmentInUse && isDepartmentUsedInCategory) {
+
+		    return ResponseEntity.status(HttpStatus.CONFLICT)
+		            .body(new ApiResponse<>(false,
+		                    "Department is assigned to one or more users and task categories and cannot be deleted",
+		                    null));
+
+		} else if (isDepartmentInUse) {
+
+		    return ResponseEntity.status(HttpStatus.CONFLICT)
+		            .body(new ApiResponse<>(false,
+		                    "Department is assigned to one or more users and cannot be deleted",
+		                    null));
+
+		} else if (isDepartmentUsedInCategory) {
+
+		    return ResponseEntity.status(HttpStatus.CONFLICT)
+		            .body(new ApiResponse<>(false,
+		                    "Department is assigned to one or more task categories and cannot be deleted",
+		                    null));
 		}
 
 		int updatedRows = departmentRepository.softDelete(3, departmentId);
