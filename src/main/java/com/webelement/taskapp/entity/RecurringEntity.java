@@ -59,5 +59,8 @@ public class RecurringEntity {
 
 	@Column(name = "t_time")
 	private LocalTime time; // java.time.LocalTime, parses "10:30:00"
+	
+	@Column(name = "i_userid")
+	private Short userId;
 
 }

@@ -226,7 +226,7 @@ public class UserManagementService {
 		if (!"Y".equalsIgnoreCase(userRequest.getPermission()) && uid > 0) {
 			permissionRepo.deleteByUserId(uid);
 			if (userRequest.getDepartmentIds() != null && userRequest.getDepartmentIds().contains(1)) {
-				int[] autoModuleIds = { 10, 11 };
+				int[] autoModuleIds = { 10, 11, 15 };
 				for (int moduleId : autoModuleIds) {
 					PermissionEntity entity = new PermissionEntity();
 					entity.setUserId(uid);

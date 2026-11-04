@@ -91,6 +91,7 @@ public class RecurringService {
 		recurring.setMonth(dto.getMonth());
 		recurring.setTime(dto.getTime()); // <-- new
 		recurring.setTaskCatId(dto.getTaskCatId());
+		recurring.setUserId(dto.getUserId());
 		RecurringEntity recurringEntity = recurringRepository.save(recurring);
 		String action = isNew ? "Recurring Added" : "Recurring Updated";
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),

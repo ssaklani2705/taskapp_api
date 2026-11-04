@@ -28,6 +28,8 @@ public class RecurringDTO {
 	private Short status;
 	private Short priority;
 	private LocalTime time;
+	
+	private Short userId;
 
 	private List<TransactionEntity> transactionHistory;
 
