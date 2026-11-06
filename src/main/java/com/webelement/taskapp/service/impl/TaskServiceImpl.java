@@ -349,6 +349,7 @@ public class TaskServiceImpl implements TaskService {
 		List<TransactionEntity> history = commonFunction.getTransactionLogs(10, taskId);
 		TaskEditDTO taskDto = taskRepository.findTaskById(taskId)
 				.orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
+		
 		taskDto.setTransactionHistory(history);
 		return taskDto;
 	}

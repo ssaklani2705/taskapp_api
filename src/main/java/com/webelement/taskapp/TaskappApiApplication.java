@@ -45,6 +45,7 @@ public class TaskappApiApplication {
 	}
 
 	static List<Integer> twoSum(int[] arr, int target) {
+		System.err.println(34%10 + " checking it now ");
 		Integer left = 0;
 		Integer right = arr.length - 1;
 		Integer sum = 0;
