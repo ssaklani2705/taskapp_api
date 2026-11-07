@@ -31,7 +31,7 @@ public class ChangePasswordImpl implements ChangePassword {
 	    String oldPassword;
 	    String newPassword;
 	    try {
-	        oldPassword = commonFunction.decipher(request.getOldPassword());   // temporary, see below
+	        oldPassword = commonFunction.decipher(request.getOldPassword());
 	        newPassword = commonFunction.decipher(request.getNewPassword());
 	    } catch (Exception e) {
 	        throw new PasswordValidationException("Invalid encrypted request data.", e);

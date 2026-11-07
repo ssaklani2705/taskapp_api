@@ -391,13 +391,12 @@ public class TaskServiceImpl implements TaskService {
 				}
 				task.setReopenCount(reopenCount + 1);
 			}
-			
+
 			if (selectedStatus == 5) {
 				isAssignorClosure = true;
 				validateRating(dto.getRating());
 			}
-			
-			
+
 			nextStatus = TaskConstants.REOPEN_FLOW.get(selectedStatus);
 			if (nextStatus == null) {
 				throw new RuntimeException("Please select a valid task status.");
@@ -411,28 +410,35 @@ public class TaskServiceImpl implements TaskService {
 				throw new RuntimeException("Invalid task status: " + currentStatus);
 			}
 		}
-		
+
 		// ... after task.setCloseRemarks(...), task.setModificationDate(...)
 		if (isAssignorClosure) {
 			task.setRating(dto.getRating());
 			task.setCloseDateTime(LocalDateTime.now());
 		}
-		
+
 		String oldStatus = TaskConstants.STATUS_LABELS.getOrDefault(currentStatus, "Unknown");
 		String newStatus = TaskConstants.STATUS_LABELS.getOrDefault(nextStatus, "Unknown");
 		String statusPrefix = newStatus.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_]", "").toUpperCase();
+		String remark = dto.getDescription() == null ? "" : dto.getDescription().trim();
+
 		String actionMessage = buildActionMessage(dto, currentStatus, nextStatus, newStatus, isReopen);
+		if (!remark.isEmpty()) {
+			actionMessage += " Remarks: " + remark;
+		}
 		task.setTaskStatus(nextStatus);
-		task.setCloseRemarks(dto.getDescription());
+		task.setCloseRemarks(remark);
 		task.setModificationDate(LocalDateTime.now());
 		if (dto.getFileName3() != null && !dto.getFileName3().isEmpty()) {
 			commonFunction.validateFile(dto.getFileName3(), ALLOWED_EXTENSIONS_DOC_ONLY);
-			String fileName = commonFunction.saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()), statusPrefix);
+			String fileName = commonFunction.saveFileNew(dto.getFileName3(), getExtension(dto.getFileName3()),
+					statusPrefix);
 			task.setFileName3(fileName);
 		}
 		if (dto.getFileName4() != null && !dto.getFileName4().isEmpty()) {
 			commonFunction.validateFile(dto.getFileName4(), ALLOWED_EXTENSIONS_DOC_OR_ZIP);
-			String fileName = commonFunction.saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()), statusPrefix);
+			String fileName = commonFunction.saveFileNew(dto.getFileName4(), getExtension(dto.getFileName4()),
+					statusPrefix);
 			task.setFileName4(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
@@ -615,7 +621,7 @@ public class TaskServiceImpl implements TaskService {
 			return null;
 		}
 		
-		System.err.print(dto.toString() + "reqst dto ");
+		//System.err.print(dto.toString() + "reqst dto ");
 
 		return ReassignEntity.builder().taskId(dto.getTaskId())
 				.currentUserId(dto.getPreviousAssigneeId()).newUserId(dto.getNewAssigneeId())
@@ -626,7 +632,7 @@ public class TaskServiceImpl implements TaskService {
 	
 	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo,Integer assignedById) {
 		
-		System.err.println("{  }" + taskId +" " + oldAssigneeId + " " + assignedTo);
+		//System.err.println("{  }" + taskId +" " + oldAssigneeId + " " + assignedTo);
 		
 		TaskReassigneDTO dto = new TaskReassigneDTO();
 		dto.setNewAssigneeId(assignedTo);
