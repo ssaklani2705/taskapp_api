@@ -56,11 +56,13 @@ import com.webelement.taskapp.dto.TaskRatingSummaryProjection;
 import com.webelement.taskapp.dto.TaskReassigneDTO;
 import com.webelement.taskapp.dto.UpdateTaskStatusDTO;
 import com.webelement.taskapp.entity.ReassignEntity;
+import com.webelement.taskapp.entity.ReopenEntity;
 import com.webelement.taskapp.entity.TaskEntity;
 import com.webelement.taskapp.entity.TransactionEntity;
 import com.webelement.taskapp.entity.UserLoginEntity;
 import com.webelement.taskapp.repo.ClientRepository;
 import com.webelement.taskapp.repo.HolidayRepo;
+import com.webelement.taskapp.repo.ReopenRepository;
 import com.webelement.taskapp.repo.TaskReassignRepo;
 import com.webelement.taskapp.repo.TaskRepository;
 import com.webelement.taskapp.repo.UserLoginRepository;
@@ -85,96 +87,95 @@ public class TaskServiceImpl implements TaskService {
 	private final UserLoginRepository userLoginRepository;
 	private final TaskReassignRepo taskReassigned;
 	private final Executor mailExecutor;
-	
+	private final ReopenRepository reopenRepository;
+
 	@Value("${task.upload-dir}")
 	private String uploadDir;
-	
+
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskBuddy(Integer taskId, Integer buddyId, Integer userId,
-	        String remark, LocalDateTime date, LocalDateTime endDate) {
+			String remark, LocalDateTime date, LocalDateTime endDate) {
 
-	    Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
-	    if (optionalTask.isEmpty()) {
-	        throw ApiException.notFound( "Task not found");
-	    }
-	    if (buddyId == null || buddyId == 0) {
-	    	throw ApiException.badRequest("Buddy is required");
-	    }
-	    if (date == null) {
-	    	throw ApiException.badRequest("Start Date & Time is required");
-	    }
-	    if (endDate == null) {
-	    	throw ApiException.badRequest("End Date & Time is required");
-	    }
-	    if (endDate.isBefore(date)) {
-	    	throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
-	    }
+		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
+		if (optionalTask.isEmpty()) {
+			throw ApiException.notFound("Task not found");
+		}
+		if (buddyId == null || buddyId == 0) {
+			throw ApiException.badRequest("Buddy is required");
+		}
+		if (date == null) {
+			throw ApiException.badRequest("Start Date & Time is required");
+		}
+		if (endDate == null) {
+			throw ApiException.badRequest("End Date & Time is required");
+		}
+		if (endDate.isBefore(date)) {
+			throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
+		}
 
-	    TaskEntity task = optionalTask.get();
+		TaskEntity task = optionalTask.get();
 
-	    if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
-	    	throw ApiException.badRequest("Assign a user to the task before adding a buddy");
-	    }
-	    if (buddyId.equals(task.getAssignedTo())) {
-	    	throw ApiException.badRequest("Buddy cannot be the same as the assigned user");
-	    }
+		if (task.getAssignedTo() == null || task.getAssignedTo() == 0) {
+			throw ApiException.badRequest("Assign a user to the task before adding a buddy");
+		}
+		if (buddyId.equals(task.getAssignedTo())) {
+			throw ApiException.badRequest("Buddy cannot be the same as the assigned user");
+		}
 
-	    Integer oldBuddyId = task.getBuddyId();
-	    boolean isChange = oldBuddyId != null && oldBuddyId != 0;
+		Integer oldBuddyId = task.getBuddyId();
+		boolean isChange = oldBuddyId != null && oldBuddyId != 0;
 
-	    if (isChange && buddyId.equals(oldBuddyId)) {
-	    	throw ApiException.badRequest("Selected user is already the buddy of this task");
-	    }
-	    if (isChange && (remark == null || remark.trim().isEmpty())) {
-	    	throw ApiException.badRequest("Remarks are required");
-	    }
+		if (isChange && buddyId.equals(oldBuddyId)) {
+			throw ApiException.badRequest("Selected user is already the buddy of this task");
+		}
+		if (isChange && (remark == null || remark.trim().isEmpty())) {
+			throw ApiException.badRequest("Remarks are required");
+		}
 
-	    task.setBuddyId(buddyId);
+		task.setBuddyId(buddyId);
 //	    task.setDate(date);
 //	    task.setEndDate(endDate);
-	    task.setModificationDate(LocalDateTime.now());
-	    TaskEntity savedTask = taskRepository.save(task);
+		task.setModificationDate(LocalDateTime.now());
+		TaskEntity savedTask = taskRepository.save(task);
 
-	    String buddyName = userLoginRepository.findById(buddyId)
-	            .map(UserLoginEntity::getFirstName).orElse("Unknown");
-	    String action = (isChange ? "Task buddy changed to " : "Task buddy added: ") + buddyName
-	            + (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
-	    commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
-	            commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+		String buddyName = userLoginRepository.findById(buddyId).map(UserLoginEntity::getFirstName).orElse("Unknown");
+		String action = (isChange ? "Task buddy changed to " : "Task buddy added: ") + buddyName
+				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
+				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
-	    try {
-	        taskMailService.sendTaskBuddyAssignedMail(savedTask, remark);
-	    } catch (Exception e) {
-	        logger.error("Buddy mail failed for task {}: {}", taskId, e.getMessage(), e);
-	    }
+		try {
+			taskMailService.sendTaskBuddyAssignedMail(savedTask, remark);
+		} catch (Exception e) {
+			logger.error("Buddy mail failed for task {}: {}", taskId, e.getMessage(), e);
+		}
 
-	    return ResponseEntity.ok(new ApiResponse<>(true,
-	            isChange ? "Buddy changed successfully" : "Buddy added successfully", null));
+		return ResponseEntity.ok(
+				new ApiResponse<>(true, isChange ? "Buddy changed successfully" : "Buddy added successfully", null));
 	}
-	
-	
-	public Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
-            List<Integer> departmentIds, int page, int size) {
-        LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
-        LocalDateTime toDateTime = toDate != null ? toDate.plusDays(1).atStartOfDay() : null;
-        String usernameFilter = (username == null || username.trim().isEmpty()) ? null : username.trim();
-        String departmentIdsFilter = null;
-        if (departmentIds != null && !departmentIds.isEmpty()) {
-            departmentIdsFilter = departmentIds.stream().filter(id -> id != null && id > 0).distinct()
-                    .map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
-            if (departmentIdsFilter.isEmpty()) {
-                departmentIdsFilter = null;
-            }
-        }
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-        return taskRepository.findTaskRatingSummary(fromDateTime, toDateTime, usernameFilter, departmentIdsFilter,
-                pageable);
-    }
-    public List<DepartmentFilterProjection> getRatingReportDepartments(String username) {
-            
-        return taskRepository.findRatingReportDepartments(username);
-    }
 
+	public Page<TaskRatingSummaryProjection> getTaskRatingSummary(LocalDate fromDate, LocalDate toDate, String username,
+			List<Integer> departmentIds, int page, int size) {
+		LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+		LocalDateTime toDateTime = toDate != null ? toDate.plusDays(1).atStartOfDay() : null;
+		String usernameFilter = (username == null || username.trim().isEmpty()) ? null : username.trim();
+		String departmentIdsFilter = null;
+		if (departmentIds != null && !departmentIds.isEmpty()) {
+			departmentIdsFilter = departmentIds.stream().filter(id -> id != null && id > 0).distinct()
+					.map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+			if (departmentIdsFilter.isEmpty()) {
+				departmentIdsFilter = null;
+			}
+		}
+		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+		return taskRepository.findTaskRatingSummary(fromDateTime, toDateTime, usernameFilter, departmentIdsFilter,
+				pageable);
+	}
+
+	public List<DepartmentFilterProjection> getRatingReportDepartments(String username) {
+
+		return taskRepository.findRatingReportDepartments(username);
+	}
 
 	public ClientAssignmentCheckDTO checkClientAssigned(Integer managerId) {
 		boolean hasActiveClient = clientRepository.existsByManagerIdAndStatus(managerId, ACTIVE_STATUS);
@@ -187,22 +188,22 @@ public class TaskServiceImpl implements TaskService {
 
 	@Override
 	public ResponseEntity<ApiResponse<?>> updateTaskAssignedUser(Integer taskId, Integer assignedTo, Integer userId,
-			String remark, LocalDateTime date, LocalDateTime endDate,Integer buddyId) {
+			String remark, LocalDateTime date, LocalDateTime endDate, Integer buddyId) {
 		Optional<TaskEntity> optionalTask = taskRepository.findById(taskId);
 		if (optionalTask.isEmpty()) {
 			throw ApiException.notFound("Task not found");
 		}
 		if (date == null) {
 			throw ApiException.badRequest("Start Date & Time is required");
-		
+
 		}
 		if (endDate == null) {
 			throw ApiException.badRequest("End Date & Time is required");
-			
+
 		}
 		if (endDate.isBefore(date)) {
 			throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
-			
+
 		}
 		// ADD
 		if (buddyId != null && buddyId.equals(assignedTo)) {
@@ -221,32 +222,38 @@ public class TaskServiceImpl implements TaskService {
 		task.setModificationDate(LocalDateTime.now());
 		task.setCloseRemarks(remark);
 		TaskEntity savedTask = taskRepository.save(task);
-		
-		saveTaskReassignment(taskId,oldAssigneeId,assignedTo,userId);
-		
+
+		saveTaskReassignment(taskId, oldAssigneeId, assignedTo, userId);
+
 		String assignedUserName = "Unknown";
+		String oldAssignedUserName = "Unknown";
 		if (savedTask.getAssignedTo() != null) {
 			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
 					.map(UserLoginEntity::getFirstName).orElse("Unknown");
 		}
-		String action = "Task reassigned to " + assignedUserName
+
+		if (oldAssigneeId != null) {
+			oldAssignedUserName = userLoginRepository.findById(oldAssigneeId).map(UserLoginEntity::getFirstName)
+					.orElse("Unknown");
+		}
+		String action = "Task reassigned from " + oldAssignedUserName + " to " + assignedUserName
 				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		try {
-			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);//issue
+			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);// issue
 		} catch (Exception e) {
 			logger.debug("{} ERROR FOUND ", e.getMessage());
 			e.printStackTrace();
 		}
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
-	
+
 	@Override
 	public Page<TaskDetailsDTO> findTaskDetails(int page, int size, int statusIndex, String search, Integer clientId,
 			Integer taskCategoryId, Integer assignedTo, Integer priority, String fromDate, String toDate,
 			String isAdmin, Integer userId, LinkedHashSet<Short> taskStatusIds, String loginType,
-			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter,Integer taskId) {
+			String dashboardFilter, String isHod, boolean ignoreTaskStatusFilter, Integer taskId) {
 		LinkedHashSet<Integer> statusIdsParam = taskStatusIds.stream().map(Short::intValue)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 		LocalDate today = LocalDate.now();
@@ -257,7 +264,7 @@ public class TaskServiceImpl implements TaskService {
 		LocalDateTime endOfWeek = today.with(DayOfWeek.SUNDAY).atTime(LocalTime.MAX);
 		return taskRepository.findTaskDetails(PageRequest.of(page, size), statusIndex, search, clientId, taskCategoryId,
 				assignedTo, priority, fromDate, toDate, isAdmin, userId, statusIdsParam, loginType, dashboardFilter,
-				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod,taskId);
+				startOfToday, startOfTomorrow, startOfWeek, endOfWeek, currentTime, isHod, taskId);
 
 	}
 
@@ -336,20 +343,17 @@ public class TaskServiceImpl implements TaskService {
 		}
 
 		commonFunction.createHistoryAccess(addedBy, commonFunction.resolveClientIp(httpRequest),
-		commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 		taskMailService.sendTaskAssignedMail(savedTask);
-
 
 		return savedTask;
 	}
-
-	
 
 	public TaskEditDTO getTaskById(Integer taskId) {
 		List<TransactionEntity> history = commonFunction.getTransactionLogs(10, taskId);
 		TaskEditDTO taskDto = taskRepository.findTaskById(taskId)
 				.orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
-		
+
 		taskDto.setTransactionHistory(history);
 		return taskDto;
 	}
@@ -369,8 +373,6 @@ public class TaskServiceImpl implements TaskService {
 					.body(new ResponseApi<>(false, "Failed to delete task", null));
 		}
 	}
-
-	
 
 	@Transactional
 	@Override
@@ -442,13 +444,24 @@ public class TaskServiceImpl implements TaskService {
 			task.setFileName4(fileName);
 		}
 		TaskEntity savedTask = taskRepository.save(task);
+		if (isReopen) {
+		    LocalDateTime reopenDateTime = LocalDateTime.now();
+		    ReopenEntity reopen = new ReopenEntity();
+		    reopen.setTaskId(savedTask.getTaskId());
+		    reopen.setAssignedToId(savedTask.getAssignedTo());
+		    reopen.setReopenById(dto.getUserId());
+		    reopen.setReopenDate(reopenDateTime);
+		    reopen.setDescription(dto.getDescription());
+		    reopen.setRegDate(reopenDateTime);
+		    reopenRepository.save(reopen);
+		}
 		commonFunction.createHistoryAccess(dto.getUserId(), commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), actionMessage, 10, savedTask.getTaskId(), -1);
 		logger.debug("Sending mail over here {}", savedTask.toString());
 		taskMailService.sendTaskStatusMail(savedTask, oldStatus, newStatus);
 		return savedTask;
 	}
-	
+
 	private void validateRating(Double rating) {
 		if (rating == null) {
 			throw new RuntimeException("Please give a rating before closing the task.");
@@ -524,7 +537,7 @@ public class TaskServiceImpl implements TaskService {
 
 		return addedByMatch || assignedToMatch;
 	}
-	
+
 	@Override
 	public List<Map<String, Object>> getAssigneeWorkload(Integer categoryId, String startDateTime, String endDateTime,
 			Integer excludeUserId) {
@@ -567,7 +580,8 @@ public class TaskServiceImpl implements TaskService {
 					}
 				}
 				if (!candidates.isEmpty()) {
-					// deterministic tie-break: lowest userId, so the same request always gives the same answer
+					// deterministic tie-break: lowest userId, so the same request always gives the
+					// same answer
 					pickedUserId = Collections.min(candidates);
 					pickedHours = min;
 				}
@@ -594,15 +608,13 @@ public class TaskServiceImpl implements TaskService {
 		return result;
 	}
 
-
-
 	private LocalDateTime parseStartDateTime(String value) {
 		if (value == null || value.trim().isEmpty()) {
 			return LocalDateTime.now();
 		}
-		
+
 		String v = value.trim();
-		
+
 		try {
 			return v.length() == 10 ? LocalDate.parse(v).atStartOfDay() : LocalDateTime.parse(v, DATE_TIME_FMT);
 		} catch (DateTimeParseException e) {
@@ -614,26 +626,22 @@ public class TaskServiceImpl implements TaskService {
 		return (date.getDayOfWeek().getValue() % 7) + 1;
 	}
 
-	
-
 	public ReassignEntity objectMapper(TaskReassigneDTO dto) {
 		if (dto == null) {
 			return null;
 		}
-		
-		//System.err.print(dto.toString() + "reqst dto ");
 
-		return ReassignEntity.builder().taskId(dto.getTaskId())
-				.currentUserId(dto.getPreviousAssigneeId()).newUserId(dto.getNewAssigneeId())
-				.status(dto.getStatus()).registrationDate(LocalDateTime.now()).modificationDate(LocalDateTime.now())
-				.assignedById(dto.getAssignedById())
-				.build();
+		// System.err.print(dto.toString() + "reqst dto ");
+
+		return ReassignEntity.builder().taskId(dto.getTaskId()).currentUserId(dto.getPreviousAssigneeId())
+				.newUserId(dto.getNewAssigneeId()).status(dto.getStatus()).registrationDate(LocalDateTime.now())
+				.modificationDate(LocalDateTime.now()).assignedById(dto.getAssignedById()).build();
 	}
-	
-	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo,Integer assignedById) {
-		
-		//System.err.println("{  }" + taskId +" " + oldAssigneeId + " " + assignedTo);
-		
+
+	private void saveTaskReassignment(Integer taskId, Integer oldAssigneeId, Integer assignedTo, Integer assignedById) {
+
+		// System.err.println("{ }" + taskId +" " + oldAssigneeId + " " + assignedTo);
+
 		TaskReassigneDTO dto = new TaskReassigneDTO();
 		dto.setNewAssigneeId(assignedTo);
 		dto.setPreviousAssigneeId(oldAssigneeId);
@@ -644,6 +652,5 @@ public class TaskServiceImpl implements TaskService {
 		ReassignEntity entity = objectMapper(dto);
 		taskReassigned.save(entity);
 	}
-	
-	
+
 }
