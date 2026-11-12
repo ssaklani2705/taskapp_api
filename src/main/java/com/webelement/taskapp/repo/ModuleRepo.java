@@ -14,6 +14,6 @@ import com.webelement.taskapp.entity.ModuleEntity;
 public interface ModuleRepo extends JpaRepository<ModuleEntity, Integer> {
 	@Query("SELECT " + "m.moduleId AS moduleId, " + "m.name AS name " + "FROM ModuleEntity m "
 			+ "WHERE m.status = :status " + "AND LOWER(m.name) NOT LIKE '%report%' "
-			+ "AND LOWER(m.name) NOT LIKE '%dashboard%' " + "ORDER BY m.sequence ASC, m.name ASC")
+			+ "AND LOWER(m.name) NOT LIKE '%dashboard%' " + "ORDER BY m.name ASC")
 	List<ModuleDropdownProjection> findModulesByStatus(@Param("status") Integer status);
 }

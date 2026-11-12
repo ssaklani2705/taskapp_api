@@ -123,24 +123,45 @@ public class TaskServiceImpl implements TaskService {
 		}
 
 		Integer oldBuddyId = task.getBuddyId();
+
 		boolean isChange = oldBuddyId != null && oldBuddyId != 0;
 
 		if (isChange && buddyId.equals(oldBuddyId)) {
 			throw ApiException.badRequest("Selected user is already the buddy of this task");
 		}
+
 		if (isChange && (remark == null || remark.trim().isEmpty())) {
 			throw ApiException.badRequest("Remarks are required");
 		}
 
+		// Get old buddy name before updating
+		String oldBuddyName = null;
+
+		if (isChange) {
+			oldBuddyName = userLoginRepository.findById(oldBuddyId).map(UserLoginEntity::getFirstName)
+					.orElse("Unknown");
+		}
+
+		// Update buddy
 		task.setBuddyId(buddyId);
-//	    task.setDate(date);
-//	    task.setEndDate(endDate);
 		task.setModificationDate(LocalDateTime.now());
+
 		TaskEntity savedTask = taskRepository.save(task);
 
-		String buddyName = userLoginRepository.findById(buddyId).map(UserLoginEntity::getFirstName).orElse("Unknown");
-		String action = (isChange ? "Task buddy changed to " : "Task buddy added: ") + buddyName
-				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+		// Get new buddy name
+		String newBuddyName = userLoginRepository.findById(buddyId).map(UserLoginEntity::getFirstName)
+				.orElse("Unknown");
+
+		String action;
+
+		if (isChange) {
+			action = "Task buddy changed from " + oldBuddyName + " to " + newBuddyName
+					+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+		} else {
+			action = "Task buddy added: " + newBuddyName
+					+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+		}
+
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
 
