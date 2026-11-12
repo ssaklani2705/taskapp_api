@@ -75,9 +75,13 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			+ "     OR LOWER(tc.name) LIKE LOWER(CONCAT('%', :search, '%')) "
 			+ "     OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%'))" + ") "
 			+ "AND (:clientId = 0 OR t.clientId = :clientId) "
-			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) " + "AND (:assignedTo = -1 "
+			+ "AND (:taskCategoryId = 0 OR t.taskCategoryId = :taskCategoryId) "
+			+ "AND (:assignedTo = -1 "
 			+ "     OR (:assignedTo = 0 AND (t.assignedTo = 0 OR t.assignedTo IS NULL)) "
-			+ "     OR t.assignedTo = :assignedTo) " + "AND (:priority = 0 OR t.priority = :priority) " + "AND ( "
+			+ "     OR t.assignedTo = :assignedTo) "
+			+ "AND (:assignedToMe = 0 OR t.assignedTo = :assignedToMe) "
+			+ "AND (:assignedByMe = 0 OR t.addedBy = :assignedByMe) "
+			+ "AND (:priority = 0 OR t.priority = :priority) " + "AND ( "
 			+ "     -1 IN :taskStatusIds " + "     OR t.taskStatus IN :taskStatusIds "
 			+ "     OR (-1 IN :taskStatusIds AND (t.assignedTo IS NULL OR t.assignedTo = 0)) " + ") "
 			+ "AND (:fromDate IS NULL OR :fromDate = '' OR FUNCTION('DATE', t.date) >= FUNCTION('DATE', CAST(:fromDate AS date))) "
@@ -127,7 +131,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Integer> {
 			@Param("dashboardFilter") String dashboardFilter, @Param("startOfToday") LocalDateTime startOfToday,
 			@Param("startOfTomorrow") LocalDateTime startOfTomorrow, @Param("startOfWeek") LocalDateTime startOfWeek,
 			@Param("endOfWeek") LocalDateTime endOfWeek, @Param("currentTime") LocalDateTime currentTime,
-			@Param("isHod") String isHod,@Param("taskId") Integer taskId);
+			@Param("isHod") String isHod,@Param("taskId") Integer taskId,@Param("assignedToMe") Integer assignedToMe,
+			@Param("assignedByMe") Integer assignedByMe);
 
 	@Modifying
 	@Transactional
