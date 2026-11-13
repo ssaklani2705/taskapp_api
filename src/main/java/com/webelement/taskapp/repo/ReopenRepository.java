@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.webelement.taskapp.dto.ReopenAssignedUserCountProjection;
 import com.webelement.taskapp.dto.ReopenReportDTO;
 import com.webelement.taskapp.dto.ReopenUserDropdownDTO;
 import com.webelement.taskapp.entity.ReopenEntity;
@@ -54,4 +55,23 @@ public interface ReopenRepository extends JpaRepository<ReopenEntity, Integer> {
 			+ "FROM ReopenEntity r " + "INNER JOIN r.reopenByUser u " + "WHERE r.reopenById IS NOT NULL "
 			+ "ORDER BY u.firstName ASC")
 	List<ReopenUserDropdownDTO> findReopenedByUsersInReopenReport();
+	
+	@Query(value = "SELECT " + "u.i_userid AS assignedToId, " + "u.s_firstname AS username, "
+			+ "COUNT(r.i_reopenid) AS taskCount " + "FROM t_userlogin u "
+			+ "LEFT JOIN t_reopen r ON r.i_assigntoid = u.i_userid " + "AND r.i_reopenid > 0 "
+			+ "AND (:fromDate IS NULL OR r.d_reopendate >= :fromDate) "
+			+ "AND (:toDate IS NULL OR r.d_reopendate < :toDate) " + "WHERE u.i_status = 1 "
+			+ "AND (:search IS NULL OR TRIM(:search) = '' "
+			+ "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :search, '%'))) "
+			+ "AND (:departmentIds IS NULL OR TRIM(:departmentIds) = '' "
+			+ "OR u.s_departmentids REGEXP CONCAT('(^|,)(', " + "REPLACE(:departmentIds, ',', '|'), ')(,|$)')) "
+			+ "GROUP BY u.i_userid, u.s_firstname " + "ORDER BY u.s_firstname ASC", countQuery = "SELECT COUNT(*) "
+					+ "FROM t_userlogin u " + "WHERE u.i_status = 1 " + "AND (:search IS NULL OR TRIM(:search) = '' "
+					+ "OR LOWER(u.s_firstname) LIKE LOWER(CONCAT('%', :search, '%'))) "
+					+ "AND (:departmentIds IS NULL OR TRIM(:departmentIds) = '' "
+					+ "OR u.s_departmentids REGEXP CONCAT('(^|,)(', "
+					+ "REPLACE(:departmentIds, ',', '|'), ')(,|$)'))", nativeQuery = true)
+	Page<ReopenAssignedUserCountProjection> getReopenCountByAssignedUser(@Param("fromDate") LocalDateTime fromDate,
+			@Param("toDate") LocalDateTime toDate, @Param("search") String search,
+			@Param("departmentIds") String departmentIds, Pageable pageable);
 }

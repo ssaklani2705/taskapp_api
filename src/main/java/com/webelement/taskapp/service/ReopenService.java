@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.webelement.taskapp.dto.ReopenAssignedUserCountProjection;
 import com.webelement.taskapp.dto.ReopenReportDTO;
 import com.webelement.taskapp.dto.ReopenUserDropdownDTO;
 import com.webelement.taskapp.repo.ReopenRepository;
@@ -30,5 +31,12 @@ public class ReopenService {
 	
 	public List<ReopenUserDropdownDTO> getReopenedByUsersInReopenReport() {
 	    return reopenRepository.findReopenedByUsersInReopenReport();
+	}
+	
+	public Page<ReopenAssignedUserCountProjection> getReopenCountByAssignedUser(LocalDateTime fromDate, LocalDateTime toDate,
+			String search, String departmentIds, Pageable pageable) {
+
+
+		return reopenRepository.getReopenCountByAssignedUser(fromDate, toDate, search, departmentIds, pageable);
 	}
 }

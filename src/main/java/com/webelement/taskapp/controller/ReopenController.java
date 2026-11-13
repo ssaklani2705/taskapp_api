@@ -1,5 +1,6 @@
 package com.webelement.taskapp.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webelement.taskapp.dto.ReopenAssignedUserCountProjection;
 import com.webelement.taskapp.dto.ReopenReportDTO;
 import com.webelement.taskapp.service.ReopenService;
 import lombok.RequiredArgsConstructor;
@@ -88,5 +90,30 @@ public class ReopenController {
 			logger.error("Error fetching reopened by users", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
 		}
+	}
+	
+	@GetMapping("/reopen-report/assigned-user-count")
+	public ResponseEntity<Page<ReopenAssignedUserCountProjection>> getReopenCountByAssignedUser(
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
+			@RequestParam(required = false) String search, @RequestParam(required = false) String departmentIds) {
+
+
+		LocalDateTime fromDateTime = (fromDate == null || fromDate.trim().isEmpty()) ? null
+				: LocalDate.parse(fromDate).atStartOfDay();
+
+
+		LocalDateTime toDateTime = (toDate == null || toDate.trim().isEmpty()) ? null
+				: LocalDate.parse(toDate).plusDays(1).atStartOfDay();
+
+
+		Pageable pageable = PageRequest.of(page, size);
+
+
+		Page<ReopenAssignedUserCountProjection> result = reopenService.getReopenCountByAssignedUser(fromDateTime, toDateTime,
+				search, departmentIds, pageable);
+
+
+		return ResponseEntity.ok(result);
 	}
 }
