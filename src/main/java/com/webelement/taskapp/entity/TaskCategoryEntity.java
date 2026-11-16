@@ -140,7 +140,8 @@ public class TaskCategoryEntity {
 	@JsonIgnore
 	private DepartmentEntity department;
 
-	
+	@Column(name = "i_type")
+	private Integer categoryType;   // 1 = Employee only, 2 = Employee and Manager
 	
 	
 	// output-only, sent to Angular instead of the whole relation

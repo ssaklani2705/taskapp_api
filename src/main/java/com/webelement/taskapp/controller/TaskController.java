@@ -158,6 +158,7 @@ public class TaskController {
 //	@Autowired private ClientRepository clientRepository;
 	@Autowired private PlanRepo planRepository;   // JpaRepository<PlanEntity, Integer>
 
+	private static final int HIDE_FROM_MANAGER_TYPE = 1;   // i_type value hidden from managers
 	@GetMapping("/getTaskFilterDataOnChange")
 	public Map<String, Object> getTaskFilterDataOnChange(@RequestParam String isAdmin, @RequestParam Integer userId,
 	        @RequestParam String loginType, @RequestParam(required = false) Integer clientId,
@@ -169,7 +170,8 @@ public class TaskController {
 	    boolean managerLogin = "manager".equalsIgnoreCase(loginType);
 	    boolean managerType = userType != null && userType == 2; // 1 = Employee, 2 = Manager
 	    boolean excludeDepts = managerLogin || managerType;
-
+	    boolean hideEmployeeOnly = managerLogin || managerType;
+	    
 	    boolean clientSelected = clientId != null && clientId > 0;
 
 	    // Plan-based service filter (only when a client is selected)
@@ -194,9 +196,12 @@ public class TaskController {
 	        }
 	    }
 
-	    response.put("taskCategories", taskCategoryRepository.findActiveTaskCategoriesFiltered(
-	            excludeDepts, List.of(2, 3, 4, 5), filterByPlan, serviceIds));
+//	    response.put("taskCategories", taskCategoryRepository.findActiveTaskCategoriesFiltered(
+//	            excludeDepts, List.of(2, 3, 4, 5), filterByPlan, serviceIds));
 
+	    response.put("taskCategories", taskCategoryRepository.findActiveTaskCategoriesFiltered(
+	            hideEmployeeOnly, HIDE_FROM_MANAGER_TYPE, filterByPlan, serviceIds));	
+	    
 	    // Assigned users depend on the client, so load them only when one is selected
 	    if (clientSelected) {
 	        response.put("assignedUsers", userLoginRepository.findActiveUsers(clientId));
