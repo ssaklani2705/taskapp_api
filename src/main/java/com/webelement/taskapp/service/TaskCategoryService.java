@@ -287,6 +287,7 @@ public class TaskCategoryService {
 				.collect(Collectors.toList());
 	}
 	
+	private static final int EMPLOYEE_ONLY_TYPE = 1;   // i_type = 1: hidden from managers
 	public List<TaskCategoryDTO> getActiveTaskCategoriesForRecurringFInal(
 	        Integer userId, String isAdmin, String loginType,
 	        String isHod, Integer clientId) {
@@ -297,12 +298,10 @@ public class TaskCategoryService {
 	    // All active categories
 	    List<TaskCategoryDTO> list =
 	            taskCategoryRepository.findByStatusWithDepartment(1);
-
-	    // CLIENT SELECTED: Apply client plan service filtering for manager and employee
+	    
 	    if (clientId != null && clientId > 0) {
 
-	        String taskcategoryIds =
-	                userLoginRepository.findTaskcategoryIdsByClientId(clientId);
+	        String taskcategoryIds = userLoginRepository.findTaskcategoryIdsByClientId(clientId);
 
 	        System.out.println("Client categories: " + taskcategoryIds);
 
@@ -316,20 +315,57 @@ public class TaskCategoryService {
 	                .map(Integer::valueOf)
 	                .collect(Collectors.toSet());
 
+	        boolean isManager = "manager".equalsIgnoreCase(loginType);
+
 	        return list.stream()
 	                .filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
+	                // managers never get employee-only categories, even for a client
+	                .filter(t -> !isManager
+	                        || t.getCategoryType() == null
+	                        || t.getCategoryType() != EMPLOYEE_ONLY_TYPE)
 	                .collect(Collectors.toList());
 	    }
+	    
 
-	    // MANAGER: No client selected - all active categories except departments 2, 3, 4, 5
+	    // CLIENT SELECTED: Apply client plan service filtering for manager and employee
+//	    if (clientId != null && clientId > 0) {
+//
+//	        String taskcategoryIds =
+//	                userLoginRepository.findTaskcategoryIdsByClientId(clientId);
+//
+//	        System.out.println("Client categories: " + taskcategoryIds);
+//
+//	        if (taskcategoryIds == null || taskcategoryIds.trim().isEmpty()) {
+//	            return Collections.emptyList();
+//	        }
+//
+//	        Set<Integer> allowedCategoryIds = Arrays.stream(taskcategoryIds.split(","))
+//	                .map(String::trim)
+//	                .filter(value -> !value.isEmpty())
+//	                .map(Integer::valueOf)
+//	                .collect(Collectors.toSet());
+//
+//	        return list.stream()
+//	                .filter(t -> allowedCategoryIds.contains(t.getTaskcategoryId()))
+//	                .collect(Collectors.toList());
+//	    }
+
+	    // MANAGER: No client selected - all active categories except departments 2, 3, 4, 5 sunny
 	    if ("manager".equalsIgnoreCase(loginType)) {
 
-	        Set<Integer> excludedDepartments = Set.of(2, 3, 4, 5);
+//	        Set<Integer> excludedDepartments = Set.of(2, 3, 4, 5);
 
-	        return list.stream()
-	                .filter(t -> t.getDepartmentId() == null
-	                        || !excludedDepartments.contains(t.getDepartmentId()))
+//	        return list.stream()
+//	                .filter(t -> t.getDepartmentId() == null
+//	                        || !excludedDepartments.contains(t.getDepartmentId()))
+//	                .collect(Collectors.toList());
+	    	return list.stream()
+	                .filter(t -> t.getCategoryType() == null
+	                        || t.getCategoryType() != EMPLOYEE_ONLY_TYPE)
 	                .collect(Collectors.toList());
+	    	
+	    	
+
 	    }
 
 	    // EMPLOYEE: No client selected - only categories assigned in t_userlogin

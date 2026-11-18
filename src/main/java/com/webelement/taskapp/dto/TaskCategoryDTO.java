@@ -194,6 +194,16 @@ public class TaskCategoryDTO {
 		this.dueDateTime = dueDateTime;
 	}
 	
+	public TaskCategoryDTO(Integer taskcategoryId, String name, Integer departmentId, String departmentName,
+			String dueDateTime,Integer categoryType) {
+		this.taskcategoryId = taskcategoryId;
+		this.name = name;
+		this.departmentId = departmentId;
+		this.departmentName = departmentName;
+		this.dueDateTime = dueDateTime;
+		this.categoryType = categoryType;
+	}
+	
 	public TaskCategoryDTO(
 	        int taskcategoryId,
 	        int departmentId,
