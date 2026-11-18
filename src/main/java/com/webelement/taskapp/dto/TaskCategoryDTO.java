@@ -19,6 +19,7 @@ public class TaskCategoryDTO {
 	private Timestamp moddate;
 	
 	private Integer serviceId;
+	private Integer categoryType;   // 1 = Internal, 2 = External
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private String dueDateTime;
@@ -104,6 +105,14 @@ public class TaskCategoryDTO {
 
 	public Integer getStatus() {
 		return status;
+	}
+	
+	public Integer getCategoryType() {
+	    return categoryType;
+	}
+
+	public void setCategoryType(Integer categoryType) {
+	    this.categoryType = categoryType;
 	}
 
 	public void setStatus(Integer status) {
