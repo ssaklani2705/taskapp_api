@@ -74,7 +74,7 @@ public class ClientController {
 			"c.status", "managerName", "u.firstName", "stateName", "s.name", "contactName", "c.contactName",
 			"contactEmail", "c.contactEmail", "city", "c.city", "regdate", "c.regdate");
 
-	@GetMapping("/addOrUpdateClient")
+	@GetMapping("/getClientDetails")
 	public Map<String, Object> findClientDetails(@RequestParam int page, @RequestParam int size,
 			@RequestParam(defaultValue = "0") Short status, @RequestParam(defaultValue = "0") Integer managerId,
 			@RequestParam(defaultValue = "0") Integer stateId, @RequestParam(required = false) Short gstFlag,
