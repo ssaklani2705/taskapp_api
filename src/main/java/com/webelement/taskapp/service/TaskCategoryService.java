@@ -53,6 +53,17 @@ public class TaskCategoryService {
 		if (name.isEmpty()) {
 			return new ApiResponse<>(false, "Task Category name is required", null);
 		}
+		
+		Integer type = dto.getCategoryType();
+		if (type == null || (type != 1 && type != 2)) {
+		    return new ApiResponse<>(false, "Task Category type is required", null);
+		}
+		if (type == 2 && (dto.getServiceId() == null || dto.getServiceId() <= 0)) {
+		    return new ApiResponse<>(false, "Service is required for External task categories", null);
+		}
+
+		// Internal: service is optional, store NULL instead of 0
+		Integer serviceId = (dto.getServiceId() == null || dto.getServiceId() <= 0) ? null : dto.getServiceId();
 
 		// ADD
 		if (dto.getTaskcategoryId() == null || dto.getTaskcategoryId() == 0) {
@@ -87,7 +98,7 @@ public class TaskCategoryService {
 			entity.setName(name);
 			entity.setUserId(dto.getUserId());
 			entity.setServiceId(dto.getServiceId());
-
+			entity.setCategoryType(type);            // new
 			entity.setDuedatetime(dto.getDueDateTime());
 
 			if (dto.getStatus() != null) {
@@ -104,6 +115,7 @@ public class TaskCategoryService {
 
 			entity.setDepartmentId(dto.getDepartmentId());
 			entity.setServiceId(dto.getServiceId());
+			entity.setCategoryType(type);            // new
 			entity.setName(name);
 			entity.setUserId(dto.getUserId());
 			entity.setStatus(1);
@@ -155,7 +167,7 @@ public class TaskCategoryService {
 		dto.setModdate(entity.getModdate());
 		dto.setDueDateTime(entity.getDuedatetime());
 		dto.setServiceId(entity.getServiceId());
-		/*
+		dto.setCategoryType(entity.getCategoryType());		/*
 		 * Get Department Name
 		 */
 		if (entity.getDepartmentId() != null && entity.getDepartmentId() > 0) {
