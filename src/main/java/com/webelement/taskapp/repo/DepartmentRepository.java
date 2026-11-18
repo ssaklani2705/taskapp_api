@@ -32,7 +32,9 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, In
 	Page<DepartmentDTO> findDepartmentDetails(Pageable pageable, @Param("statusIndex") int statusIndex,
 			@Param("search") String search);
 
-	List<DepartmentEntity> findByStatus(Integer status);
+//	List<DepartmentEntity> findByStatus(Integer status);
+	
+	List<DepartmentEntity> findByStatusOrderBySequenceAsc(Integer status);
 
 	boolean existsByNameIgnoreCase(String name);
 

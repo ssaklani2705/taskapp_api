@@ -167,7 +167,7 @@ public class DepartmentService {
 	}
 
 	public List<DepartmentDTO> getActiveDepartments() {
-		List<DepartmentEntity> departments = departmentRepository.findByStatus(1);
+		List<DepartmentEntity> departments = departmentRepository.findByStatusOrderBySequenceAsc(1);
 		return departments.stream().map(d -> new DepartmentDTO(d.getDepartmentId(), d.getName()))
 				.collect(Collectors.toList());
 	}
