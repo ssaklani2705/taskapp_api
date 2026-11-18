@@ -125,8 +125,13 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategoryEntity
 	List<TaskCategoryEntity> findByTaskCategory();
 
 	@Query("SELECT new com.webelement.taskapp.dto.TaskCategoryDTO("
+<<<<<<< HEAD
 			+ "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime) " + "FROM TaskCategoryEntity tc "
 			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = :status AND tc.categoryType NOT IN (1) "
+=======
+			+ "tc.taskcategoryId, tc.name, tc.departmentId, d.name, tc.duedatetime,tc.categoryType) " + "FROM TaskCategoryEntity tc "
+			+ "LEFT JOIN DepartmentEntity d ON d.departmentId = tc.departmentId " + "WHERE tc.status = :status "
+>>>>>>> e248fcfab26e0148e2dc3139115da99612b7b670
 			+ "AND LOWER(TRIM(tc.name)) <> 'admin task'")
 	List<TaskCategoryDTO> findByStatusWithDepartment(@Param("status") Integer status);
 
