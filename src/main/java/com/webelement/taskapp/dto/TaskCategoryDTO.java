@@ -7,8 +7,15 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.webelement.taskapp.entity.TransactionEntity;
 
-public class TaskCategoryDTO {
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+@Getter
+@Setter
+@ToString
 
+public class TaskCategoryDTO {
 	private Integer taskcategoryId;
 	private Integer departmentId;
 	private String departmentName;
@@ -25,6 +32,7 @@ public class TaskCategoryDTO {
 	private String dueDateTime;
 
 	private List<TransactionEntity> transactionHistory;
+	private Integer sequence;
 
 	public TaskCategoryDTO() {
 	}
@@ -68,109 +76,7 @@ public class TaskCategoryDTO {
 		this.name = name;
 	}
 
-	public Integer getTaskcategoryId() {
-		return taskcategoryId;
-	}
-
-	public void setTaskcategoryId(Integer taskcategoryId) {
-
-		this.taskcategoryId = taskcategoryId;
-	}
-
-	public String getDepartmentName() {
-		return departmentName;
-	}
-
-	public void setDepartmentName(String departmentName) {
-		this.departmentName = departmentName;
-	}
-
-	public Integer getDepartmentId() {
-		return departmentId;
-	}
-
-	public void setDepartmentId(Integer departmentId) {
-
-		this.departmentId = departmentId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-
-		this.name = name;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
 	
-	public Integer getCategoryType() {
-	    return categoryType;
-	}
-
-	public void setCategoryType(Integer categoryType) {
-	    this.categoryType = categoryType;
-	}
-
-	public void setStatus(Integer status) {
-
-		this.status = status;
-	}
-
-	public Integer getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Integer userId) {
-
-		this.userId = userId;
-	}
-
-	public Timestamp getRegdate() {
-		return regdate;
-	}
-
-	public void setRegdate(Timestamp regdate) {
-
-		this.regdate = regdate;
-	}
-
-	public Timestamp getModdate() {
-		return moddate;
-	}
-
-	public void setModdate(Timestamp moddate) {
-
-		this.moddate = moddate;
-	}
-
-	public String getDueDateTime() {
-		return dueDateTime;
-	}
-
-	public void setDueDateTime(String dueDateTime) {
-		this.dueDateTime = dueDateTime;
-	}
-
-	public List<TransactionEntity> getTransactionHistory() {
-		return transactionHistory;
-	}
-
-	public void setTransactionHistory(List<TransactionEntity> transactionHistory) {
-
-		this.transactionHistory = transactionHistory;
-	}
-	
-	public Integer getServiceId() {
-	    return serviceId;
-	}
-
-	public void setServiceId(Integer serviceId) {
-	    this.serviceId = serviceId;
-	}
 
 	/*
 	 * Constructor for active dropdown with department
@@ -230,5 +136,15 @@ public class TaskCategoryDTO {
 	    if (moddate != null) {
 	        this.moddate = new Timestamp(moddate.getTime());
 	    }
+	}
+	
+	public TaskCategoryDTO(Integer taskcategoryId, Integer departmentId, String name, String departmentName,
+			String dueDateTime, Integer sequence) {
+		this.taskcategoryId = taskcategoryId;
+		this.departmentId = departmentId;
+		this.departmentName = departmentName;
+		this.name = name;
+		this.dueDateTime = dueDateTime;
+		this.sequence = sequence;
 	}
 }

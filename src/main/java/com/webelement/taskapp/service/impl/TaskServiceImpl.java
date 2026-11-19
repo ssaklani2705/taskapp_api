@@ -451,6 +451,10 @@ public class TaskServiceImpl implements TaskService {
 		if (!remark.isEmpty()) {
 			actionMessage += " Remarks: " + remark;
 		}
+		
+		if (isAssignorClosure && dto.getRating() != null) {
+		    actionMessage += ", Rating: " + formatRating(dto.getRating()) + "/5.";
+		}
 		task.setTaskStatus(nextStatus);
 		task.setCloseRemarks(remark);
 		task.setModificationDate(LocalDateTime.now());
@@ -674,6 +678,14 @@ public class TaskServiceImpl implements TaskService {
 
 		ReassignEntity entity = objectMapper(dto);
 		taskReassigned.save(entity);
+	}
+	
+	private String formatRating(Number rating) {
+	    double value = rating.doubleValue();
+	    if (value == Math.rint(value)) {
+	        return String.valueOf((long) value);   // 5.0 -> "5"
+	    }
+	    return String.valueOf(value);              // 4.5 -> "4.5"
 	}
 
 }
