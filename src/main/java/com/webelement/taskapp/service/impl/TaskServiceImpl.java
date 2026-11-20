@@ -224,7 +224,6 @@ public class TaskServiceImpl implements TaskService {
 		}
 		if (endDate.isBefore(date)) {
 			throw ApiException.badRequest("End Date & Time cannot be before Start Date & Time");
-
 		}
 		// ADD
 		if (buddyId != null && buddyId.equals(assignedTo)) {
@@ -232,6 +231,7 @@ public class TaskServiceImpl implements TaskService {
 		}
 		TaskEntity task = optionalTask.get();
 		Integer oldAssigneeId = task.getAssignedTo();
+		boolean isNewAssignment = (oldAssigneeId == null || oldAssigneeId == 0);
 		task.setAssignedTo(assignedTo);
 		task.setBuddyId(buddyId);
 		if (task.getAddedBy() == null || task.getAddedBy() == 0) {
@@ -247,25 +247,41 @@ public class TaskServiceImpl implements TaskService {
 		saveTaskReassignment(taskId, oldAssigneeId, assignedTo, userId);
 
 		String assignedUserName = "Unknown";
-		String oldAssignedUserName = "Unknown";
+
 		if (savedTask.getAssignedTo() != null) {
 			assignedUserName = userLoginRepository.findById(savedTask.getAssignedTo())
 					.map(UserLoginEntity::getFirstName).orElse("Unknown");
 		}
 
-		if (oldAssigneeId != null) {
-			oldAssignedUserName = userLoginRepository.findById(oldAssigneeId).map(UserLoginEntity::getFirstName)
+		String action;
+		if (isNewAssignment) {
+			// new assignee: no old user name at all
+			action = "Task assigned to " + assignedUserName;
+		} else {
+			String oldAssignedUserName = userLoginRepository.findById(oldAssigneeId).map(UserLoginEntity::getFirstName)
 					.orElse("Unknown");
+			action = "Task reassigned from " + oldAssignedUserName + " to " + assignedUserName;
 		}
-		String action = "Task reassigned from " + oldAssignedUserName + " to " + assignedUserName
-				+ (remark != null && !remark.trim().isEmpty() ? ". Remarks: " + remark.trim() : "");
+
+		if (remark != null && !remark.trim().isEmpty()) {
+			action += ". Remarks: " + remark.trim();
+		}
+
 		commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
 				commonFunction.getLocalIp(), action, 10, savedTask.getTaskId(), -1);
+
 		try {
-			taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);// issue
+
+			if (assignedTo != null && assignedTo != 0) {
+				if (isNewAssignment) {
+					taskMailService.sendTaskAssignedMail(savedTask);
+				} else if (!oldAssigneeId.equals(assignedTo)) {
+					// real reassignment (old assignee existed and is different)
+					taskMailService.sendTaskReassignMail(savedTask, oldAssigneeId);
+				}
+			}
 		} catch (Exception e) {
-			logger.debug("{} ERROR FOUND ", e.getMessage());
-			e.printStackTrace();
+			logger.error("Failed to send task mail for task {}", savedTask.getTaskId(), e);
 		}
 		return ResponseEntity.ok(new ApiResponse<>(true, "User assigned successfully", null));
 	}
@@ -374,6 +390,7 @@ public class TaskServiceImpl implements TaskService {
 
 	public TaskEditDTO getTaskById(Integer taskId) {
 		List<TransactionEntity> history = commonFunction.getTransactionLogs(10, taskId);
+		
 		TaskEditDTO taskDto = taskRepository.findTaskById(taskId)
 				.orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
 

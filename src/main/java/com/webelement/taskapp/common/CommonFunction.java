@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -81,6 +81,8 @@ public class CommonFunction {
 
 	public List<TransactionEntity> getTransactionLogs(int moduleId, Integer recordId) {
 		List<Object[]> results = userLoginRepository.getTransactionLogs(moduleId, recordId);
+		
+		results.stream().forEach(s -> System.err.println("[Results => ] "+Arrays.toString(s)));
 		
 		return results.stream().map(obj -> {
 			TransactionEntity dto = new TransactionEntity();

@@ -148,7 +148,7 @@ public class GenericRecurringService {
 
 
         commonFunction.createHistoryAccess(userId, commonFunction.resolveClientIp(httpRequest),
-                commonFunction.getLocalIp(), action, 14, recurringEntity.getGenericRecurringId(), -1);
+                commonFunction.getLocalIp(), action, 15, recurringEntity.getGenericRecurringId(), -1);
 
 
         return new ApiResponse<>(true,
