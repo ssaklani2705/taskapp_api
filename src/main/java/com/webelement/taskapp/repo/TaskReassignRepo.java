@@ -19,12 +19,13 @@ public interface TaskReassignRepo extends JpaRepository<ReassignEntity, Integer>
 	@EntityGraph(attributePaths = { "taskEntity", "taskEntity.taskCategory", "taskEntity.client", "currentUser", "newUser","assignedBy" })
 	@Query("SELECT tr FROM ReassignEntity tr " +
 	       "WHERE tr.reassignId > 0 " +
+	       "AND tr.currentUserId > 0 " +     
+	       "AND tr.currentUserId <> tr.newUserId " +
 	       "AND (:fromDate IS NULL OR tr.registrationDate >= :fromDate) " +
 	       "AND (:toDate IS NULL OR tr.registrationDate < :toDate) " +
 	       "AND (:taskCategoryId = 0 OR tr.taskEntity.taskCategoryId = :taskCategoryId) " +
 	       "AND (:clientId = 0 OR tr.taskEntity.clientId = :clientId) " +
 	       "AND (:userId = 0 OR tr.currentUserId = :userId) " +
-//	       "AND (:userId = 0 OR tr.currentUserId = :userId OR tr.newUserId = :userId) " +
 	       "AND (:departmentFilter = 0 OR tr.taskEntity.taskCategory.departmentId IN :departmentIds) " +
 	       "AND (LOWER(COALESCE(tr.taskEntity.title, '')) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))) " +
 	       "ORDER BY tr.registrationDate DESC")
